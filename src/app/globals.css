@@ -1,26 +1,270 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --color-bg: #fdfdfc;
+  --color-ink: #14140f;
+  --color-ink-soft: #3a382f;
+  --color-mute: #6c6a60;
+  --color-mute-2: #8d8b81;
+  --color-mute-3: #a3a199;
+  --color-rule: #e9e7df;
+  --color-rule-2: #cfcdc4;
+  --color-panel: #f5f4f0;
+  --color-panel-line: #eae8e0;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-serif: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --animate-fade-up: fadeUp 520ms ease both;
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ::selection {
+    background: #eceae2;
+  }
+}
+
+/* Horizontal page padding used by every section of the site. */
+@utility gutter {
+  padding-inline: clamp(20px, 4vw, 56px);
+}
+
+@layer components {
+  .nav-link {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.17em;
+    padding-bottom: 4px;
+    border-bottom: 1px solid transparent;
+    color: var(--color-mute-3);
+    transition: color 240ms ease;
+  }
+
+  .nav-link:hover {
+    color: var(--color-mute);
+  }
+
+  .nav-link[data-active="true"] {
+    color: var(--color-ink);
+    border-bottom-color: var(--color-ink);
+  }
+
+  .filter-link {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding-bottom: 4px;
+    border-bottom: 1px solid transparent;
+    color: var(--color-mute-3);
+    transition: color 240ms ease;
+  }
+
+  .filter-link:hover {
+    color: var(--color-mute);
+  }
+
+  .filter-link[data-active="true"] {
+    color: var(--color-ink);
+    border-bottom-color: var(--color-ink);
+  }
+
+  .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--color-mute-3);
+  }
+
+  .page-title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(28px, 3.6vw, 44px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+
+  /* Placeholder tile shown until the artist uploads a real image. */
+  .slot {
+    background-color: var(--color-panel);
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--color-panel-line) 0 1px,
+      rgba(0, 0, 0, 0) 1px 9px
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .slot > span {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-mute-2);
+    padding: 0 14px;
+    text-align: center;
+  }
+
+  /* Caps the height of a tall work so it always fits the viewport. */
+  .work-image {
+    width: 100%;
+    max-width: min(100%, calc(78vh * var(--ar)));
+  }
+
+  .mono-note {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    color: var(--color-mute-3);
+  }
+}
+
+/* ---------- Admin panel ---------- */
+
+@layer components {
+  .adm-shell {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 clamp(20px, 4vw, 40px) 90px;
+  }
+
+  .adm-bar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px clamp(20px, 4vw, 40px) 14px;
+    background: rgba(253, 253, 252, 0.94);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  .adm-h1 {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(24px, 3vw, 34px);
+    line-height: 1.1;
+  }
+
+  .adm-card {
+    border: 1px solid var(--color-rule);
+    background: #fff;
+    padding: 18px 20px;
+  }
+
+  .adm-label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--color-mute-3);
+    margin-bottom: 7px;
+  }
+
+  .adm-input,
+  .adm-textarea,
+  .adm-select {
+    width: 100%;
+    border: 1px solid var(--color-rule);
+    background: #fff;
+    padding: 9px 11px;
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--color-ink);
+    border-radius: 0;
+  }
+
+  .adm-input:focus,
+  .adm-textarea:focus,
+  .adm-select:focus {
+    outline: none;
+    border-color: var(--color-mute-2);
+  }
+
+  .adm-textarea {
+    min-height: 130px;
+    resize: vertical;
+  }
+
+  .adm-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--color-rule);
+    background: #fff;
+    padding: 8px 14px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: var(--color-mute);
+    cursor: pointer;
+    transition:
+      color 200ms ease,
+      border-color 200ms ease;
+  }
+
+  .adm-btn:hover {
+    color: var(--color-ink);
+    border-color: var(--color-mute-2);
+  }
+
+  .adm-btn-primary {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: #fdfdfc;
+  }
+
+  .adm-btn-primary:hover {
+    color: #fdfdfc;
+    background: #000;
+  }
+
+  .adm-btn-danger:hover {
+    color: #a3312a;
+    border-color: #a3312a;
+  }
+
+  .adm-note {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--color-mute);
+  }
 }

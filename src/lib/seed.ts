@@ -1,0 +1,468 @@
+import type {
+  AboutContent,
+  ContactContent,
+  Exhibition,
+  Series,
+  Work,
+} from "./types";
+
+/**
+ * Starting content. Once the artist edits anything in the admin panel the
+ * D1 rows take over; this stays as the initial seed and as fixture data
+ * for local development.
+ */
+
+const KIVRIM_CAPTION = {
+  tr: "Serigrafi, 5 baskı, 50 × 40 cm",
+  en: "Screenprint, ed. 5, 50 × 40 cm",
+};
+
+const ESIK_CAPTION = {
+  tr: "Kağıt üzerine mürekkep, 30 × 24 cm",
+  en: "Ink on paper, 30 × 24 cm",
+};
+
+export const SEED_SERIES: Series[] = [
+  {
+    id: "s_kivrim",
+    slug: "kivrim",
+    medium: "prints",
+    years: "2023–2025",
+    order: 1,
+    title: { tr: "Kıvrım", en: "Fold" },
+    meta: { tr: "4 iş, serigrafi", en: "4 works, screenprint" },
+    note: {
+      tr: "Aynı perdenin dört kez, farklı ışıkta baskıya alınmış hali. Her baskıda katman sayısı azalıyor; seri sonunda geriye yalnızca kıvrımın izi kalıyor.",
+      en: "The same curtain printed four times under changing light. Each print carries fewer layers than the last, until only the trace of the fold remains.",
+    },
+    coverWorkId: "w2",
+    published: true,
+  },
+  {
+    id: "s_esik",
+    slug: "esik",
+    medium: "paper",
+    years: "2022–2024",
+    order: 2,
+    title: { tr: "Eşik", en: "Threshold" },
+    meta: { tr: "4 iş, kağıt üzerine", en: "4 works, on paper" },
+    note: {
+      tr: "Bir odadan diğerine geçiş anını tutan kağıt işleri. Mürekkep ve pigment, eşiğin iki yanındaki iki farklı ışığı tek yüzeyde buluşturuyor.",
+      en: "Works on paper holding the moment of passing from one room to the next. Ink and pigment bring the two different lights on either side of the threshold onto one surface.",
+    },
+    coverWorkId: "w7",
+    published: true,
+  },
+];
+
+export const SEED_WORKS: Work[] = [
+  {
+    id: "w1",
+    slug: "sabah-duvari",
+    medium: "paintings",
+    seriesId: null,
+    year: "2025",
+    order: 1,
+    title: { tr: "Sabah Duvarı", en: "Morning Wall" },
+    caption: {
+      tr: "Ketende yağlıboya, 120 × 90 cm",
+      en: "Oil on linen, 120 × 90 cm",
+    },
+    note: {
+      tr: "Kadıköy'deki atölyenin kuzey duvarı, sabah yedi ile dokuz arası. Aynı yüzeyi üç ay boyunca aynı saatte çalıştı; boya sabah ışığının duvarı ne kadar yavaş kat ettiğini kaydediyor. Katmanların hiçbiri tamamen kapatılmadı, bu yüzden ilk günün grisi son günün turuncusunun altından görünmeye devam ediyor.",
+      en: "The north wall of the Kadıköy studio, between seven and nine in the morning. She worked the same surface at the same hour for three months; the paint records how slowly the light crosses it. No layer was ever fully covered, so the grey of the first day still shows beneath the orange of the last.",
+    },
+    width: 420,
+    height: 560,
+    slot: "painting 120×90",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w2",
+    slug: "kivrim-i",
+    medium: "prints",
+    seriesId: "s_kivrim",
+    year: "2025",
+    order: 2,
+    title: { tr: "Kıvrım I", en: "Fold I" },
+    caption: KIVRIM_CAPTION,
+    note: {
+      tr: "Serinin ilk baskısı: perde henüz katı, kıvrım keskin. Beş katman serigrafi, en açık tondan en koyuya doğru.",
+      en: "The first print of the series: the curtain still solid, the fold still sharp. Five screenprinted layers, lightest tone to darkest.",
+    },
+    width: 400,
+    height: 500,
+    slot: "print 50×40",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w3",
+    slug: "kivrim-ii",
+    medium: "prints",
+    seriesId: "s_kivrim",
+    year: "2024",
+    order: 3,
+    title: { tr: "Kıvrım II", en: "Fold II" },
+    caption: KIVRIM_CAPTION,
+    note: {
+      tr: "İkinci baskıda katman sayısı dörde iniyor; kumaşın ağırlığı yerini ışığa bırakıyor.",
+      en: "In the second print the layers drop to four; the weight of the fabric gives way to light.",
+    },
+    width: 420,
+    height: 510,
+    slot: "print 50×40",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w4",
+    slug: "kivrim-iii",
+    medium: "prints",
+    seriesId: "s_kivrim",
+    year: "2024",
+    order: 4,
+    title: { tr: "Kıvrım III", en: "Fold III" },
+    caption: KIVRIM_CAPTION,
+    note: {
+      tr: "Üçüncü baskı yalnızca üç geçişle yapıldı. Kıvrımın kendisi değil, kıvrımın gölgesi taşınıyor.",
+      en: "The third print was pulled in only three passes. What carries over is not the fold but its shadow.",
+    },
+    width: 430,
+    height: 520,
+    slot: "print 50×40",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w5",
+    slug: "kivrim-iv",
+    medium: "prints",
+    seriesId: "s_kivrim",
+    year: "2023",
+    order: 5,
+    title: { tr: "Kıvrım IV", en: "Fold IV" },
+    caption: KIVRIM_CAPTION,
+    note: {
+      tr: "Serinin sonu: tek geçiş, tek ton. Perdeden kalan şey bir kenar izi.",
+      en: "The end of the series: one pass, one tone. What remains of the curtain is the trace of an edge.",
+    },
+    width: 420,
+    height: 516,
+    slot: "print 50×40",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w6",
+    slug: "legendeki-su",
+    medium: "paintings",
+    seriesId: null,
+    year: "2024",
+    order: 6,
+    title: { tr: "Leğendeki Su", en: "Water in a Basin" },
+    caption: {
+      tr: "Ketende yağlıboya, 60 × 75 cm",
+      en: "Oil on linen, 60 × 75 cm",
+    },
+    note: {
+      tr: "Emaye bir leğende duran su. Yüzey her hareket ettiğinde odanın tavanını farklı bir biçimde geri veriyor; resim bu geri dönüşlerden birini seçiyor.",
+      en: "Water held in an enamel basin. Each time the surface moves it returns the ceiling differently; the painting settles on one of those returns.",
+    },
+    width: 560,
+    height: 442,
+    slot: "painting 60×75",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w7",
+    slug: "esik-i-perde",
+    medium: "paper",
+    seriesId: "s_esik",
+    year: "2024",
+    order: 7,
+    title: { tr: "Eşik I — Perde", en: "Threshold I — Curtain" },
+    caption: {
+      tr: "Kağıt üzerine pigment, 42 × 30 cm",
+      en: "Pigment on paper, 42 × 30 cm",
+    },
+    note: {
+      tr: "Eşik serisinin açılışı. Perde yarı çekili, iki odanın ışığı tek kağıtta üst üste biniyor.",
+      en: "The opening of the Threshold series. The curtain half drawn, the light of two rooms overlapping on one sheet.",
+    },
+    width: 420,
+    height: 570,
+    slot: "drawing 42×30",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w8",
+    slug: "esik-ii",
+    medium: "paper",
+    seriesId: "s_esik",
+    year: "2023",
+    order: 8,
+    title: { tr: "Eşik II", en: "Threshold II" },
+    caption: ESIK_CAPTION,
+    note: {
+      tr: "Kapı boşluğunun ölçüsü, mürekkebin kağıda yayılma hızına bırakılmış.",
+      en: "The measure of the doorway is left to the speed at which ink spreads on paper.",
+    },
+    width: 410,
+    height: 500,
+    slot: "drawing 30×24",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w9",
+    slug: "esik-iii",
+    medium: "paper",
+    seriesId: "s_esik",
+    year: "2023",
+    order: 9,
+    title: { tr: "Eşik III", en: "Threshold III" },
+    caption: ESIK_CAPTION,
+    note: {
+      tr: "Aynı eşik, akşam. Pigment bu kez daha az su ile karıştırıldı; kenarlar sertleşti.",
+      en: "The same threshold, at dusk. Here the pigment was mixed with less water; the edges hardened.",
+    },
+    width: 410,
+    height: 505,
+    slot: "drawing 30×24",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w10",
+    slug: "esik-iv",
+    medium: "paper",
+    seriesId: "s_esik",
+    year: "2022",
+    order: 10,
+    title: { tr: "Eşik IV", en: "Threshold IV" },
+    caption: {
+      tr: "Kağıt üzerine mürekkep ve pigment, 30 × 24 cm",
+      en: "Ink and pigment on paper, 30 × 24 cm",
+    },
+    note: {
+      tr: "Serinin en küçük işi ve en uzun süre çalışılanı; kağıt dört kez ıslatıldı.",
+      en: "The smallest work in the series and the longest worked; the paper was wetted four times.",
+    },
+    width: 415,
+    height: 500,
+    slot: "drawing 30×24",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w11",
+    slug: "gec-isik",
+    medium: "paintings",
+    seriesId: null,
+    year: "2024",
+    order: 11,
+    title: { tr: "Geç Işık", en: "Late Light" },
+    caption: {
+      tr: "Ketende yağlıboya, 150 × 110 cm",
+      en: "Oil on linen, 150 × 110 cm",
+    },
+    note: {
+      tr: "Günün son yirmi dakikası. Turuncunun altında kalan gri, ilk oturumdan beri hiç kapatılmadı.",
+      en: "The last twenty minutes of the day. The grey beneath the orange has stayed uncovered since the first sitting.",
+    },
+    width: 430,
+    height: 568,
+    slot: "painting 150×110",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w12",
+    slug: "kirec",
+    medium: "paintings",
+    seriesId: null,
+    year: "2022",
+    order: 12,
+    title: { tr: "Kireç", en: "Lime" },
+    caption: {
+      tr: "Ketende yağlıboya, 90 × 90 cm",
+      en: "Oil on linen, 90 × 90 cm",
+    },
+    note: {
+      tr: "Badanalı bir duvarın yakın planı. Kare format, bakışın yüzeyden başka gidecek yeri olmasın diye seçildi.",
+      en: "A whitewashed wall, close up. The square format was chosen so the eye has nowhere to go but the surface.",
+    },
+    width: 500,
+    height: 500,
+    slot: "painting 90×90",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w13",
+    slug: "havza",
+    medium: "prints",
+    seriesId: null,
+    year: "2022",
+    order: 13,
+    title: { tr: "Havza", en: "Basin" },
+    caption: {
+      tr: "Litografi, 12 baskı, 66 × 48 cm",
+      en: "Lithograph, ed. 12, 66 × 48 cm",
+    },
+    note: {
+      tr: "Litografi taşı üzerinde çalışılmış tek iş. Havza, leğendeki suyun büyütülmüş hali olarak düşünüldü.",
+      en: "The only work drawn on lithographic stone. The basin was conceived as an enlargement of the water in the bowl.",
+    },
+    width: 560,
+    height: 415,
+    slot: "print 66×48",
+    imageKey: null,
+    published: true,
+  },
+];
+
+export const SEED_EXHIBITIONS: Exhibition[] = [
+  {
+    id: "e1",
+    year: "2026",
+    order: 1,
+    title: { tr: "Uzun Sabah", en: "The Long Morning" },
+    venue: { tr: "Galeri Nev, İstanbul", en: "Galeri Nev, Istanbul" },
+    kind: { tr: "Kişisel sergi", en: "Solo exhibition" },
+  },
+  {
+    id: "e2",
+    year: "2025",
+    order: 2,
+    title: { tr: "Yüzeye Dair", en: "On Surface" },
+    venue: { tr: "Zilberman, İstanbul", en: "Zilberman, Istanbul" },
+    kind: { tr: "Grup sergisi", en: "Group exhibition" },
+  },
+  {
+    id: "e3",
+    year: "2024",
+    order: 3,
+    title: { tr: "Kıvrım", en: "Fold" },
+    venue: { tr: "Hangar, Lizbon", en: "Hangar, Lisbon" },
+    kind: { tr: "Konuk sanatçı sergisi", en: "Residency show" },
+  },
+  {
+    id: "e4",
+    year: "2023",
+    order: 4,
+    title: { tr: "İki Oda", en: "Two Rooms" },
+    venue: {
+      tr: "Kunstraum Neukölln, Berlin",
+      en: "Kunstraum Neukölln, Berlin",
+    },
+    kind: { tr: "İkili sergi", en: "Two-person exhibition" },
+  },
+  {
+    id: "e5",
+    year: "2023",
+    order: 5,
+    title: { tr: "Kağıt İşleri", en: "Works on Paper" },
+    venue: { tr: "K2, İzmir", en: "K2, Izmir" },
+    kind: { tr: "Kişisel sergi", en: "Solo exhibition" },
+  },
+  {
+    id: "e6",
+    year: "2021",
+    order: 6,
+    title: { tr: "Yakın Ölçek", en: "Close Scale" },
+    venue: { tr: "Halka Sanat, İstanbul", en: "Halka Sanat, Istanbul" },
+    kind: { tr: "Grup sergisi", en: "Group exhibition" },
+  },
+  {
+    id: "e7",
+    year: "2020",
+    order: 7,
+    title: { tr: "Başlangıç Katmanı", en: "First Layer" },
+    venue: {
+      tr: "Mimar Sinan GSÜ, İstanbul",
+      en: "Mimar Sinan Fine Arts University, Istanbul",
+    },
+    kind: { tr: "Mezuniyet sergisi", en: "Graduate exhibition" },
+  },
+];
+
+export const SEED_ABOUT: AboutContent = {
+  portraitSlot: { tr: "atölye portresi", en: "studio portrait" },
+  portraitKey: null,
+  lead: {
+    tr: "Yeşim Özkan İstanbul'da yaşıyor ve çalışıyor.",
+    en: "Yeşim Özkan lives and works in Istanbul.",
+  },
+  paragraphs: [
+    {
+      tr: "Resimleri çok sıradan yüzeylerin uzun süreli gözleminden doğuyor: geç ışıkta bir duvar, leğende duran su, bir perdenin kıvrımı. Ketende ince yağlıboya ve pigment katmanlarıyla çalışıyor; her geçişin izini kısmen görünür bırakıyor, böylece resim kendi yapılışının hafızasını koruyor.",
+      en: "Her paintings begin with sustained observation of very ordinary surfaces — a wall in late light, water held in a basin, the fold of a curtain. Working in thin layers of oil and pigment on linen, she lets each pass stay partly visible, so the finished picture keeps the memory of its own making.",
+    },
+    {
+      tr: "Son işleri resimle kağıt arasında gidip geliyor ve ikisini tek bir pratik olarak ele alıyor: desenler bir rengi netleştiriyor, resimler deseni yeniden atmosfere çeviriyor. Ölçek tercihen mahrem kalıyor.",
+      en: "Recent bodies of work move between painting and paper, treating the two as one continuous practice: drawings clarify a colour, paintings return the drawing to atmosphere. Scale stays intimate by choice.",
+    },
+    {
+      tr: "Mimar Sinan Güzel Sanatlar Üniversitesi'nde resim okudu; İstanbul, İzmir, Berlin ve Lizbon'da sergiler açtı. İşleri Türkiye ve Avrupa'daki özel koleksiyonlarda yer alıyor.",
+      en: "She studied painting at Mimar Sinan Fine Arts University and has exhibited in Istanbul, Izmir, Berlin and Lisbon. Her work is held in private collections in Turkey and Europe.",
+    },
+  ],
+  facts: [
+    {
+      label: { tr: "Eğitim", en: "Education" },
+      a: { tr: "MFA Resim, Mimar Sinan", en: "MFA Painting, Mimar Sinan" },
+      b: { tr: "Lisans Resim, Dokuz Eylül", en: "BA Painting, Dokuz Eylül" },
+    },
+    {
+      label: { tr: "Konuk sanatçı", en: "Residencies" },
+      a: { tr: "Hangar, Lizbon — 2024", en: "Hangar, Lisbon — 2024" },
+      b: {
+        tr: "Halka Sanat, İstanbul — 2021",
+        en: "Halka Sanat, Istanbul — 2021",
+      },
+    },
+    {
+      label: { tr: "Basın", en: "Press" },
+      a: { tr: "Argonotlar, 2025", en: "Argonotlar, 2025" },
+      b: { tr: "Unlimited, 2023", en: "Unlimited, 2023" },
+    },
+  ],
+};
+
+export const SEED_CONTACT: ContactContent = {
+  lead: {
+    tr: "Sergi, temsil ve atölye ziyaretleri için.",
+    en: "For exhibitions, representation and studio visits.",
+  },
+  note: {
+    tr: "Mevcut işlerin listesi ve fiyatlar talep üzerine gönderilir. Atölye ziyaretleri Kadıköy'de, randevu ile.",
+    en: "A list of available works and prices is sent on request. Studio visits in Kadıköy, by appointment.",
+  },
+  rows: [
+    {
+      label: { tr: "E-posta", en: "Email" },
+      value: "studio@yesimozkan.com",
+      href: "mailto:studio@yesimozkan.com",
+    },
+    {
+      label: { tr: "Instagram", en: "Instagram" },
+      value: "@yesimozkan",
+      href: "https://instagram.com/yesimozkan",
+    },
+    {
+      label: { tr: "Temsil", en: "Representation" },
+      value: "Galeri Nev, İstanbul",
+      href: "#",
+    },
+    {
+      label: { tr: "Atölye", en: "Studio" },
+      value: "Kadıköy, İstanbul",
+      href: "#",
+    },
+  ],
+};

@@ -1,0 +1,59 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "yesim",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+
+  "vars": {
+    // Public origin, used for canonical URLs and the sitemap.
+    "SITE_URL": "https://yesimozkan.com",
+
+    // Cloudflare Access. Leave both empty until the Access application exists:
+    // while they are empty a deployed /admin answers 404 instead of opening.
+    // Team domain looks like "yesim.cloudflareaccess.com"; the AUD tag is on
+    // the Access application's overview page.
+    "CF_ACCESS_TEAM_DOMAIN": "",
+    "CF_ACCESS_AUD": ""
+  },
+
+  // Site content, written only by the admin panel.
+  // Create with: npm run cf:d1:create   (then paste the id below)
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "yesim-content",
+      "database_id": "PLACEHOLDER_RUN_npm_run_cf:d1:create",
+      "migrations_dir": "migrations"
+    },
+    {
+      // Used by Next's revalidateTag/revalidatePath, same database.
+      "binding": "NEXT_TAG_CACHE_D1",
+      "database_name": "yesim-content",
+      "database_id": "PLACEHOLDER_RUN_npm_run_cf:d1:create"
+    }
+  ],
+
+  // Uploaded images. Create with: npm run cf:r2:create
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "yesim-media"
+    }
+  ],
+
+  // Rendered-page cache (ISR). Create with: npm run cf:kv:create
+  "kv_namespaces": [
+    {
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "PLACEHOLDER_RUN_npm_run_cf:kv:create"
+    }
+  ]
+}
