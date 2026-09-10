@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { deleteWorkAction, saveWorkAction } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import { ImageUploader } from "@/components/admin/image-uploader";
+import { ImageField } from "@/components/admin/image-field";
 import { getAllSeries, getWorkById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { MEDIUMS } from "@/lib/types";
@@ -150,7 +150,14 @@ export default async function EditWork({
 
         {work ? (
           <div className="adm-card">
-            <ImageUploader workId={work.id} imageKey={work.imageKey} />
+            <ImageField
+              name="imageKey"
+              prefix={`works/${work.id}`}
+              imageKey={work.imageKey}
+              widthName="imageWidth"
+              heightName="imageHeight"
+              ratio={work.width / work.height}
+            />
           </div>
         ) : (
           <p className="adm-note">

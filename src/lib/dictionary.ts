@@ -10,15 +10,18 @@ interface Dictionary {
   worksTitle: string;
   exhibitionsTitle: string;
   seriesBadge: string;
+  cvTitle: string;
+  fullList: string;
+  visit: string;
+  soloShort: string;
+  groupShort: string;
+  menuLabel: string;
   backToWorks: string;
   backToSeries: string;
   /** Viewer. */
   previous: string;
   next: string;
   close: string;
-  /** Shorter labels for the narrow viewer bar. */
-  closeShort: string;
-  noteShort: string;
   readMore: string;
   collapse: string;
   noteHeading: string;
@@ -48,13 +51,17 @@ export const DICTIONARY: Record<Lang, Dictionary> = {
     worksTitle: "Seçilmiş işler",
     exhibitionsTitle: "Sergiler",
     seriesBadge: "seri",
+    cvTitle: "Tüm katılımlar",
+    fullList: "tüm liste — hakkında",
+    visit: "sergi sayfası →",
+    soloShort: "kişisel",
+    groupShort: "grup",
+    menuLabel: "menü",
     backToWorks: "← tüm işler",
     backToSeries: "← seriye dön",
     previous: "önceki",
     next: "sonraki",
     close: "kapat (esc)",
-    closeShort: "kapat",
-    noteShort: "bilgi",
     readMore: "devamını oku",
     collapse: "kapat",
     noteHeading: "eser hakkında",
@@ -82,13 +89,17 @@ export const DICTIONARY: Record<Lang, Dictionary> = {
     worksTitle: "Selected works",
     exhibitionsTitle: "Exhibitions",
     seriesBadge: "series",
+    cvTitle: "All exhibitions",
+    fullList: "full list — about",
+    visit: "exhibition page →",
+    soloShort: "solo",
+    groupShort: "group",
+    menuLabel: "menu",
     backToWorks: "← all works",
     backToSeries: "← back to series",
     previous: "previous",
     next: "next",
     close: "close (esc)",
-    closeShort: "close",
-    noteShort: "info",
     readMore: "read more",
     collapse: "close",
     noteHeading: "about the work",

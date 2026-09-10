@@ -1,6 +1,6 @@
 import { getDb } from "./db";
 import { slugify } from "./slug";
-import type { Medium } from "./types";
+import type { CvKind, Medium } from "./types";
 
 async function requireDb(): Promise<D1Database> {
   const db = await getDb();
@@ -42,6 +42,7 @@ async function uniqueSlug(
 
 export interface WorkInput {
   id: string | null;
+  imageKey: string | null;
   medium: Medium;
   seriesId: string | null;
   year: string;
@@ -69,7 +70,7 @@ export async function saveWork(input: WorkInput): Promise<string> {
   if (input.id) {
     await db
       .prepare(
-        `UPDATE works SET slug = ?, medium = ?, series_id = ?, year = ?,
+        `UPDATE works SET slug = ?, image_key = ?, medium = ?, series_id = ?, year = ?,
            title_tr = ?, title_en = ?, caption_tr = ?, caption_en = ?,
            note_tr = ?, note_en = ?, width = ?, height = ?, slot = ?,
            published = ?, updated_at = datetime('now')
@@ -77,6 +78,7 @@ export async function saveWork(input: WorkInput): Promise<string> {
       )
       .bind(
         slug,
+        input.imageKey,
         input.medium,
         input.seriesId,
         input.year,
@@ -103,14 +105,15 @@ export async function saveWork(input: WorkInput): Promise<string> {
 
   await db
     .prepare(
-      `INSERT INTO works (id, slug, medium, series_id, year, sort_order,
+      `INSERT INTO works (id, slug, image_key, medium, series_id, year, sort_order,
          title_tr, title_en, caption_tr, caption_en, note_tr, note_en,
          width, height, slot, published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
       slug,
+      input.imageKey,
       input.medium,
       input.seriesId,
       input.year,
@@ -261,7 +264,7 @@ export async function deleteSeries(id: string): Promise<void> {
 
 /** Swaps a row with its neighbour so the artist can reorder the grid. */
 async function move(
-  table: "works" | "exhibitions" | "series",
+  table: "works" | "exhibitions" | "series" | "cv_entries",
   id: string,
   direction: -1 | 1,
 ): Promise<void> {
@@ -301,6 +304,9 @@ export const moveSeries = (id: string, direction: -1 | 1) =>
 export const moveExhibition = (id: string, direction: -1 | 1) =>
   move("exhibitions", id, direction);
 
+export const moveCvEntry = (id: string, direction: -1 | 1) =>
+  move("cv_entries", id, direction);
+
 /* ---------------------------------------------------------- exhibitions */
 
 export interface ExhibitionInput {
@@ -312,6 +318,10 @@ export interface ExhibitionInput {
   venueEn: string;
   kindTr: string;
   kindEn: string;
+  noteTr: string;
+  noteEn: string;
+  url: string;
+  imageKey: string | null;
   published: boolean;
 }
 
@@ -322,7 +332,8 @@ export async function saveExhibition(input: ExhibitionInput): Promise<string> {
     await db
       .prepare(
         `UPDATE exhibitions SET year = ?, title_tr = ?, title_en = ?, venue_tr = ?,
-           venue_en = ?, kind_tr = ?, kind_en = ?, published = ?, updated_at = datetime('now')
+           venue_en = ?, kind_tr = ?, kind_en = ?, note_tr = ?, note_en = ?,
+           url = ?, image_key = ?, published = ?, updated_at = datetime('now')
          WHERE id = ?`,
       )
       .bind(
@@ -333,6 +344,10 @@ export async function saveExhibition(input: ExhibitionInput): Promise<string> {
         input.venueEn,
         input.kindTr,
         input.kindEn,
+        input.noteTr,
+        input.noteEn,
+        input.url,
+        input.imageKey,
         input.published ? 1 : 0,
         input.id,
       )
@@ -348,8 +363,9 @@ export async function saveExhibition(input: ExhibitionInput): Promise<string> {
   await db
     .prepare(
       `INSERT INTO exhibitions (id, year, sort_order, title_tr, title_en,
-         venue_tr, venue_en, kind_tr, kind_en, published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         venue_tr, venue_en, kind_tr, kind_en, note_tr, note_en, url,
+         image_key, published)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
@@ -361,6 +377,10 @@ export async function saveExhibition(input: ExhibitionInput): Promise<string> {
       input.venueEn,
       input.kindTr,
       input.kindEn,
+      input.noteTr,
+      input.noteEn,
+      input.url,
+      input.imageKey,
       input.published ? 1 : 0,
     )
     .run();
@@ -371,6 +391,71 @@ export async function saveExhibition(input: ExhibitionInput): Promise<string> {
 export async function deleteExhibition(id: string): Promise<void> {
   const db = await requireDb();
   await db.prepare("DELETE FROM exhibitions WHERE id = ?").bind(id).run();
+}
+
+/* ------------------------------------------------------------------- cv */
+
+export interface CvInput {
+  id: string | null;
+  year: string;
+  titleTr: string;
+  titleEn: string;
+  kind: CvKind;
+  url: string;
+  published: boolean;
+}
+
+export async function saveCvEntry(input: CvInput): Promise<string> {
+  const db = await requireDb();
+
+  if (input.id) {
+    await db
+      .prepare(
+        `UPDATE cv_entries SET year = ?, title_tr = ?, title_en = ?, kind = ?,
+           url = ?, published = ?, updated_at = datetime('now')
+         WHERE id = ?`,
+      )
+      .bind(
+        input.year,
+        input.titleTr,
+        input.titleEn,
+        input.kind,
+        input.url,
+        input.published ? 1 : 0,
+        input.id,
+      )
+      .run();
+    return input.id;
+  }
+
+  const id = newId("cv");
+  const last = await db
+    .prepare("SELECT COALESCE(MAX(sort_order), 0) AS max FROM cv_entries")
+    .first<{ max: number }>();
+
+  await db
+    .prepare(
+      `INSERT INTO cv_entries (id, year, sort_order, title_tr, title_en, kind, url, published)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      id,
+      input.year,
+      (last?.max ?? 0) + 1,
+      input.titleTr,
+      input.titleEn,
+      input.kind,
+      input.url,
+      input.published ? 1 : 0,
+    )
+    .run();
+
+  return id;
+}
+
+export async function deleteCvEntry(id: string): Promise<void> {
+  const db = await requireDb();
+  await db.prepare("DELETE FROM cv_entries WHERE id = ?").bind(id).run();
 }
 
 /* ---------------------------------------------------------------- pages */

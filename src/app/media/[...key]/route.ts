@@ -9,7 +9,7 @@ export async function GET(
   const path = key.join("/");
 
   // Only ever read from the prefixes the admin panel writes to.
-  if (!/^(works|pages)\//.test(path) || path.includes("..")) {
+  if (!/^(works|exhibitions|pages)\//.test(path) || path.includes("..")) {
     return new Response("Not found", { status: 404 });
   }
 

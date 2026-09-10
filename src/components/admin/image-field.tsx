@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { mediaUrl } from "@/lib/media";
@@ -38,18 +37,43 @@ async function resize(file: File, maxEdge: number): Promise<Resized> {
   return { blob, width, height };
 }
 
-export function ImageUploader({
-  workId,
+/**
+ * An image slot inside a form. Uploading stores the file straight away and
+ * puts its key in a hidden input; the record only points at it once the form
+ * is saved, and the old image is cleaned up then.
+ */
+export function ImageField({
+  name,
+  prefix,
   imageKey,
+  label = "Görsel",
+  hint,
+  widthName,
+  heightName,
+  ratioName,
+  ratio,
+  disabled = false,
+  previewHeight = 200,
 }: {
-  workId: string;
+  name: string;
+  prefix: string;
   imageKey: string | null;
+  label?: string;
+  hint?: string;
+  /** Hidden inputs to receive the intrinsic size, when the record stores it. */
+  widthName?: string;
+  heightName?: string;
+  /** Or a single width/height ratio, for the about-page blocks. */
+  ratioName?: string;
+  ratio?: number;
+  disabled?: boolean;
+  previewHeight?: number;
 }) {
-  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [current, setCurrent] = useState(imageKey);
+  const [size, setSize] = useState({ width: 0, height: 0 });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [current, setCurrent] = useState(imageKey);
 
   async function upload(file: File) {
     setBusy(true);
@@ -61,7 +85,7 @@ export function ImageUploader({
       ]);
 
       const body = new FormData();
-      body.append("workId", workId);
+      body.append("prefix", prefix);
       body.append("full", full.blob, "full.webp");
       body.append("grid", grid.blob, "grid.webp");
       body.append("width", String(full.width));
@@ -75,7 +99,7 @@ export function ImageUploader({
 
       const result = (await response.json()) as { key: string };
       setCurrent(result.key);
-      router.refresh();
+      setSize({ width: full.width, height: full.height });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Yükleme başarısız.");
     } finally {
@@ -84,67 +108,65 @@ export function ImageUploader({
     }
   }
 
-  async function remove() {
-    if (!window.confirm("Görsel silinsin mi?")) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const response = await fetch("/admin/api/upload", {
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ workId }),
-      });
-      if (!response.ok) throw new Error(await response.text());
-      setCurrent(null);
-      router.refresh();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Silme başarısız.");
-    } finally {
-      setBusy(false);
-    }
-  }
+  const shownRatio = size.width
+    ? Number((size.width / size.height).toFixed(3))
+    : (ratio ?? 1);
 
   return (
     <div>
-      <span className="adm-label">Görsel</span>
+      <span className="adm-label">{label}</span>
 
-      {current ? (
-        <div className="flex flex-wrap items-start gap-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+      <input type="hidden" name={name} value={current ?? ""} />
+      {widthName && (
+        <input type="hidden" name={widthName} value={size.width || ""} />
+      )}
+      {heightName && (
+        <input type="hidden" name={heightName} value={size.height || ""} />
+      )}
+      {ratioName && (
+        <input type="hidden" name={ratioName} value={shownRatio} />
+      )}
+
+      <div className="flex flex-wrap items-start gap-4">
+        {current ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={mediaUrl(current, "grid")}
             alt=""
-            className="max-h-[220px] border border-rule"
+            className="border border-rule object-contain"
+            style={{ maxHeight: previewHeight }}
           />
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              className="adm-btn"
-              disabled={busy}
-              onClick={() => inputRef.current?.click()}
-            >
-              Değiştir
-            </button>
+        ) : (
+          <div
+            className="slot"
+            style={{ height: previewHeight, aspectRatio: shownRatio }}
+          />
+        )}
+
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            className="adm-btn"
+            disabled={busy || disabled}
+            onClick={() => inputRef.current?.click()}
+          >
+            {busy ? "Yükleniyor…" : current ? "Değiştir" : "Görsel yükle"}
+          </button>
+          {current && (
             <button
               type="button"
               className="adm-btn adm-btn-danger"
-              disabled={busy}
-              onClick={remove}
+              disabled={busy || disabled}
+              onClick={() => {
+                setCurrent(null);
+                setSize({ width: 0, height: 0 });
+              }}
             >
-              Sil
+              Kaldır
             </button>
-          </div>
+          )}
         </div>
-      ) : (
-        <button
-          type="button"
-          className="adm-btn"
-          disabled={busy}
-          onClick={() => inputRef.current?.click()}
-        >
-          {busy ? "Yükleniyor…" : "Görsel yükle"}
-        </button>
-      )}
+      </div>
 
       <input
         ref={inputRef}
@@ -158,11 +180,11 @@ export function ImageUploader({
       />
 
       <p className="adm-note mt-2">
-        JPEG veya PNG yükle; tarayıcı otomatik olarak web boyutuna küçültüp
-        WebP’ye çevirir. En/boy oranı görselden alınır.
+        {hint ??
+          "JPEG veya PNG yükle; tarayıcı web boyutuna küçültüp WebP’ye çevirir."}{" "}
+        Değişiklik <strong>Kaydet</strong>’e bastığında geçerli olur.
       </p>
 
-      {busy && <p className="adm-note mt-2">Yükleniyor…</p>}
       {error && <p className="adm-note mt-2 text-[#a3312a]">{error}</p>}
     </div>
   );

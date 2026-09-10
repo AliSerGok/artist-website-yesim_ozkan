@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { StudioDancer } from "@/components/studio-dancer";
 import { dict } from "@/lib/dictionary";
 import { isLang } from "@/lib/i18n";
 
@@ -52,6 +53,7 @@ export default async function LangLayout({
   return (
     <html lang={lang} className={serif.variable}>
       <body>
+        <StudioDancer />
         <div className="flex min-h-screen flex-col">
           <SiteHeader lang={lang} />
           {children}

@@ -6,6 +6,7 @@ import {
   saveExhibitionAction,
 } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import { ImageField } from "@/components/admin/image-field";
 import { getExhibitionById } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -31,12 +32,18 @@ export default async function EditExhibition({
         </Link>
       </div>
 
+      <p className="adm-note mt-3 max-w-[60ch]">
+        Buradaki sergiler, sergiler sayfasında görseli ve metniyle birlikte öne
+        çıkar. Sadece listede görünmesini istediğin katılımlar için “Katılımlar”
+        bölümünü kullan.
+      </p>
+
       <form action={saveExhibitionAction} className="mt-8 flex flex-col gap-6">
         {exhibition && (
           <input type="hidden" name="id" value={exhibition.id} />
         )}
 
-        <div className="grid gap-5 md:grid-cols-[120px_minmax(0,1fr)]">
+        <div className="grid gap-5 md:grid-cols-[120px_minmax(0,1fr)_auto]">
           <label className="block">
             <span className="adm-label">Yıl</span>
             <input
@@ -47,11 +54,20 @@ export default async function EditExhibition({
               required
             />
           </label>
+          <label className="block">
+            <span className="adm-label">Sergi sayfası bağlantısı</span>
+            <input
+              name="url"
+              className="adm-input"
+              defaultValue={exhibition?.url ?? ""}
+              placeholder="https://… (boşsa bağlantı görünmez)"
+            />
+          </label>
           <label className="flex items-center gap-2.5 self-end pb-2.5">
             <input
               type="checkbox"
               name="published"
-              defaultChecked={true}
+              defaultChecked={exhibition?.published ?? true}
               className="h-4 w-4 accent-[#14140f]"
             />
             <span className="text-[13px]">Sitede yayında</span>
@@ -119,6 +135,42 @@ export default async function EditExhibition({
             />
           </label>
         </div>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          <label className="block">
+            <span className="adm-label">Sergi metni (Türkçe)</span>
+            <textarea
+              name="noteTr"
+              className="adm-textarea"
+              defaultValue={exhibition?.note.tr ?? ""}
+            />
+          </label>
+          <label className="block">
+            <span className="adm-label">Sergi metni (İngilizce)</span>
+            <textarea
+              name="noteEn"
+              className="adm-textarea"
+              defaultValue={exhibition?.note.en ?? ""}
+            />
+          </label>
+        </div>
+
+        {exhibition ? (
+          <div className="adm-card">
+            <ImageField
+              name="imageKey"
+              prefix={`exhibitions/${exhibition.id}`}
+              imageKey={exhibition.imageKey}
+              label="Sergi görseli"
+              hint="Sergiler sayfasında 3:2 oranında kırpılarak gösterilir."
+              ratio={1.5}
+            />
+          </div>
+        ) : (
+          <p className="adm-note">
+            Görseli, sergiyi kaydettikten sonra yükleyebilirsin.
+          </p>
+        )}
 
         <div className="flex items-center gap-3">
           <button type="submit" className="adm-btn adm-btn-primary">

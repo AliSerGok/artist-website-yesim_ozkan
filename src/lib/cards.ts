@@ -10,7 +10,6 @@ export function toGalleryWork(work: Work, lang: Lang): GalleryWork {
   return {
     id: work.id,
     slug: work.slug,
-    medium: work.medium,
     title: work.title[lang],
     year: work.year,
     caption: work.caption[lang],
@@ -33,7 +32,6 @@ export function toGallerySeries(
   return {
     id: series.id,
     slug: series.slug,
-    medium: series.medium,
     title: series.title[lang],
     years: series.years,
     meta: series.meta[lang],

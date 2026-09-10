@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 import { moveExhibitionAction } from "@/app/(admin)/admin/actions";
-import { getExhibitions } from "@/lib/content";
+import { getAllExhibitions } from "@/lib/content";
+import { mediaUrl } from "@/lib/media";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminExhibitions() {
-  const exhibitions = await getExhibitions();
+  const exhibitions = await getAllExhibitions();
 
   return (
     <>
@@ -17,15 +18,28 @@ export default async function AdminExhibitions() {
         </Link>
       </div>
 
+      <p className="adm-note mt-3 max-w-[62ch]">
+        Öne çıkan sergiler; her biri görseli ve metniyle sergiler sayfasında
+        görünür. Yalnızca listede yer alacak katılımlar “Katılımlar”
+        bölümünde.
+      </p>
+
       <div className="mt-8 border-t border-rule">
         {exhibitions.map((exhibition, index) => (
           <div
             key={exhibition.id}
             className="grid items-center gap-4 border-b border-rule py-3 [grid-template-columns:56px_minmax(0,1fr)_auto]"
           >
-            <div className="text-[12px] tracking-[0.1em] text-mute-2">
-              {exhibition.year}
-            </div>
+            {exhibition.imageKey ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={mediaUrl(exhibition.imageKey, "grid")}
+                alt=""
+                className="h-14 w-14 object-cover"
+              />
+            ) : (
+              <div className="slot h-14 w-14" />
+            )}
             <div className="min-w-0">
               <Link
                 href={`/admin/exhibitions/${exhibition.id}`}
@@ -34,8 +48,10 @@ export default async function AdminExhibitions() {
                 {exhibition.title.tr}
               </Link>
               <div className="adm-note mt-1">
-                {exhibition.venue.tr}
+                {exhibition.year} · {exhibition.venue.tr}
                 {exhibition.kind.tr ? ` · ${exhibition.kind.tr}` : ""}
+                {exhibition.published ? "" : " · taslak"}
+                {exhibition.imageKey ? "" : " · görsel yok"}
               </div>
             </div>
             <div className="flex items-center gap-1.5">

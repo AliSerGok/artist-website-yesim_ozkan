@@ -22,22 +22,6 @@ export interface ViewerWork {
 const ZOOM = 2.2;
 const BAR_OPEN = 132;
 const BAR_CLOSED = 62;
-/** Narrow screens stack the bar: title on one line, controls on the next. */
-const BAR_NARROW = 104;
-
-function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(true);
-
-  useEffect(() => {
-    const list = window.matchMedia(query);
-    const update = () => setMatches(list.matches);
-    update();
-    list.addEventListener("change", update);
-    return () => list.removeEventListener("change", update);
-  }, [query]);
-
-  return matches;
-}
 
 export function Lightbox({
   lang,
@@ -60,17 +44,17 @@ export function Lightbox({
   const [noteClipped, setNoteClipped] = useState(false);
   const [zoomed, setZoomed] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [barHeight, setBarHeight] = useState(BAR_OPEN);
 
   const imageRef = useRef<HTMLImageElement>(null);
   const noteRef = useRef<HTMLParagraphElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
   const pan = useRef({ x: 0, y: 0 });
   const dragged = useRef(false);
 
-  const wide = useMediaQuery("(min-width: 768px)");
   const hasNote = work.note.trim().length > 0;
   const hasImage = work.imageKey !== null;
-  const noteShown = wide && noteOpen && hasNote;
-  const barHeight = wide ? (noteShown ? BAR_OPEN : BAR_CLOSED) : BAR_NARROW;
+  const noteShown = noteOpen && hasNote;
 
   /* ------------------------------------------------------------- zoom */
 
@@ -256,6 +240,18 @@ export function Lightbox({
     };
   }, []);
 
+  /** The expanded note sits directly on top of the bar, whatever its height. */
+  useEffect(() => {
+    const element = barRef.current;
+    if (!element) return;
+    const measure = () =>
+      setBarHeight(Math.round(element.getBoundingClientRect().height));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   /** "Read more" only appears when the text is really cut off. */
   useEffect(() => {
     const measure = () => {
@@ -275,9 +271,6 @@ export function Lightbox({
     works.length,
   ).padStart(2, "0")}`;
 
-  // Rendered on <body>: the page's fadeUp animation leaves an identity
-  // transform on <main>, which would otherwise anchor this fixed overlay
-  // to <main> instead of the viewport.
   const zoomCursor = !hasImage
     ? "default"
     : zoomed
@@ -286,6 +279,9 @@ export function Lightbox({
         : "grab"
       : "zoom-in";
 
+  // Rendered on <body>: the page's fadeUp animation leaves an identity
+  // transform on <main>, which would otherwise anchor this fixed overlay
+  // to <main> instead of the viewport.
   return createPortal(
     <div
       onClick={onClose}
@@ -295,11 +291,8 @@ export function Lightbox({
       aria-label={work.title}
     >
       <div
-        className="flex min-h-0 flex-1 items-center justify-center overflow-hidden px-[clamp(20px,6vw,96px)] pt-[clamp(28px,4vw,52px)]"
-        style={{
-          paddingBottom: wide ? (noteShown ? 150 : 80) : BAR_NARROW + 22,
-          transition: "padding 320ms cubic-bezier(0.4, 0, 0.2, 1)",
-        }}
+        className="lb-img"
+        style={{ paddingBottom: noteShown ? 150 : 80 }}
       >
         {hasImage ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -337,7 +330,7 @@ export function Lightbox({
       {noteExpanded && hasNote && (
         <div
           onClick={(event) => event.stopPropagation()}
-          className="absolute right-0 left-0 z-2 max-h-[46vh] animate-fade-up cursor-default overflow-y-auto border-t border-rule bg-[rgba(253,253,252,0.97)] px-[clamp(20px,4vw,56px)] pt-[clamp(22px,3vw,34px)] pb-[clamp(20px,3vw,30px)] backdrop-blur-[6px]"
+          className="lb-panel animate-fade-up"
           style={{ bottom: barHeight }}
         >
           <div className="mb-[14px] flex items-baseline justify-between gap-6">
@@ -359,30 +352,25 @@ export function Lightbox({
       )}
 
       <div
+        ref={barRef}
         onClick={(event) => event.stopPropagation()}
-        className="absolute right-0 bottom-0 left-0 z-3 flex cursor-default flex-col justify-between gap-2 border-t border-[#f0efe9] bg-bg px-[clamp(20px,4vw,56px)] pt-[14px] pb-5 md:flex-row md:items-start md:gap-[clamp(16px,3vw,40px)]"
-        style={{
-          height: barHeight,
-          transition: "height 320ms cubic-bezier(0.4, 0, 0.2, 1)",
-        }}
+        className="lb-bar"
+        style={{ height: noteShown ? BAR_OPEN : BAR_CLOSED }}
       >
-        <div className="flex h-full min-w-0 flex-1 items-start gap-[clamp(18px,3vw,48px)] overflow-hidden">
-          <div className="w-full flex-none md:max-w-[34%] md:min-w-[170px]">
-            <div className="truncate font-serif text-[19px] leading-[1.25] md:whitespace-normal">
+        <div className="lb-info">
+          <div className="lb-title">
+            <div className="font-serif text-[19px] leading-[1.25]">
               {work.title}
               <span className="text-mute-2 italic">, {work.year}</span>
             </div>
-            <div className="mt-[5px] truncate text-[11px] tracking-[0.05em] text-mute-2 md:whitespace-normal">
+            <div className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2">
               {work.caption}
             </div>
           </div>
 
           {noteShown && (
-            <div className="flex h-full min-w-0 flex-1 flex-col gap-1.5 border-l border-rule pl-[clamp(0px,2vw,26px)]">
-              <p
-                ref={noteRef}
-                className="m-0 line-clamp-3 max-w-[62ch] text-[13px] leading-[1.7] text-ink-soft text-pretty"
-              >
+            <div className="lb-note">
+              <p ref={noteRef} className="text-pretty">
                 {work.note}
               </p>
               {noteClipped && (
@@ -398,27 +386,21 @@ export function Lightbox({
           )}
         </div>
 
-        <div className="flex w-full flex-none items-center justify-between gap-3 md:w-auto md:flex-wrap md:justify-end md:gap-[clamp(14px,2vw,22px)]">
+        <div className="lb-actions">
           <span className="mono-note">{counter}</span>
           {hasNote && (
             <button
               type="button"
-              onClick={() =>
-                wide
-                  ? (setNoteOpen((open) => !open), setNoteExpanded(false))
-                  : setNoteExpanded((open) => !open)
-              }
+              onClick={() => {
+                setNoteOpen((open) => !open);
+                setNoteExpanded(false);
+              }}
               className="cursor-pointer text-[10px] tracking-[0.18em] uppercase"
               style={{
-                color: (wide ? noteOpen : noteExpanded)
-                  ? "var(--color-ink)"
-                  : "var(--color-mute-3)",
+                color: noteOpen ? "var(--color-ink)" : "var(--color-mute-3)",
               }}
             >
-              <span className="md:hidden">{t.noteShort}</span>
-              <span className="hidden md:inline">
-                {(wide ? noteOpen : noteExpanded) ? t.hideNote : t.showNote}
-              </span>
+              {noteOpen ? t.hideNote : t.showNote}
             </button>
           )}
           {works.length > 1 && (
@@ -444,8 +426,7 @@ export function Lightbox({
             onClick={onClose}
             className="cursor-pointer text-[10px] tracking-[0.18em] text-mute-3 uppercase hover:text-ink"
           >
-            <span className="md:hidden">{t.closeShort}</span>
-            <span className="hidden md:inline">{t.close}</span>
+            {t.close}
           </button>
         </div>
       </div>

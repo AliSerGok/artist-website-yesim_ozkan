@@ -24,7 +24,7 @@ Node 22 gerekir (`.nvmrc` var, `nvm use` yeterli).
 ```bash
 nvm use
 npm install
-npm run db:migrate:local   # yerel D1'i kurar ve başlangıç içeriğini yükler
+npm run db:reset:local     # yerel D1'i kurar, içeriği ve yer tutucu görselleri yükler
 npm run dev                # http://localhost:3000
 ```
 
@@ -35,8 +35,10 @@ panel 404 verir.
 Faydalı komutlar:
 
 ```bash
-npm run db:console:local "SELECT slug, year FROM works ORDER BY sort_order"
+npm run db:console:local "SELECT slug, medium, series_id FROM works ORDER BY sort_order"
 npm run db:seed:sql        # src/lib/seed.ts → migrations/0002_seed.sql
+npm run seed:images        # seed/images/ → R2 + kayıtlara bağla (yereldeki)
+npm run db:reset:local     # veritabanını komple sıfırdan kurar
 npm run cf:typegen         # wrangler.jsonc değişince binding tiplerini yeniler
 npm run preview            # üretim derlemesini yerelde Worker olarak çalıştırır
 ```
@@ -50,6 +52,7 @@ npm run cf:r2:create
 npm run cf:kv:create       # çıktıdaki id'yi wrangler.jsonc'a yaz
 npm run cf:typegen
 npm run db:migrate         # şemayı ve başlangıç içeriğini uzak D1'e uygular
+npm run seed:images:remote # yer tutucu görselleri uzak R2'ye yükler
 npm run deploy
 ```
 
@@ -88,6 +91,19 @@ izlenimi veren tek bir kart olur ve işler serinin kendi sayfasında listelenir.
 Bir işi seriye bağlamak, işin düzenleme sayfasındaki “Seri” alanından yapılır.
 Seri silinirse işleri silinmez, ana ızgaraya döner.
 
+Başlangıç içeriği (21 iş, 3 seri) kurgudur ve bilerek her yöne yayılır — 3:1
+panoramadan 1:3 dar dikeye, avuç içi kadar kağıt işlerinden 220 cm'lik resme —
+böylece düzen gerçek işler yüklenmeden önce her oranda sınanmış olur.
+
+**Yer tutucu görseller.** `seed/images/` altındaki 22 soyut görsel (her iş için
+biri, artı atölye portresi) depoda duruyor; `npm run seed:images` bunları R2'ye
+yazıp kayıtlara bağlıyor, yani sıfır kurulumda site boş kutularla değil
+resimlerle açılıyor. Yeşim panelden gerçek bir fotoğraf yüklediğinde yer tutucu
+otomatik siliniyor. Görselleri yeniden üretmek gerekirse
+`npm run seed:images:render` — bunun için Google Chrome ve `cwebp`
+(`brew install webp`) gerekiyor; üretilen dosyalar depoda olduğu için normal
+kullanımda ikisine de ihtiyaç yok.
+
 **Tam ekran görüntüleyici.** Izgarada bir işe tıklamak eseri tam ekran açar:
 ok tuşları / önceki-sonraki ile gezinme, esere tıklayınca tıklanan noktadan
 2.2× yakınlaşma, sürükleyerek veya iki parmakla kaydırma, `Esc` ile sırayla
@@ -121,6 +137,7 @@ src/lib/content.ts             okuma tarafı (D1, binding yoksa seed'e düşer)
 src/lib/admin-db.ts            yazma tarafı
 src/lib/access.ts              Access JWT doğrulaması
 src/lib/seed.ts                başlangıç içeriği (0002_seed.sql'in kaynağı)
+seed/images/                   yer tutucu eser görselleri
 src/lib/cards.ts               kayıt → kart dönüşümleri
 src/components/work-gallery.tsx  ızgara: seri kartları, tek işler, filtre
 src/components/lightbox.tsx      tam ekran görüntüleyici

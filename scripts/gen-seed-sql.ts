@@ -7,6 +7,7 @@ import { writeFileSync } from "node:fs";
 import {
   SEED_ABOUT,
   SEED_CONTACT,
+  SEED_CV,
   SEED_EXHIBITIONS,
   SEED_SERIES,
   SEED_WORKS,
@@ -125,6 +126,11 @@ for (const e of SEED_EXHIBITIONS) {
         "venue_en",
         "kind_tr",
         "kind_en",
+        "note_tr",
+        "note_en",
+        "url",
+        "image_key",
+        "published",
       ],
       [
         q(e.id),
@@ -136,6 +142,41 @@ for (const e of SEED_EXHIBITIONS) {
         q(e.venue.en),
         q(e.kind.tr),
         q(e.kind.en),
+        q(e.note.tr),
+        q(e.note.en),
+        q(e.url),
+        q(e.imageKey),
+        e.published ? 1 : 0,
+      ],
+    ),
+  );
+}
+
+lines.push("");
+
+for (const c of SEED_CV) {
+  lines.push(
+    insert(
+      "cv_entries",
+      [
+        "id",
+        "year",
+        "sort_order",
+        "title_tr",
+        "title_en",
+        "kind",
+        "url",
+        "published",
+      ],
+      [
+        q(c.id),
+        q(c.year),
+        c.order,
+        q(c.title.tr),
+        q(c.title.en),
+        q(c.kind),
+        q(c.url),
+        c.published ? 1 : 0,
       ],
     ),
   );
@@ -152,5 +193,5 @@ lines.push("");
 
 writeFileSync("migrations/0002_seed.sql", lines.join("\n"), "utf8");
 console.log(
-  `migrations/0002_seed.sql: ${SEED_SERIES.length} series, ${SEED_WORKS.length} works, ${SEED_EXHIBITIONS.length} exhibitions, 2 pages`,
+  `migrations/0002_seed.sql: ${SEED_SERIES.length} series, ${SEED_WORKS.length} works, ${SEED_EXHIBITIONS.length} exhibitions, ${SEED_CV.length} cv, 2 pages`,
 );

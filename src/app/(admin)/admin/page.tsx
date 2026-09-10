@@ -1,14 +1,20 @@
 import Link from "next/link";
 
-import { getAllSeries, getAllWorks, getExhibitions } from "@/lib/content";
+import {
+  getAllCvEntries,
+  getAllExhibitions,
+  getAllSeries,
+  getAllWorks,
+} from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHome() {
-  const [works, series, exhibitions] = await Promise.all([
+  const [works, series, exhibitions, cv] = await Promise.all([
     getAllWorks(),
     getAllSeries(),
-    getExhibitions(),
+    getAllExhibitions(),
+    getAllCvEntries(),
   ]);
 
   const published = works.filter((work) => work.published).length;
@@ -28,7 +34,12 @@ export default async function AdminHome() {
     {
       href: "/admin/exhibitions",
       title: "Sergiler",
-      detail: `${exhibitions.length} kayıt`,
+      detail: `${exhibitions.length} öne çıkan sergi`,
+    },
+    {
+      href: "/admin/cv",
+      title: "Katılımlar",
+      detail: `${cv.length} satır · hakkında sayfasında`,
     },
     { href: "/admin/pages/about", title: "Hakkında", detail: "Metin ve künye" },
     {

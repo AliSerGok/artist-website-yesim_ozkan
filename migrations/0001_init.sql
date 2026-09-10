@@ -48,6 +48,7 @@ CREATE INDEX works_by_order ON works (sort_order);
 CREATE INDEX works_by_series ON works (series_id, sort_order);
 CREATE INDEX works_by_medium ON works (medium, sort_order);
 
+-- The few shows that get a picture and a paragraph on the exhibitions page.
 CREATE TABLE exhibitions (
   id           TEXT PRIMARY KEY,
   year         TEXT NOT NULL,
@@ -58,12 +59,32 @@ CREATE TABLE exhibitions (
   venue_en     TEXT NOT NULL DEFAULT '',
   kind_tr      TEXT NOT NULL DEFAULT '',
   kind_en      TEXT NOT NULL DEFAULT '',
+  note_tr      TEXT NOT NULL DEFAULT '',
+  note_en      TEXT NOT NULL DEFAULT '',
+  url          TEXT NOT NULL DEFAULT '',
+  image_key    TEXT,
   published    INTEGER NOT NULL DEFAULT 1,
   created_at   TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX exhibitions_by_order ON exhibitions (sort_order);
+
+-- The complete exhibition list, shown as plain lines on the about page.
+CREATE TABLE cv_entries (
+  id           TEXT PRIMARY KEY,
+  year         TEXT NOT NULL,
+  sort_order   INTEGER NOT NULL DEFAULT 0,
+  title_tr     TEXT NOT NULL,
+  title_en     TEXT NOT NULL,
+  kind         TEXT NOT NULL DEFAULT 'group' CHECK (kind IN ('solo', 'group')),
+  url          TEXT NOT NULL DEFAULT '',
+  published    INTEGER NOT NULL DEFAULT 1,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX cv_by_order ON cv_entries (sort_order);
 
 -- Free-form singletons: 'about' and 'contact', stored as bilingual JSON.
 CREATE TABLE pages (

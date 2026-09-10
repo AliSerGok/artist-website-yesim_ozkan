@@ -1,6 +1,7 @@
 import type {
   AboutContent,
   ContactContent,
+  CvEntry,
   Exhibition,
   Series,
   Work,
@@ -53,16 +54,56 @@ export const SEED_SERIES: Series[] = [
     coverWorkId: "w7",
     published: true,
   },
+  {
+    id: "s_oda",
+    slug: "oda",
+    medium: "paintings",
+    years: "2021–2024",
+    order: 3,
+    title: { tr: "Oda", en: "Room" },
+    meta: {
+      tr: "3 iş, ketende yağlıboya",
+      en: "3 works, oil on linen",
+    },
+    note: {
+      tr: "Aynı odanın üç kez, üç ayrı ölçüde resmi. En genişi duvarın tamamını, en darı yalnızca pencere ile kapı arasındaki aralığı alıyor; ölçü değiştikçe odanın neye benzediği de değişiyor.",
+      en: "The same room painted three times at three different sizes. The widest takes in the whole wall, the narrowest only the gap between window and door; as the measure changes, so does what the room looks like.",
+    },
+    coverWorkId: "w16",
+    published: true,
+  },
 ];
 
 export const SEED_WORKS: Work[] = [
+  {
+    id: "w14",
+    slug: "uzun-sabah",
+    medium: "paintings",
+    seriesId: null,
+    year: "2026",
+    order: 1,
+    title: { tr: "Uzun Sabah", en: "The Long Morning" },
+    caption: {
+      tr: "Ketende yağlıboya, 65 × 200 cm",
+      en: "Oil on linen, 65 × 200 cm",
+    },
+    note: {
+      tr: "Sergiye adını veren resim. Duvarın tamamını tek bir yatay şeride sıkıştırıyor; ışık soldan sağa, sabahın iki saati boyunca ilerliyor.",
+      en: "The painting the exhibition takes its name from. It compresses the whole wall into a single horizontal band; the light moves left to right across two hours of morning.",
+    },
+    width: 1000,
+    height: 325,
+    slot: "painting 65×200",
+    imageKey: null,
+    published: true,
+  },
   {
     id: "w1",
     slug: "sabah-duvari",
     medium: "paintings",
     seriesId: null,
     year: "2025",
-    order: 1,
+    order: 2,
     title: { tr: "Sabah Duvarı", en: "Morning Wall" },
     caption: {
       tr: "Ketende yağlıboya, 120 × 90 cm",
@@ -84,7 +125,7 @@ export const SEED_WORKS: Work[] = [
     medium: "prints",
     seriesId: "s_kivrim",
     year: "2025",
-    order: 2,
+    order: 3,
     title: { tr: "Kıvrım I", en: "Fold I" },
     caption: KIVRIM_CAPTION,
     note: {
@@ -103,7 +144,7 @@ export const SEED_WORKS: Work[] = [
     medium: "prints",
     seriesId: "s_kivrim",
     year: "2024",
-    order: 3,
+    order: 4,
     title: { tr: "Kıvrım II", en: "Fold II" },
     caption: KIVRIM_CAPTION,
     note: {
@@ -122,7 +163,7 @@ export const SEED_WORKS: Work[] = [
     medium: "prints",
     seriesId: "s_kivrim",
     year: "2024",
-    order: 4,
+    order: 5,
     title: { tr: "Kıvrım III", en: "Fold III" },
     caption: KIVRIM_CAPTION,
     note: {
@@ -141,7 +182,7 @@ export const SEED_WORKS: Work[] = [
     medium: "prints",
     seriesId: "s_kivrim",
     year: "2023",
-    order: 5,
+    order: 6,
     title: { tr: "Kıvrım IV", en: "Fold IV" },
     caption: KIVRIM_CAPTION,
     note: {
@@ -155,12 +196,34 @@ export const SEED_WORKS: Work[] = [
     published: true,
   },
   {
+    id: "w15",
+    slug: "dar-aralik",
+    medium: "paper",
+    seriesId: null,
+    year: "2025",
+    order: 7,
+    title: { tr: "Dar Aralık", en: "Narrow Gap" },
+    caption: {
+      tr: "Kağıt üzerine pigment, 56 × 18 cm",
+      en: "Pigment on paper, 56 × 18 cm",
+    },
+    note: {
+      tr: "Pencere ile duvarın arasında kalan on sekiz santimlik boşluk. Kağıdın uzunluğu, bakışın yukarıdan aşağı inmesi için seçildi.",
+      en: "The eighteen centimetres left between the window and the wall. The length of the sheet was chosen to make the eye travel from top to bottom.",
+    },
+    width: 270,
+    height: 840,
+    slot: "drawing 56×18",
+    imageKey: null,
+    published: true,
+  },
+  {
     id: "w6",
     slug: "legendeki-su",
     medium: "paintings",
     seriesId: null,
     year: "2024",
-    order: 6,
+    order: 8,
     title: { tr: "Leğendeki Su", en: "Water in a Basin" },
     caption: {
       tr: "Ketende yağlıboya, 60 × 75 cm",
@@ -182,7 +245,7 @@ export const SEED_WORKS: Work[] = [
     medium: "paper",
     seriesId: "s_esik",
     year: "2024",
-    order: 7,
+    order: 9,
     title: { tr: "Eşik I — Perde", en: "Threshold I — Curtain" },
     caption: {
       tr: "Kağıt üzerine pigment, 42 × 30 cm",
@@ -204,7 +267,7 @@ export const SEED_WORKS: Work[] = [
     medium: "paper",
     seriesId: "s_esik",
     year: "2023",
-    order: 8,
+    order: 10,
     title: { tr: "Eşik II", en: "Threshold II" },
     caption: ESIK_CAPTION,
     note: {
@@ -223,7 +286,7 @@ export const SEED_WORKS: Work[] = [
     medium: "paper",
     seriesId: "s_esik",
     year: "2023",
-    order: 9,
+    order: 11,
     title: { tr: "Eşik III", en: "Threshold III" },
     caption: ESIK_CAPTION,
     note: {
@@ -242,7 +305,7 @@ export const SEED_WORKS: Work[] = [
     medium: "paper",
     seriesId: "s_esik",
     year: "2022",
-    order: 10,
+    order: 12,
     title: { tr: "Eşik IV", en: "Threshold IV" },
     caption: {
       tr: "Kağıt üzerine mürekkep ve pigment, 30 × 24 cm",
@@ -259,12 +322,78 @@ export const SEED_WORKS: Work[] = [
     published: true,
   },
   {
+    id: "w16",
+    slug: "oda-i-genis",
+    medium: "paintings",
+    seriesId: "s_oda",
+    year: "2024",
+    order: 13,
+    title: { tr: "Oda I — Geniş", en: "Room I — Wide" },
+    caption: {
+      tr: "Ketende yağlıboya, 90 × 220 cm",
+      en: "Oil on linen, 90 × 220 cm",
+    },
+    note: {
+      tr: "Odanın en geniş hali: duvar, pencere ve kapı tek bir yatay okumada. Boya serinin en incesi bu resimde.",
+      en: "The room at its widest: wall, window and door in a single horizontal reading. The paint is thinnest here.",
+    },
+    width: 1100,
+    height: 450,
+    slot: "painting 90×220",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w17",
+    slug: "oda-ii-kare",
+    medium: "paintings",
+    seriesId: "s_oda",
+    year: "2023",
+    order: 14,
+    title: { tr: "Oda II — Kare", en: "Room II — Square" },
+    caption: {
+      tr: "Ketende yağlıboya, 100 × 100 cm",
+      en: "Oil on linen, 100 × 100 cm",
+    },
+    note: {
+      tr: "Aynı oda kareye alındığında pencere merkeze düşüyor, duvar kenarlara doğru kayboluyor.",
+      en: "Squared off, the same room puts the window at the centre and lets the wall fall away at the edges.",
+    },
+    width: 600,
+    height: 600,
+    slot: "painting 100×100",
+    imageKey: null,
+    published: true,
+  },
+  {
+    id: "w18",
+    slug: "oda-iii-dar",
+    medium: "paintings",
+    seriesId: "s_oda",
+    year: "2021",
+    order: 15,
+    title: { tr: "Oda III — Dar", en: "Room III — Narrow" },
+    caption: {
+      tr: "Ketende yağlıboya, 130 × 45 cm",
+      en: "Oil on linen, 130 × 45 cm",
+    },
+    note: {
+      tr: "Serinin son resmi yalnızca pencere ile kapı arasındaki aralığı tutuyor; oda artık dikey bir şerit.",
+      en: "The last painting in the series holds only the gap between window and door; the room is now a vertical strip.",
+    },
+    width: 315,
+    height: 910,
+    slot: "painting 130×45",
+    imageKey: null,
+    published: true,
+  },
+  {
     id: "w11",
     slug: "gec-isik",
     medium: "paintings",
     seriesId: null,
     year: "2024",
-    order: 11,
+    order: 16,
     title: { tr: "Geç Işık", en: "Late Light" },
     caption: {
       tr: "Ketende yağlıboya, 150 × 110 cm",
@@ -281,12 +410,34 @@ export const SEED_WORKS: Work[] = [
     published: true,
   },
   {
+    id: "w19",
+    slug: "kapi-boyu",
+    medium: "paintings",
+    seriesId: null,
+    year: "2022",
+    order: 17,
+    title: { tr: "Kapı Boyu", en: "Door Height" },
+    caption: {
+      tr: "Ketende yağlıboya, 190 × 105 cm",
+      en: "Oil on linen, 190 × 105 cm",
+    },
+    note: {
+      tr: "Ölçü bir kapıdan alındı. Resim duvara asıldığında insan boyuyla aynı hizada duruyor.",
+      en: "The measure was taken from a door. Hung on the wall, the painting stands at the height of a person.",
+    },
+    width: 420,
+    height: 760,
+    slot: "painting 190×105",
+    imageKey: null,
+    published: true,
+  },
+  {
     id: "w12",
     slug: "kirec",
     medium: "paintings",
     seriesId: null,
     year: "2022",
-    order: 12,
+    order: 18,
     title: { tr: "Kireç", en: "Lime" },
     caption: {
       tr: "Ketende yağlıboya, 90 × 90 cm",
@@ -303,12 +454,34 @@ export const SEED_WORKS: Work[] = [
     published: true,
   },
   {
+    id: "w20",
+    slug: "kenar-notu",
+    medium: "paper",
+    seriesId: null,
+    year: "2022",
+    order: 19,
+    title: { tr: "Kenar Notu", en: "Marginal Note" },
+    caption: {
+      tr: "Kağıt üzerine mürekkep, 10 × 14 cm",
+      en: "Ink on paper, 10 × 14 cm",
+    },
+    note: {
+      tr: "Avuç içi kadar bir çalışma. Büyük resimlerin kenarında tutulan notlardan biri; rengin nerede duracağını burada deniyor.",
+      en: "A study the size of a palm. One of the notes kept alongside the large paintings, where she tries out where a colour should stop.",
+    },
+    width: 560,
+    height: 400,
+    slot: "drawing 10×14",
+    imageKey: null,
+    published: true,
+  },
+  {
     id: "w13",
     slug: "havza",
     medium: "prints",
     seriesId: null,
     year: "2022",
-    order: 13,
+    order: 20,
     title: { tr: "Havza", en: "Basin" },
     caption: {
       tr: "Litografi, 12 baskı, 66 × 48 cm",
@@ -324,8 +497,31 @@ export const SEED_WORKS: Work[] = [
     imageKey: null,
     published: true,
   },
+  {
+    id: "w21",
+    slug: "sarnic",
+    medium: "prints",
+    seriesId: null,
+    year: "2020",
+    order: 21,
+    title: { tr: "Sarnıç", en: "Cistern" },
+    caption: {
+      tr: "Gravür, 8 baskı, 40 × 70 cm",
+      en: "Etching, ed. 8, 40 × 70 cm",
+    },
+    note: {
+      tr: "Bir sarnıcın su seviyesi. Hiçbir seriye girmeyen tek gravür; plaka bir daha kullanılmadı.",
+      en: "The water level in a cistern. The only etching that belongs to no series; the plate was never used again.",
+    },
+    width: 700,
+    height: 400,
+    slot: "print 40×70",
+    imageKey: null,
+    published: true,
+  },
 ];
 
+/** The shows that get a picture and a paragraph of their own. */
 export const SEED_EXHIBITIONS: Exhibition[] = [
   {
     id: "e1",
@@ -334,6 +530,13 @@ export const SEED_EXHIBITIONS: Exhibition[] = [
     title: { tr: "Uzun Sabah", en: "The Long Morning" },
     venue: { tr: "Galeri Nev, İstanbul", en: "Galeri Nev, Istanbul" },
     kind: { tr: "Kişisel sergi", en: "Solo exhibition" },
+    note: {
+      tr: "Üç yıl boyunca aynı duvarın önünde yapılmış on dört resim, sergide sabahın saatlerine göre sıralandı. Salonun perdeleri gün boyunca açık bırakıldı; işler kendi konularının ışığı altında görüldü.",
+      en: "Fourteen paintings made in front of the same wall over three years, hung in the order of the morning hours. The gallery curtains stayed open all day, so the works were seen under the light they describe.",
+    },
+    url: "#",
+    imageKey: null,
+    published: true,
   },
   {
     id: "e2",
@@ -342,6 +545,13 @@ export const SEED_EXHIBITIONS: Exhibition[] = [
     title: { tr: "Yüzeye Dair", en: "On Surface" },
     venue: { tr: "Zilberman, İstanbul", en: "Zilberman, Istanbul" },
     kind: { tr: "Grup sergisi", en: "Group exhibition" },
+    note: {
+      tr: "Yedi sanatçının yüzey kavramı üzerine bir araya geldiği sergide Özkan, kağıt işlerinden oluşan bir duvar kurdu.",
+      en: "A show bringing seven artists together around the idea of surface, where Özkan built a wall entirely of works on paper.",
+    },
+    url: "#",
+    imageKey: null,
+    published: true,
   },
   {
     id: "e3",
@@ -350,6 +560,13 @@ export const SEED_EXHIBITIONS: Exhibition[] = [
     title: { tr: "Kıvrım", en: "Fold" },
     venue: { tr: "Hangar, Lizbon", en: "Hangar, Lisbon" },
     kind: { tr: "Konuk sanatçı sergisi", en: "Residency show" },
+    note: {
+      tr: "Üç aylık konuk sanatçı programının sonunda üretilen serigrafi serisi ilk kez burada, üretildikleri atölyenin içinde gösterildi.",
+      en: "The screenprint series made during a three-month residency, shown for the first time inside the workshop where it was printed.",
+    },
+    url: "#",
+    imageKey: null,
+    published: true,
   },
   {
     id: "e4",
@@ -361,35 +578,39 @@ export const SEED_EXHIBITIONS: Exhibition[] = [
       en: "Kunstraum Neukölln, Berlin",
     },
     kind: { tr: "İkili sergi", en: "Two-person exhibition" },
-  },
-  {
-    id: "e5",
-    year: "2023",
-    order: 5,
-    title: { tr: "Kağıt İşleri", en: "Works on Paper" },
-    venue: { tr: "K2, İzmir", en: "K2, Izmir" },
-    kind: { tr: "Kişisel sergi", en: "Solo exhibition" },
-  },
-  {
-    id: "e6",
-    year: "2021",
-    order: 6,
-    title: { tr: "Yakın Ölçek", en: "Close Scale" },
-    venue: { tr: "Halka Sanat, İstanbul", en: "Halka Sanat, Istanbul" },
-    kind: { tr: "Grup sergisi", en: "Group exhibition" },
-  },
-  {
-    id: "e7",
-    year: "2020",
-    order: 7,
-    title: { tr: "Başlangıç Katmanı", en: "First Layer" },
-    venue: {
-      tr: "Mimar Sinan GSÜ, İstanbul",
-      en: "Mimar Sinan Fine Arts University, Istanbul",
+    note: {
+      tr: "Heykeltıraş Lene Voigt ile ortak sergi: iki oda, iki ışık, aralarında tek bir eşik.",
+      en: "A shared exhibition with the sculptor Lene Voigt: two rooms, two lights, a single threshold between them.",
     },
-    kind: { tr: "Mezuniyet sergisi", en: "Graduate exhibition" },
+    url: "#",
+    imageKey: null,
+    published: true,
   },
 ];
+
+/** The complete list, kept as plain lines on the about page. */
+export const SEED_CV: CvEntry[] = [
+  ["2026", "Uzun Sabah — Galeri Nev, İstanbul", "The Long Morning — Galeri Nev, Istanbul", "solo"],
+  ["2025", "Yüzeye Dair — Zilberman, İstanbul", "On Surface — Zilberman, Istanbul", "group"],
+  ["2025", "Kağıt Ölçeği — Bilsart, İstanbul", "Paper Scale — Bilsart, Istanbul", "group"],
+  ["2024", "Kıvrım — Hangar, Lizbon", "Fold — Hangar, Lisbon", "solo"],
+  ["2024", "Yakın Bakış — Öktem Aykut, İstanbul", "Close Looking — Öktem Aykut, Istanbul", "group"],
+  ["2023", "İki Oda — Kunstraum Neukölln, Berlin", "Two Rooms — Kunstraum Neukölln, Berlin", "group"],
+  ["2023", "Kağıt İşleri — K2, İzmir", "Works on Paper — K2, Izmir", "solo"],
+  ["2022", "Baskı Günleri — Kasa Galeri, İstanbul", "Print Days — Kasa Galeri, Istanbul", "group"],
+  ["2021", "Yakın Ölçek — Halka Sanat, İstanbul", "Close Scale — Halka Sanat, Istanbul", "group"],
+  ["2021", "Oda Işığı — Torun, Ankara", "Room Light — Torun, Ankara", "group"],
+  ["2020", "Başlangıç Katmanı — Mimar Sinan GSÜ, İstanbul", "First Layer — Mimar Sinan FAU, Istanbul", "group"],
+  ["2019", "Genç Resim — Akbank Sanat, İstanbul", "Young Painting — Akbank Sanat, Istanbul", "group"],
+].map(([year, tr, en, kind], index) => ({
+  id: `cv${index + 1}`,
+  year: year as string,
+  order: index + 1,
+  title: { tr: tr as string, en: en as string },
+  kind: kind as CvEntry["kind"],
+  url: "#",
+  published: true,
+}));
 
 export const SEED_ABOUT: AboutContent = {
   portraitSlot: { tr: "atölye portresi", en: "studio portrait" },
@@ -398,20 +619,6 @@ export const SEED_ABOUT: AboutContent = {
     tr: "Yeşim Özkan İstanbul'da yaşıyor ve çalışıyor.",
     en: "Yeşim Özkan lives and works in Istanbul.",
   },
-  paragraphs: [
-    {
-      tr: "Resimleri çok sıradan yüzeylerin uzun süreli gözleminden doğuyor: geç ışıkta bir duvar, leğende duran su, bir perdenin kıvrımı. Ketende ince yağlıboya ve pigment katmanlarıyla çalışıyor; her geçişin izini kısmen görünür bırakıyor, böylece resim kendi yapılışının hafızasını koruyor.",
-      en: "Her paintings begin with sustained observation of very ordinary surfaces — a wall in late light, water held in a basin, the fold of a curtain. Working in thin layers of oil and pigment on linen, she lets each pass stay partly visible, so the finished picture keeps the memory of its own making.",
-    },
-    {
-      tr: "Son işleri resimle kağıt arasında gidip geliyor ve ikisini tek bir pratik olarak ele alıyor: desenler bir rengi netleştiriyor, resimler deseni yeniden atmosfere çeviriyor. Ölçek tercihen mahrem kalıyor.",
-      en: "Recent bodies of work move between painting and paper, treating the two as one continuous practice: drawings clarify a colour, paintings return the drawing to atmosphere. Scale stays intimate by choice.",
-    },
-    {
-      tr: "Mimar Sinan Güzel Sanatlar Üniversitesi'nde resim okudu; İstanbul, İzmir, Berlin ve Lizbon'da sergiler açtı. İşleri Türkiye ve Avrupa'daki özel koleksiyonlarda yer alıyor.",
-      en: "She studied painting at Mimar Sinan Fine Arts University and has exhibited in Istanbul, Izmir, Berlin and Lisbon. Her work is held in private collections in Turkey and Europe.",
-    },
-  ],
   facts: [
     {
       label: { tr: "Eğitim", en: "Education" },
@@ -430,6 +637,70 @@ export const SEED_ABOUT: AboutContent = {
       label: { tr: "Basın", en: "Press" },
       a: { tr: "Argonotlar, 2025", en: "Argonotlar, 2025" },
       b: { tr: "Unlimited, 2023", en: "Unlimited, 2023" },
+    },
+  ],
+  blocks: [
+    {
+      type: "text",
+      paragraphs: [
+        {
+          tr: "Resimleri çok sıradan yüzeylerin uzun süreli gözleminden doğuyor: geç ışıkta bir duvar, leğende duran su, bir perdenin kıvrımı. Ketende ince yağlıboya ve pigment katmanlarıyla çalışıyor; her geçişin izini kısmen görünür bırakıyor, böylece resim kendi yapılışının hafızasını koruyor.",
+          en: "Her paintings begin with sustained observation of very ordinary surfaces — a wall in late light, water held in a basin, the fold of a curtain. Working in thin layers of oil and pigment on linen, she lets each pass stay partly visible, so the finished picture keeps the memory of its own making.",
+        },
+        {
+          tr: "Son işleri resimle kağıt arasında gidip geliyor ve ikisini tek bir pratik olarak ele alıyor: desenler bir rengi netleştiriyor, resimler deseni yeniden atmosfere çeviriyor. Ölçek tercihen mahrem kalıyor.",
+          en: "Recent bodies of work move between painting and paper, treating the two as one continuous practice: drawings clarify a colour, paintings return the drawing to atmosphere. Scale stays intimate by choice.",
+        },
+      ],
+    },
+    {
+      type: "image",
+      imageKey: null,
+      ratio: 1.49,
+      caption: {
+        tr: "Kadıköy'deki atölye, kuzey penceresi, 2025",
+        en: "The Kadıköy studio, north window, 2025",
+      },
+    },
+    {
+      type: "pair",
+      imageKeyA: null,
+      ratioA: 0.8,
+      imageKeyB: null,
+      ratioB: 0.8,
+      caption: {
+        tr: "Solda pigment denemeleri, sağda ilk katman sonrası bekleyen ketenler",
+        en: "Pigment tests, left; linens resting after the first layer, right",
+      },
+    },
+    {
+      type: "quote",
+      quote: {
+        tr: "Bir yüzeyi yeterince uzun süre izlerseniz, resim kendi kendine bir konu buluyor.",
+        en: "If you watch a surface long enough, the painting finds a subject on its own.",
+      },
+      by: {
+        tr: "Argonotlar söyleşisi, 2025",
+        en: "Interview, Argonotlar, 2025",
+      },
+    },
+    {
+      type: "text",
+      paragraphs: [
+        {
+          tr: "Mimar Sinan Güzel Sanatlar Üniversitesi'nde resim okudu; İstanbul, İzmir, Berlin ve Lizbon'da sergiler açtı. İşleri Türkiye ve Avrupa'daki özel koleksiyonlarda yer alıyor.",
+          en: "She studied painting at Mimar Sinan Fine Arts University and has exhibited in Istanbul, Izmir, Berlin and Lisbon. Her work is held in private collections in Turkey and Europe.",
+        },
+      ],
+    },
+    {
+      type: "image",
+      imageKey: null,
+      ratio: 1.77,
+      caption: {
+        tr: "Kıvrım serisinin baskı günleri, Hangar, Lizbon, 2024",
+        en: "Printing days for the Fold series, Hangar, Lisbon, 2024",
+      },
     },
   ],
 };

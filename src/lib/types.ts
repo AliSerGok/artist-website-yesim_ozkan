@@ -44,6 +44,7 @@ export interface Series {
   published: boolean;
 }
 
+/** The handful of shows given the full editorial treatment. */
 export interface Exhibition {
   id: string;
   year: string;
@@ -51,6 +52,25 @@ export interface Exhibition {
   title: Localized;
   venue: Localized;
   kind: Localized;
+  note: Localized;
+  url: string;
+  imageKey: string | null;
+  published: boolean;
+}
+
+export const CV_KINDS = ["solo", "group"] as const;
+
+export type CvKind = (typeof CV_KINDS)[number];
+
+/** One line of the complete exhibition list on the about page. */
+export interface CvEntry {
+  id: string;
+  year: string;
+  order: number;
+  title: Localized;
+  kind: CvKind;
+  url: string;
+  published: boolean;
 }
 
 export interface AboutFact {
@@ -59,10 +79,44 @@ export interface AboutFact {
   b: Localized;
 }
 
+export const BLOCK_TYPES = ["text", "image", "pair", "quote"] as const;
+
+export type BlockType = (typeof BLOCK_TYPES)[number];
+
+export interface TextBlock {
+  type: "text";
+  paragraphs: Localized[];
+}
+
+export interface ImageBlock {
+  type: "image";
+  imageKey: string | null;
+  ratio: number;
+  caption: Localized;
+}
+
+export interface PairBlock {
+  type: "pair";
+  imageKeyA: string | null;
+  ratioA: number;
+  imageKeyB: string | null;
+  ratioB: number;
+  caption: Localized;
+}
+
+export interface QuoteBlock {
+  type: "quote";
+  quote: Localized;
+  by: Localized;
+}
+
+/** The about page is a stream of these, in order. */
+export type AboutBlock = TextBlock | ImageBlock | PairBlock | QuoteBlock;
+
 export interface AboutContent {
   lead: Localized;
-  paragraphs: Localized[];
   facts: AboutFact[];
+  blocks: AboutBlock[];
   portraitSlot: Localized;
   portraitKey: string | null;
 }

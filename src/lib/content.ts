@@ -2,6 +2,7 @@ import { getDb } from "./db";
 import {
   SEED_ABOUT,
   SEED_CONTACT,
+  SEED_CV,
   SEED_EXHIBITIONS,
   SEED_SERIES,
   SEED_WORKS,
@@ -9,6 +10,8 @@ import {
 import type {
   AboutContent,
   ContactContent,
+  CvEntry,
+  CvKind,
   Exhibition,
   Medium,
   Series,
@@ -66,6 +69,22 @@ interface ExhibitionRow {
   venue_en: string;
   kind_tr: string;
   kind_en: string;
+  note_tr: string;
+  note_en: string;
+  url: string;
+  image_key: string | null;
+  published: number;
+}
+
+interface CvRow {
+  id: string;
+  year: string;
+  sort_order: number;
+  title_tr: string;
+  title_en: string;
+  kind: string;
+  url: string;
+  published: number;
 }
 
 function toWork(row: WorkRow): Work {
@@ -110,6 +129,22 @@ function toExhibition(row: ExhibitionRow): Exhibition {
     title: { tr: row.title_tr, en: row.title_en },
     venue: { tr: row.venue_tr, en: row.venue_en },
     kind: { tr: row.kind_tr, en: row.kind_en },
+    note: { tr: row.note_tr, en: row.note_en },
+    url: row.url,
+    imageKey: row.image_key,
+    published: row.published === 1,
+  };
+}
+
+function toCvEntry(row: CvRow): CvEntry {
+  return {
+    id: row.id,
+    year: row.year,
+    order: row.sort_order,
+    title: { tr: row.title_tr, en: row.title_en },
+    kind: row.kind as CvKind,
+    url: row.url,
+    published: row.published === 1,
   };
 }
 
@@ -213,7 +248,49 @@ async function getPage<T>(key: "about" | "contact", fallback: T): Promise<T> {
 }
 
 export async function getAbout(): Promise<AboutContent> {
-  return getPage("about", SEED_ABOUT);
+  const about = await getPage("about", SEED_ABOUT);
+  // Older saves kept the body as a flat list of paragraphs.
+  return Array.isArray(about.blocks)
+    ? about
+    : { ...about, blocks: SEED_ABOUT.blocks };
+}
+
+/* ------------------------------------------------------------------- cv */
+
+export async function getCvEntries(): Promise<CvEntry[]> {
+  const db = await getDb();
+  if (!db) return SEED_CV.filter((entry) => entry.published).sort(byOrder);
+
+  const { results } = await db
+    .prepare(
+      "SELECT * FROM cv_entries WHERE published = 1 ORDER BY sort_order ASC",
+    )
+    .all<CvRow>();
+
+  return results.map(toCvEntry);
+}
+
+export async function getAllCvEntries(): Promise<CvEntry[]> {
+  const db = await getDb();
+  if (!db) return [...SEED_CV].sort(byOrder);
+
+  const { results } = await db
+    .prepare("SELECT * FROM cv_entries ORDER BY sort_order ASC")
+    .all<CvRow>();
+
+  return results.map(toCvEntry);
+}
+
+export async function getCvEntryById(id: string): Promise<CvEntry | null> {
+  const db = await getDb();
+  if (!db) return SEED_CV.find((entry) => entry.id === id) ?? null;
+
+  const row = await db
+    .prepare("SELECT * FROM cv_entries WHERE id = ?")
+    .bind(id)
+    .first<CvRow>();
+
+  return row ? toCvEntry(row) : null;
 }
 
 export async function getContact(): Promise<ContactContent> {
@@ -232,6 +309,17 @@ export async function getAllWorks(): Promise<Work[]> {
     .all<WorkRow>();
 
   return results.map(toWork);
+}
+
+export async function getAllExhibitions(): Promise<Exhibition[]> {
+  const db = await getDb();
+  if (!db) return [...SEED_EXHIBITIONS].sort(byOrder);
+
+  const { results } = await db
+    .prepare("SELECT * FROM exhibitions ORDER BY sort_order ASC")
+    .all<ExhibitionRow>();
+
+  return results.map(toExhibition);
 }
 
 export async function getAllSeries(): Promise<Series[]> {

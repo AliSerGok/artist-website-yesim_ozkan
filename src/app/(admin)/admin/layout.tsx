@@ -24,6 +24,7 @@ const TABS = [
   { href: "/admin/works", label: "İşler" },
   { href: "/admin/series", label: "Seriler" },
   { href: "/admin/exhibitions", label: "Sergiler" },
+  { href: "/admin/cv", label: "Katılımlar" },
   { href: "/admin/pages/about", label: "Hakkında" },
   { href: "/admin/pages/contact", label: "İletişim" },
 ];
