@@ -27,6 +27,7 @@ const TABS = [
   { href: "/admin/cv", label: "Katılımlar" },
   { href: "/admin/pages/about", label: "Hakkında" },
   { href: "/admin/pages/contact", label: "İletişim" },
+  { href: "/admin/settings", label: "Animasyonlar" },
 ];
 
 export default async function AdminLayout({

@@ -127,6 +127,12 @@ export interface ContactRow {
   href: string;
 }
 
+/** Which of the decorative animations are switched on. */
+export interface SiteSettings {
+  dancer: boolean;
+  birds: boolean;
+}
+
 export interface ContactContent {
   lead: Localized;
   note: Localized;

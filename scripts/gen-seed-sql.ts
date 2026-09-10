@@ -10,6 +10,7 @@ import {
   SEED_CV,
   SEED_EXHIBITIONS,
   SEED_SERIES,
+  SEED_SETTINGS,
   SEED_WORKS,
 } from "../src/lib/seed.ts";
 
@@ -189,9 +190,12 @@ lines.push(
 lines.push(
   `INSERT INTO pages (key, data) VALUES ('contact', ${q(JSON.stringify(SEED_CONTACT))});`,
 );
+lines.push(
+  `INSERT INTO pages (key, data) VALUES ('settings', ${q(JSON.stringify(SEED_SETTINGS))});`,
+);
 lines.push("");
 
 writeFileSync("migrations/0002_seed.sql", lines.join("\n"), "utf8");
 console.log(
-  `migrations/0002_seed.sql: ${SEED_SERIES.length} series, ${SEED_WORKS.length} works, ${SEED_EXHIBITIONS.length} exhibitions, ${SEED_CV.length} cv, 2 pages`,
+  `migrations/0002_seed.sql: ${SEED_SERIES.length} series, ${SEED_WORKS.length} works, ${SEED_EXHIBITIONS.length} exhibitions, ${SEED_CV.length} cv, 3 pages`,
 );

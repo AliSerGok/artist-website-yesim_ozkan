@@ -39,6 +39,8 @@ export function SiteHeader({ lang }: { lang: Lang }) {
     if (!menuOpen) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Keeps the birds from flying over the open menu.
+    document.body.classList.add("menu-open");
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMenuOpen(false);
@@ -47,6 +49,7 @@ export function SiteHeader({ lang }: { lang: Lang }) {
 
     return () => {
       document.body.style.overflow = previous;
+      document.body.classList.remove("menu-open");
       window.removeEventListener("keydown", onKey);
     };
   }, [menuOpen]);
@@ -93,10 +96,9 @@ export function SiteHeader({ lang }: { lang: Lang }) {
 
   return (
     <>
-      <header className="hdr sticky top-0 z-40 flex flex-wrap items-baseline justify-between gap-6 border-b border-rule bg-[rgba(253,253,252,0.93)] backdrop-blur-[8px]">
+      <header className="hdr sticky top-0 z-40 border-b border-rule bg-[rgba(253,253,252,0.93)] backdrop-blur-[8px]">
         <Link
           href={`/${lang}`}
-          data-perch=""
           className="hdr-name font-serif text-[24px] leading-none tracking-[0.005em]"
         >
           {t.siteName}
@@ -104,7 +106,7 @@ export function SiteHeader({ lang }: { lang: Lang }) {
 
         <button
           type="button"
-          className="burger -mr-2.5 h-11 w-11 cursor-pointer flex-col items-end justify-center gap-[5px] border-0 bg-transparent p-0"
+          className="burger"
           aria-label={t.menuLabel}
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
@@ -131,13 +133,12 @@ export function SiteHeader({ lang }: { lang: Lang }) {
           />
         </button>
 
-        <div className="hdr-right flex items-baseline gap-[clamp(16px,3vw,34px)]">
-          <nav className="flex items-baseline gap-[clamp(14px,2.4vw,30px)]">
+        <div className="hdr-right">
+          <nav className="hdr-nav flex items-baseline gap-[clamp(14px,2.4vw,30px)]">
             {SECTIONS.map(({ key, path }) => (
               <Link
                 key={key}
                 href={`/${lang}${path}`}
-                data-perch=""
                 className="nav-link"
                 data-active={active === key}
               >
@@ -146,7 +147,7 @@ export function SiteHeader({ lang }: { lang: Lang }) {
             ))}
           </nav>
 
-          <div className="flex items-baseline gap-[6px] border-l border-rule pl-[clamp(10px,2vw,22px)]">
+          <div className="hdr-lang flex items-baseline gap-[6px] border-l border-rule pl-[clamp(10px,2vw,22px)]">
             {langLinks("bar")}
           </div>
         </div>

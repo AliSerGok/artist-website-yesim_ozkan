@@ -4,6 +4,7 @@ import type {
   CvEntry,
   Exhibition,
   Series,
+  SiteSettings,
   Work,
 } from "./types";
 
@@ -736,4 +737,9 @@ export const SEED_CONTACT: ContactContent = {
       href: "#",
     },
   ],
+};
+
+export const SEED_SETTINGS: SiteSettings = {
+  dancer: true,
+  birds: true,
 };

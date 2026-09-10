@@ -10,8 +10,8 @@ panelinden kendisi yönetir; panel Cloudflare Access ile kapalıdır.
 /tr/series/<slug>     seri sayfası (serinin tüm işleri)
 /tr/works/<slug>      tek eser sayfası — ızgaradan tıklanınca tam ekran
                       görüntüleyici açılır, doğrudan açılınca bu sayfa gelir
-/tr/exhibitions       sergiler
-/tr/about             hakkında
+/tr/exhibitions       öne çıkan sergiler (görsel + metin)
+/tr/about             hakkında: portre, künye, içerik blokları, tam katılım listesi
 /tr/contact           iletişim
 /admin                yönetim paneli (Cloudflare Access arkasında)
 /media/<key>          R2'deki görseller
@@ -95,14 +95,43 @@ Başlangıç içeriği (21 iş, 3 seri) kurgudur ve bilerek her yöne yayılır 
 panoramadan 1:3 dar dikeye, avuç içi kadar kağıt işlerinden 220 cm'lik resme —
 böylece düzen gerçek işler yüklenmeden önce her oranda sınanmış olur.
 
-**Yer tutucu görseller.** `seed/images/` altındaki 22 soyut görsel (her iş için
-biri, artı atölye portresi) depoda duruyor; `npm run seed:images` bunları R2'ye
+**Yer tutucu görseller.** `seed/images/` altındaki 30 soyut görsel (her iş,
+her sergi, atölye portresi ve hakkında sayfasının görselleri) depoda duruyor; `npm run seed:images` bunları R2'ye
 yazıp kayıtlara bağlıyor, yani sıfır kurulumda site boş kutularla değil
 resimlerle açılıyor. Yeşim panelden gerçek bir fotoğraf yüklediğinde yer tutucu
 otomatik siliniyor. Görselleri yeniden üretmek gerekirse
 `npm run seed:images:render` — bunun için Google Chrome ve `cwebp`
 (`brew install webp`) gerekiyor; üretilen dosyalar depoda olduğu için normal
 kullanımda ikisine de ihtiyaç yok.
+
+**Sergiler ile katılımlar ayrı.** Sergiler sayfasında yalnızca öne çıkan
+sergiler var; her biri kapak görseli, kısa metni ve varsa sergi sayfası
+bağlantısıyla, görsel ve metin dönüşümlü olarak. Katıldığı her şeyin tam
+listesi hakkında sayfasının altında düz satırlar hâlinde duruyor. İkisi
+panelde ayrı bölümler: “Sergiler” ve “Katılımlar”.
+
+**Hakkında sayfası blok blok kuruluyor.** Üstte portre, giriş cümlesi ve
+künye; altında sıralayabildiğin bloklar: metin, tek görsel, ikili görsel ve
+alıntı. Panelden blok ekleniyor, taşınıyor, siliniyor — bu düğmeler formu da
+kaydettiği için yazdıkların kaybolmuyor.
+
+**Izgarada hover.** Üzerine gelinen tek iş kendi çerçevesinin içinde büyüyor,
+seri kartı ise arkasındaki istiflenmiş kağıtlarla birlikte komple öne
+çıkıyor. Diğer işler soluklaşmıyor.
+
+**Telefonda.** Başlık hamburger menüye dönüşüyor, tam ekran menü açılıyor;
+sergiler ve katılım listesi tek sütuna iniyor; görüntüleyicinin bilgi barı
+sabit yükseklikten çıkıp akışa giriyor ve gerekirse kendi içinde kayıyor.
+
+**Bir dansçı ve dört kuş var.** Dansçı, `data-perch` işaretli görsel
+çerçevelerinin üstüne tüneyip dans ediyor: işaretçiyi takip ediyor, gittiği
+yöne dönüyor, üstünde yer olmayan ya da başlıktaki öğeleri atlıyor. Kuşlar
+başlıkta yaşıyor — menü bağlantılarına konuyor, zıplıyor, geriniyor, ara sıra
+birbirini kovalıyor ya da yan yana diziliyor; imleç yaklaşınca ürküp uçuyor ve
+sayfa değişince hep birlikte havalanıyor. İkisi de tamamen dekoratif:
+`pointer-events: none`, yani hiçbir tıklamayı yutmuyorlar. Dansçı dokunmatik
+ekranda, kuşların ikisi dar ekranda ve menü açıkken gizleniyor;
+`prefers-reduced-motion` açıksa hiçbiri yüklenmiyor.
 
 **Tam ekran görüntüleyici.** Izgarada bir işe tıklamak eseri tam ekran açar:
 ok tuşları / önceki-sonraki ile gezinme, esere tıklayınca tıklanan noktadan
@@ -139,8 +168,11 @@ src/lib/access.ts              Access JWT doğrulaması
 src/lib/seed.ts                başlangıç içeriği (0002_seed.sql'in kaynağı)
 seed/images/                   yer tutucu eser görselleri
 src/lib/cards.ts               kayıt → kart dönüşümleri
-src/components/work-gallery.tsx  ızgara: seri kartları, tek işler, filtre
+src/components/work-gallery.tsx  ızgara: seri kartları ve tek işler
+src/components/image-frame.tsx   orana kırpan görsel çerçevesi
 src/components/lightbox.tsx      tam ekran görüntüleyici
+src/components/studio-dancer.tsx tünenen dansçı
+src/components/perched-birds.tsx başlıkta yaşayan kuşlar
 src/app/(site)/                genel site
 src/app/(admin)/               yönetim paneli
 migrations/                    D1 şeması

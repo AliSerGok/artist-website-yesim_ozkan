@@ -190,12 +190,35 @@
   }
 
   /* Header: full nav on wide screens, a burger and a full-screen menu below. */
+  /* Laid out here rather than with utilities, so the phone rules can win. */
   .hdr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
     padding: 24px clamp(20px, 4vw, 56px) 16px;
+  }
+
+  .hdr-right {
+    display: flex;
+    align-items: baseline;
+    gap: clamp(16px, 3vw, 34px);
   }
 
   .burger {
     display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    margin-right: -10px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
   }
 
   @media (max-width: 767px) {
@@ -640,3 +663,170 @@
 @media (hover: none), (max-width: 767px) {
   #dancer { display: none !important; }
 }
+
+/* ---------- The birds ---------- */
+/* Four of them live along the header: they perch, hop, stretch, chase each
+   other and scatter when the cursor gets too close. */
+
+@keyframes flap {
+  0%, 100% { transform: rotate(-42deg) scaleY(1); }
+  50% { transform: rotate(26deg) scaleY(0.7); }
+}
+
+@keyframes flapB {
+  0%, 100% { transform: rotate(42deg) scaleY(1); }
+  50% { transform: rotate(-26deg) scaleY(0.7); }
+}
+
+@keyframes perchBob {
+  0%, 62%, 100% { transform: translateY(0) rotate(0deg); }
+  70% { transform: translateY(-1.5px) rotate(-11deg); }
+  78% { transform: translateY(0) rotate(7deg); }
+  86% { transform: translateY(-1px) rotate(-5deg); }
+}
+
+@keyframes hopUp {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-7px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes tailFlick {
+  0%, 70%, 100% { transform: rotate(0deg); }
+  80% { transform: rotate(-16deg); }
+  90% { transform: rotate(9deg); }
+}
+
+@keyframes stretchWings {
+  0%, 100% { transform: rotate(-42deg) scaleX(1); }
+  35%, 65% { transform: rotate(-104deg) scaleX(1.5); }
+}
+
+@keyframes stretchWingsB {
+  0%, 100% { transform: rotate(42deg) scaleX(1); }
+  35%, 65% { transform: rotate(104deg) scaleX(1.5); }
+}
+
+.bird {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 23px;
+  height: 17px;
+  pointer-events: none;
+  z-index: 85;
+  opacity: 0;
+  will-change: transform;
+  transform-origin: 0% 100%;
+}
+
+.bird .hop { position: absolute; inset: 0; }
+.bird.hopping .hop { animation: hopUp 0.42s cubic-bezier(0.3, 0.9, 0.3, 1); }
+
+.bird .body {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 20px;
+  height: 9px;
+  border-radius: 60% 34% 44% 50%;
+  background: currentColor;
+  transform-origin: 30% 100%;
+  animation: perchBob 7s ease-in-out infinite;
+}
+
+.bird .head {
+  position: absolute;
+  left: 13px;
+  bottom: 6px;
+  width: 7.5px;
+  height: 7.5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.bird .head::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 2px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #fdfdfc;
+}
+
+.bird .beak {
+  position: absolute;
+  left: 20px;
+  bottom: 8.5px;
+  width: 4.5px;
+  height: 2.2px;
+  background: oklch(0.72 0.17 62);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.bird .tail {
+  position: absolute;
+  left: -6px;
+  bottom: 3px;
+  width: 9px;
+  height: 3px;
+  background: currentColor;
+  clip-path: polygon(100% 0, 0 40%, 0 70%, 100% 100%);
+  transform-origin: 100% 50%;
+  animation: tailFlick 5s ease-in-out infinite;
+}
+
+.bird .wing-a,
+.bird .wing-b {
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+  width: 12px;
+  height: 4.5px;
+  border-radius: 60% 40% 50% 50%;
+  background: currentColor;
+  transform-origin: 20% 100%;
+}
+
+.bird .wing-a { animation: flap 1.9s ease-in-out infinite; }
+.bird .wing-b { filter: brightness(0.82); animation: flapB 1.9s ease-in-out infinite; }
+
+.bird.flying .wing-a { animation: flap 0.62s ease-in-out infinite; }
+.bird.flying .wing-b { animation: flapB 0.62s ease-in-out infinite; }
+.bird.flying .body { animation: none; }
+
+.bird.stretch .wing-a { animation: stretchWings 1.5s ease-in-out; }
+.bird.stretch .wing-b { animation: stretchWingsB 1.5s ease-in-out; }
+
+#bird1 { color: oklch(0.55 0.13 255); }
+#bird1 .head { background: oklch(0.42 0.12 262); }
+#bird1 .tail { background: oklch(0.68 0.14 78); }
+
+#bird2 { color: oklch(0.6 0.16 28); }
+#bird2 .head { background: oklch(0.36 0.09 32); }
+#bird2 .tail { background: oklch(0.5 0.14 22); }
+#bird2 .body { width: 18px; height: 8px; }
+
+#bird3 { color: oklch(0.58 0.11 168); }
+#bird3 .head { background: oklch(0.72 0.15 82); width: 8.5px; height: 8.5px; }
+#bird3 .tail { background: oklch(0.44 0.1 172); }
+#bird3 .body { width: 21.5px; height: 10px; }
+
+#bird4 { color: oklch(0.5 0.11 330); }
+#bird4 .head { background: oklch(0.66 0.13 350); width: 6.5px; height: 6.5px; }
+#bird4 .tail { background: oklch(0.38 0.09 328); }
+#bird4 .body { width: 17px; height: 7.5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bird { display: none; }
+}
+
+/* Two of them is enough on a phone, and none over the open menu. */
+@media (max-width: 767px) {
+  #bird3,
+  #bird4 { display: none; }
+}
+
+body.menu-open .bird { display: none; }

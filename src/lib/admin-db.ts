@@ -461,7 +461,7 @@ export async function deleteCvEntry(id: string): Promise<void> {
 /* ---------------------------------------------------------------- pages */
 
 export async function savePageContent(
-  key: "about" | "contact",
+  key: "about" | "contact" | "settings",
   data: unknown,
 ): Promise<void> {
   const db = await requireDb();

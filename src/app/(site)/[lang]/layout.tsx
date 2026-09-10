@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { PerchedBirds } from "@/components/perched-birds";
 import { StudioDancer } from "@/components/studio-dancer";
+import { getSettings } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { isLang } from "@/lib/i18n";
 
@@ -50,10 +52,13 @@ export default async function LangLayout({
   const { lang } = await params;
   if (!isLang(lang)) notFound();
 
+  const settings = await getSettings();
+
   return (
     <html lang={lang} className={serif.variable}>
       <body>
-        <StudioDancer />
+        {settings.dancer && <StudioDancer />}
+        {settings.birds && <PerchedBirds />}
         <div className="flex min-h-screen flex-col">
           <SiteHeader lang={lang} />
           {children}

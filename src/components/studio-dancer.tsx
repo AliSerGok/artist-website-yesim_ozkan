@@ -7,8 +7,9 @@ const HAIR = "oklch(0.4 0.09 330)";
 
 /**
  * A small figure who stands on top of whatever the reader is pointing at —
- * any element marked `data-perch`. She turns to face the way she travelled.
- * Hidden on touch screens and whenever reduced motion is asked for.
+ * any element marked `data-perch`. She turns to face the way she travelled,
+ * skips the header (that belongs to the birds) and anything with no room
+ * above it. Hidden on touch screens and whenever reduced motion is asked for.
  */
 export function StudioDancer() {
   const ref = useRef<HTMLDivElement>(null);
@@ -16,9 +17,12 @@ export function StudioDancer() {
   useEffect(() => {
     const dancer = ref.current;
     if (!dancer) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let perchedOn: Element | null = null;
     let lastX: number | undefined;
+
+    const height = () => dancer.getBoundingClientRect().height || 40;
 
     const perch = (node: Element | null) => {
       if (!node) return;
@@ -26,9 +30,9 @@ export function StudioDancer() {
       if (!rect.width) return;
 
       perchedOn = node;
-      // Stand a little in from the left edge, just above the top.
+      // Stand a little in from the left edge, right on top of the element.
       const x = Math.round(rect.left + Math.min(rect.width * 0.5, 46) - 10);
-      const y = Math.round(Math.max(2, rect.top - 42));
+      const y = Math.round(rect.top - height());
 
       dancer.style.opacity = "1";
       dancer.style.transform = `translate3d(${x}px, ${y}px, 0) scaleX(${
@@ -37,9 +41,15 @@ export function StudioDancer() {
       lastX = x;
     };
 
+    /** Somewhere she fits: below the header, with room above it. */
+    const standable = (node: Element) =>
+      !node.closest(".hdr") && node.getBoundingClientRect().top >= height() + 8;
+
     const onPointerOver = (event: Event) => {
       const node = (event.target as Element | null)?.closest?.("[data-perch]");
-      if (node && node !== perchedOn) perch(node);
+      if (!node || node === perchedOn) return;
+      if (!standable(node)) return;
+      perch(node);
     };
 
     const onReflow = () => {
@@ -51,8 +61,12 @@ export function StudioDancer() {
     window.addEventListener("resize", onReflow);
 
     const settle = window.setTimeout(
-      () => perch(document.querySelector("[data-perch]")),
-      400,
+      () =>
+        perch(
+          [...document.querySelectorAll("[data-perch]")].find(standable) ??
+            null,
+        ),
+      500,
     );
 
     return () => {

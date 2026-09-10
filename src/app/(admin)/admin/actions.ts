@@ -35,6 +35,7 @@ import {
   type ContactContent,
   type CvKind,
   type Medium,
+  type SiteSettings,
 } from "@/lib/types";
 
 /** Drops every cached page so a save shows up on the site immediately. */
@@ -402,6 +403,21 @@ export async function saveAboutAction(form: FormData) {
 
   purge();
   redirect("/admin/pages/about");
+}
+
+/* -------------------------------------------------------------- settings */
+
+export async function saveSettingsAction(form: FormData) {
+  await requireAdmin();
+
+  const settings: SiteSettings = {
+    dancer: flag(form, "dancer"),
+    birds: flag(form, "birds"),
+  };
+
+  await savePageContent("settings", settings);
+  purge();
+  redirect("/admin/settings");
 }
 
 export async function saveContactAction(form: FormData) {

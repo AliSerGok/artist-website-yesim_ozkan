@@ -5,17 +5,24 @@ import {
   getAllExhibitions,
   getAllSeries,
   getAllWorks,
+  getSettings,
 } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHome() {
-  const [works, series, exhibitions, cv] = await Promise.all([
+  const [works, series, exhibitions, cv, settings] = await Promise.all([
     getAllWorks(),
     getAllSeries(),
     getAllExhibitions(),
     getAllCvEntries(),
+    getSettings(),
   ]);
+
+  const running = [
+    settings.dancer ? "dansçı" : null,
+    settings.birds ? "kuşlar" : null,
+  ].filter(Boolean);
 
   const published = works.filter((work) => work.published).length;
   const inSeries = works.filter((work) => work.seriesId !== null).length;
@@ -46,6 +53,11 @@ export default async function AdminHome() {
       href: "/admin/pages/contact",
       title: "İletişim",
       detail: "Adresler ve notlar",
+    },
+    {
+      href: "/admin/settings",
+      title: "Animasyonlar",
+      detail: running.length ? `${running.join(" ve ")} açık` : "hepsi kapalı",
     },
   ];
 

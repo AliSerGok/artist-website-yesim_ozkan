@@ -5,6 +5,7 @@ import {
   SEED_CV,
   SEED_EXHIBITIONS,
   SEED_SERIES,
+  SEED_SETTINGS,
   SEED_WORKS,
 } from "./seed";
 import type {
@@ -15,6 +16,7 @@ import type {
   Exhibition,
   Medium,
   Series,
+  SiteSettings,
   Work,
 } from "./types";
 
@@ -229,7 +231,10 @@ export async function getExhibitions(): Promise<Exhibition[]> {
 
 /* ---------------------------------------------------------------- pages */
 
-async function getPage<T>(key: "about" | "contact", fallback: T): Promise<T> {
+async function getPage<T>(
+  key: "about" | "contact" | "settings",
+  fallback: T,
+): Promise<T> {
   const db = await getDb();
   if (!db) return fallback;
 
@@ -295,6 +300,11 @@ export async function getCvEntryById(id: string): Promise<CvEntry | null> {
 
 export async function getContact(): Promise<ContactContent> {
   return getPage("contact", SEED_CONTACT);
+}
+
+export async function getSettings(): Promise<SiteSettings> {
+  const stored = await getPage<Partial<SiteSettings>>("settings", {});
+  return { ...SEED_SETTINGS, ...stored };
 }
 
 /* ---------------------------------------------------------------- admin */
