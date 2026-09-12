@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { moveSeriesAction } from "@/app/(admin)/admin/actions";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getAllSeries, getAllWorks } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { mediaUrl } from "@/lib/media";
@@ -66,26 +67,24 @@ export default async function AdminSeries() {
                 <form action={moveSeriesAction}>
                   <input type="hidden" name="id" value={item.id} />
                   <input type="hidden" name="direction" value="up" />
-                  <button
-                    type="submit"
+                  <SubmitButton
                     className="adm-btn px-2.5"
                     disabled={index === 0}
                     aria-label="Yukarı taşı"
                   >
                     ↑
-                  </button>
+                  </SubmitButton>
                 </form>
                 <form action={moveSeriesAction}>
                   <input type="hidden" name="id" value={item.id} />
                   <input type="hidden" name="direction" value="down" />
-                  <button
-                    type="submit"
+                  <SubmitButton
                     className="adm-btn px-2.5"
                     disabled={index === series.length - 1}
                     aria-label="Aşağı taşı"
                   >
                     ↓
-                  </button>
+                  </SubmitButton>
                 </form>
                 <Link href={`/admin/series/${item.id}`} className="adm-btn">
                   Düzenle

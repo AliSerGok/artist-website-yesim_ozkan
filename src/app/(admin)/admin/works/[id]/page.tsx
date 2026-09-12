@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { deleteWorkAction, saveWorkAction } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { ImageField } from "@/components/admin/image-field";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getAllSeries, getWorkById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { MEDIUMS } from "@/lib/types";
@@ -206,9 +207,12 @@ export default async function EditWork({
         </details>
 
         <div className="flex items-center gap-3">
-          <button type="submit" className="adm-btn adm-btn-primary">
+          <SubmitButton
+            className="adm-btn adm-btn-primary"
+            busyLabel="Kaydediliyor…"
+          >
             Kaydet
-          </button>
+          </SubmitButton>
           <Link href="/admin/works" className="adm-btn">
             Vazgeç
           </Link>

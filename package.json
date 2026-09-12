@@ -16,7 +16,7 @@
     "seed:images": "node scripts/put-seed-images.ts",
     "seed:images:remote": "node scripts/put-seed-images.ts --remote",
     "db:migrate:local": "wrangler d1 migrations apply yesim-content --local",
-    "db:reset:local": "rm -rf .wrangler/state/v3/d1 && npm run db:migrate:local && npm run seed:images",
+    "db:reset:local": "wrangler d1 execute yesim-content --local --file scripts/reset.sql --yes && npm run db:migrate:local && npm run seed:images",
     "db:migrate": "wrangler d1 migrations apply yesim-content --remote",
     "db:console:local": "wrangler d1 execute yesim-content --local --command",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",

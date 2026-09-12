@@ -1,5 +1,8 @@
 "use client";
 
+import { SubmitButton } from "@/components/admin/submit-button";
+
+/** A delete button that asks first and then shows it is working. */
 export function ConfirmButton({
   children,
   message,
@@ -10,14 +13,12 @@ export function ConfirmButton({
   className?: string;
 }) {
   return (
-    <button
-      type="submit"
+    <SubmitButton
       className={className ?? "adm-btn adm-btn-danger"}
-      onClick={(event) => {
-        if (!window.confirm(message)) event.preventDefault();
-      }}
+      confirm={message}
+      busyLabel="Siliniyor…"
     >
       {children}
-    </button>
+    </SubmitButton>
   );
 }

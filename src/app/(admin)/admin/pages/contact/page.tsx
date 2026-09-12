@@ -1,4 +1,5 @@
 import { saveContactAction } from "@/app/(admin)/admin/actions";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getContact } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -106,9 +107,12 @@ export default async function EditContact() {
         </div>
 
         <div>
-          <button type="submit" className="adm-btn adm-btn-primary">
+          <SubmitButton
+            className="adm-btn adm-btn-primary"
+            busyLabel="Kaydediliyor…"
+          >
             Kaydet
-          </button>
+          </SubmitButton>
         </div>
       </form>
     </>

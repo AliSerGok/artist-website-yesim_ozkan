@@ -6,6 +6,7 @@ import {
   saveSeriesAction,
 } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getAllWorks, getSeriesById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { MEDIUMS } from "@/lib/types";
@@ -153,9 +154,12 @@ export default async function EditSeries({
         </div>
 
         <div className="flex items-center gap-3">
-          <button type="submit" className="adm-btn adm-btn-primary">
+          <SubmitButton
+            className="adm-btn adm-btn-primary"
+            busyLabel="Kaydediliyor…"
+          >
             Kaydet
-          </button>
+          </SubmitButton>
           <Link href="/admin/series" className="adm-btn">
             Vazgeç
           </Link>

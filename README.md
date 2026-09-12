@@ -28,6 +28,11 @@ npm run db:reset:local     # yerel D1'i kurar, içeriği ve yer tutucu görselle
 npm run dev                # http://localhost:3000
 ```
 
+`npm run db:reset:local` tabloları yerinde siler ve yeniden kurar, dosyalara
+dokunmaz — yani dev sunucusunu durdurman gerekmez. Next 16 aynı dizin için tek
+bir dev sunucusuna izin verdiğinden, ikinci bir kopya farklı portta bile
+açılmaz.
+
 Yerelde Cloudflare Access yoktur; `/admin` doğrudan açılır. Bu yalnızca
 `NODE_ENV=development` içindir — dağıtılmış bir kopyada Access ayarlanmamışsa
 panel 404 verir.
@@ -38,7 +43,7 @@ Faydalı komutlar:
 npm run db:console:local "SELECT slug, medium, series_id FROM works ORDER BY sort_order"
 npm run db:seed:sql        # src/lib/seed.ts → migrations/0002_seed.sql
 npm run seed:images        # seed/images/ → R2 + kayıtlara bağla (yereldeki)
-npm run db:reset:local     # veritabanını komple sıfırdan kurar
+npm run db:reset:local     # veritabanını sıfırdan kurar (sunucu açıkken de olur)
 npm run cf:typegen         # wrangler.jsonc değişince binding tiplerini yeniler
 npm run preview            # üretim derlemesini yerelde Worker olarak çalıştırır
 ```
@@ -110,10 +115,28 @@ bağlantısıyla, görsel ve metin dönüşümlü olarak. Katıldığı her şey
 listesi hakkında sayfasının altında düz satırlar hâlinde duruyor. İkisi
 panelde ayrı bölümler: “Sergiler” ve “Katılımlar”.
 
+**Katılımlar başlıklara ayrılıyor.** Katılım listesi istenildiği kadar ara
+başlığa bölünüyor — Sergiler, Yarışmalar, Ödüller, Yayınlar… Başlıklar kendi
+aralarında, satırlar da kendi başlığı içinde ↑↓ ile sıralanıyor. Boş kalan ya da
+gizlenen başlık sitede hiç görünmüyor. Bir başlık silinirse satırları silinmiyor;
+listenin en üstünde başlıksız kalıyor, oradan başka bir başlığa taşınabiliyor.
+Sağdaki “kişisel / grup” etiketi satır başına seçimlik — sergilerde anlamlı,
+yarışma ve ödül satırlarında boş bırakılıyor.
+
 **Hakkında sayfası blok blok kuruluyor.** Üstte portre, giriş cümlesi ve
-künye; altında sıralayabildiğin bloklar: metin, tek görsel, ikili görsel ve
-alıntı. Panelden blok ekleniyor, taşınıyor, siliniyor — bu düğmeler formu da
-kaydettiği için yazdıkların kaybolmuyor.
+künye; altında sıralanabilen bloklar. Üç blok türü var: **şerit**, **başlık** ve
+**alıntı**. Bir şeritte en çok üç alan olur ve her alan ya metin ya görseldir —
+yani tek görsel, yan yana iki fotoğraf, ya da iki fotoğrafın yanında bir
+paragraf, hepsi aynı bloğun ayarı. Alanlar şeridin içinde ←→ ile, bloklar kendi
+aralarında ↑↓ ile taşınıyor. Künye sütunları da sınırsız: ekleniyor, taşınıyor,
+siliniyor; her sütunun satır sayısı serbest (her satıra bir şey). Bütün bu
+düğmeler formu da kaydettiği için yazdıkların kaybolmuyor.
+
+Tek metin alanlı şerit okuma genişliğinde akıyor; çok alanlı şerit tam
+genişlikte sütunlara ayrılıyor ve telefonda tek sütuna iniyor. Başlıklar
+akışta, tanıttıkları bloğa yakın duruyor. Eskiden kaydedilmiş bir sayfa
+(metin / görsel / ikili görsel blokları) okunurken kendiliğinden şeritlere
+çevriliyor, elle bir şey yapmak gerekmiyor.
 
 **Izgarada hover.** Üzerine gelinen tek iş kendi çerçevesinin içinde büyüyor,
 seri kartı ise arkasındaki istiflenmiş kağıtlarla birlikte komple öne
@@ -131,7 +154,9 @@ birbirini kovalıyor ya da yan yana diziliyor; imleç yaklaşınca ürküp uçuy
 sayfa değişince hep birlikte havalanıyor. İkisi de tamamen dekoratif:
 `pointer-events: none`, yani hiçbir tıklamayı yutmuyorlar. Dansçı dokunmatik
 ekranda, kuşların ikisi dar ekranda ve menü açıkken gizleniyor;
-`prefers-reduced-motion` açıksa hiçbiri yüklenmiyor.
+`prefers-reduced-motion` açıksa hiçbiri yüklenmiyor. İkisi de panelden
+(“Animasyonlar”) tek tek kapatılabiliyor; kapalı olanın kodu ziyaretçiye hiç
+gönderilmiyor.
 
 **Tam ekran görüntüleyici.** Izgarada bir işe tıklamak eseri tam ekran açar:
 ok tuşları / önceki-sonraki ile gezinme, esere tıklayınca tıklanan noktadan
@@ -166,6 +191,7 @@ src/lib/content.ts             okuma tarafı (D1, binding yoksa seed'e düşer)
 src/lib/admin-db.ts            yazma tarafı
 src/lib/access.ts              Access JWT doğrulaması
 src/lib/seed.ts                başlangıç içeriği (0002_seed.sql'in kaynağı)
+                               ve animasyon anahtarlarının varsayılanları
 seed/images/                   yer tutucu eser görselleri
 src/lib/cards.ts               kayıt → kart dönüşümleri
 src/components/work-gallery.tsx  ızgara: seri kartları ve tek işler

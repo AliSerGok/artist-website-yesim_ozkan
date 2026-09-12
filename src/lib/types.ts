@@ -62,46 +62,72 @@ export const CV_KINDS = ["solo", "group"] as const;
 
 export type CvKind = (typeof CV_KINDS)[number];
 
-/** One line of the complete exhibition list on the about page. */
-export interface CvEntry {
+/** A sub-heading of the participation list, e.g. "Sergiler", "Yarışmalar". */
+export interface CvGroup {
   id: string;
-  year: string;
+  /** Lower sorts first; headings move among themselves. */
   order: number;
   title: Localized;
-  kind: CvKind;
+  published: boolean;
+}
+
+/** One line of the complete participation list on the about page. */
+export interface CvEntry {
+  id: string;
+  /** Heading the line sits under; loose lines run above the first heading. */
+  groupId: string | null;
+  year: string;
+  /** Counted within its own heading, not across the whole list. */
+  order: number;
+  title: Localized;
+  /** Empty where solo/group says nothing, e.g. a competition or an award. */
+  kind: CvKind | "";
   url: string;
   published: boolean;
 }
 
 export interface AboutFact {
   label: Localized;
-  a: Localized;
-  b: Localized;
+  /** One entry per line, typed as a small text area in the panel. */
+  lines: Localized[];
 }
 
-export const BLOCK_TYPES = ["text", "image", "pair", "quote"] as const;
+export const CELL_TYPES = ["text", "image"] as const;
 
-export type BlockType = (typeof BLOCK_TYPES)[number];
+export type CellType = (typeof CELL_TYPES)[number];
 
-export interface TextBlock {
-  type: "text";
+export interface TextCell {
+  kind: "text";
   paragraphs: Localized[];
 }
 
-export interface ImageBlock {
-  type: "image";
+export interface ImageCell {
+  kind: "image";
   imageKey: string | null;
+  /** Width over height, measured when the picture is uploaded. */
   ratio: number;
   caption: Localized;
 }
 
-export interface PairBlock {
-  type: "pair";
-  imageKeyA: string | null;
-  ratioA: number;
-  imageKeyB: string | null;
-  ratioB: number;
-  caption: Localized;
+export type RowCell = TextCell | ImageCell;
+
+/** A strip holds at most this many fields side by side. */
+export const MAX_CELLS = 3;
+
+/**
+ * One to three fields running across the page, each of them either prose or a
+ * picture. A single text field reads at a comfortable measure; anything wider
+ * becomes columns.
+ */
+export interface RowBlock {
+  type: "row";
+  cells: RowCell[];
+}
+
+/** A section heading in the flow, e.g. "Atölye", "Basında". */
+export interface HeadingBlock {
+  type: "heading";
+  text: Localized;
 }
 
 export interface QuoteBlock {
@@ -110,8 +136,12 @@ export interface QuoteBlock {
   by: Localized;
 }
 
+export const BLOCK_TYPES = ["row", "heading", "quote"] as const;
+
+export type BlockType = (typeof BLOCK_TYPES)[number];
+
 /** The about page is a stream of these, in order. */
-export type AboutBlock = TextBlock | ImageBlock | PairBlock | QuoteBlock;
+export type AboutBlock = RowBlock | HeadingBlock | QuoteBlock;
 
 export interface AboutContent {
   lead: Localized;

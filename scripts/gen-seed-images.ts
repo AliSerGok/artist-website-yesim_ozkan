@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { SEED_ABOUT, SEED_EXHIBITIONS, SEED_WORKS } from "../src/lib/seed.ts";
+import type { AboutBlock } from "../src/lib/types.ts";
 
 const CHROME =
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -29,18 +30,40 @@ interface Subject {
 }
 
 /** The studio and gallery shots that sit between the works. */
-const aboutSubjects: Subject[] = SEED_ABOUT.blocks.flatMap((block, index) => {
-  if (block.type === "image") {
-    return [{ id: `about-b${index}`, ratio: block.ratio, style: "room" as const }];
-  }
-  if (block.type === "pair") {
-    return [
-      { id: `about-b${index}a`, ratio: block.ratioA, style: "paper" as const },
-      { id: `about-b${index}b`, ratio: block.ratioB, style: "paintings" as const },
-    ];
-  }
-  return [];
-});
+/**
+ * A picture inside a strip is named after its block, plus a letter when the
+ * strip holds more than one field. Both seed scripts read the same rule.
+ */
+function cellImageId(index: number, block: AboutBlock): { id: string; cell: number; ratio: number }[] {
+  if (block.type !== "row") return [];
+  return block.cells.flatMap((cell, position) =>
+    cell.kind === "image"
+      ? [
+          {
+            id:
+              block.cells.length === 1
+                ? `about-b${index}`
+                : `about-b${index}${"abc"[position]}`,
+            cell: position,
+            ratio: cell.ratio,
+          },
+        ]
+      : [],
+  );
+}
+
+const STRIP_STYLES: Style[] = ["paper", "paintings", "room"];
+
+const aboutSubjects: Subject[] = SEED_ABOUT.blocks.flatMap((block, index) =>
+  cellImageId(index, block).map(({ id, cell, ratio }) => ({
+    id,
+    ratio,
+    // A lone picture is a room shot; a strip of them alternates.
+    style: block.type === "row" && block.cells.length === 1
+      ? ("room" as const)
+      : STRIP_STYLES[cell % STRIP_STYLES.length],
+  })),
+);
 
 const subjects: Subject[] = [
   ...SEED_WORKS.map((work) => ({

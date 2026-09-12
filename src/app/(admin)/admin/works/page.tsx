@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { moveWorkAction } from "@/app/(admin)/admin/actions";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getAllSeries, getAllWorks } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { mediaUrl } from "@/lib/media";
@@ -65,26 +66,24 @@ export default async function AdminWorks() {
               <form action={moveWorkAction}>
                 <input type="hidden" name="id" value={work.id} />
                 <input type="hidden" name="direction" value="up" />
-                <button
-                  type="submit"
+                <SubmitButton
                   className="adm-btn px-2.5"
                   disabled={index === 0}
                   aria-label="Yukarı taşı"
                 >
                   ↑
-                </button>
+                </SubmitButton>
               </form>
               <form action={moveWorkAction}>
                 <input type="hidden" name="id" value={work.id} />
                 <input type="hidden" name="direction" value="down" />
-                <button
-                  type="submit"
+                <SubmitButton
                   className="adm-btn px-2.5"
                   disabled={index === works.length - 1}
                   aria-label="Aşağı taşı"
                 >
                   ↓
-                </button>
+                </SubmitButton>
               </form>
               <Link href={`/admin/works/${work.id}`} className="adm-btn">
                 Düzenle

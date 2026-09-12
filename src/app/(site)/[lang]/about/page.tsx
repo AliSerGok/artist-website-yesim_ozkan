@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ImageFrame } from "@/components/image-frame";
-import { getAbout, getCvEntries } from "@/lib/content";
+import { getAbout, getCvSections } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { isLang, type Lang } from "@/lib/i18n";
-import type { AboutBlock } from "@/lib/types";
+import type { AboutBlock, AboutFact, RowCell } from "@/lib/types";
 
 export async function generateMetadata({
   params,
@@ -23,19 +23,20 @@ export async function generateMetadata({
   };
 }
 
-/** Text reads at a comfortable measure; pictures run the full width. */
-const BLOCK_WIDTH: Record<AboutBlock["type"], string> = {
-  text: "62ch",
-  quote: "34ch",
-  image: "100%",
-  pair: "100%",
-};
+/** Prose reads at a comfortable measure; pictures and strips run wide. */
+function blockWidth(block: AboutBlock): string {
+  if (block.type === "quote") return "34ch";
+  if (block.type === "heading") return "100%";
+  return block.cells.length === 1 && block.cells[0].kind === "text"
+    ? "62ch"
+    : "100%";
+}
 
-function Block({ block, lang }: { block: AboutBlock; lang: Lang }) {
-  if (block.type === "text") {
+function Cell({ cell, lang }: { cell: RowCell; lang: Lang }) {
+  if (cell.kind === "text") {
     return (
-      <>
-        {block.paragraphs.map((paragraph, index) => (
+      <div className="min-w-0">
+        {cell.paragraphs.map((paragraph, index) => (
           <p
             key={index}
             className="m-0 mb-[18px] text-[15px] leading-[1.78] text-ink-soft text-pretty last:mb-0"
@@ -43,7 +44,32 @@ function Block({ block, lang }: { block: AboutBlock; lang: Lang }) {
             {paragraph[lang]}
           </p>
         ))}
-      </>
+      </div>
+    );
+  }
+
+  return (
+    <figure className="m-0 min-w-0">
+      <ImageFrame
+        imageKey={cell.imageKey}
+        ratio={cell.ratio}
+        alt={cell.caption[lang]}
+      />
+      {cell.caption[lang] && (
+        <figcaption className="mt-[11px] max-w-[56ch] text-[11.5px] tracking-[0.04em] text-mute-2">
+          {cell.caption[lang]}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
+function Block({ block, lang }: { block: AboutBlock; lang: Lang }) {
+  if (block.type === "heading") {
+    return (
+      <h2 className="m-0 font-serif text-[clamp(19px,2.1vw,26px)] leading-[1.15] font-normal">
+        {block.text[lang]}
+      </h2>
     );
   }
 
@@ -60,41 +86,21 @@ function Block({ block, lang }: { block: AboutBlock; lang: Lang }) {
     );
   }
 
-  if (block.type === "image") {
-    return (
-      <figure className="m-0">
-        <ImageFrame
-          imageKey={block.imageKey}
-          ratio={block.ratio}
-          alt={block.caption[lang]}
-        />
-        <figcaption className="mt-[11px] max-w-[56ch] text-[11.5px] tracking-[0.04em] text-mute-2">
-          {block.caption[lang]}
-        </figcaption>
-      </figure>
-    );
-  }
-
   return (
-    <figure className="m-0">
-      <div className="grid grid-cols-2 gap-[clamp(12px,2vw,24px)]">
-        <ImageFrame
-          imageKey={block.imageKeyA}
-          ratio={block.ratioA}
-          alt={block.caption[lang]}
-        />
-        <ImageFrame
-          imageKey={block.imageKeyB}
-          ratio={block.ratioB}
-          alt={block.caption[lang]}
-        />
-      </div>
-      <figcaption className="mt-[11px] max-w-[56ch] text-[11.5px] tracking-[0.04em] text-mute-2">
-        {block.caption[lang]}
-      </figcaption>
-    </figure>
+    <div
+      className="strip"
+      style={{ "--cols": block.cells.length } as React.CSSProperties}
+    >
+      {block.cells.map((cell, index) => (
+        <Cell key={index} cell={cell} lang={lang} />
+      ))}
+    </div>
   );
 }
+
+/** A column with nothing in it is one the artist has not filled in yet. */
+const hasContent = (fact: AboutFact, lang: Lang) =>
+  Boolean(fact.label[lang]) || fact.lines.some((line) => line[lang]);
 
 export default async function AboutPage({
   params,
@@ -105,7 +111,8 @@ export default async function AboutPage({
   if (!isLang(lang)) notFound();
 
   const t = dict(lang);
-  const [about, cv] = await Promise.all([getAbout(), getCvEntries()]);
+  const [about, cv] = await Promise.all([getAbout(), getCvSections()]);
+  const facts = about.facts.filter((fact) => hasContent(fact, lang));
 
   return (
     <main className="gutter relative z-1 flex-1 animate-fade-up pt-[clamp(36px,6vw,86px)] pb-[110px]">
@@ -123,28 +130,32 @@ export default async function AboutPage({
             {about.lead[lang]}
           </h1>
 
-          <div className="grid gap-[22px] border-t border-rule pt-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))]">
-            {about.facts.map((fact, index) => (
-              <div key={index}>
-                <div className="label mb-[9px]">{fact.label[lang]}</div>
-                <div className="text-[12.5px] leading-[1.65] text-ink-soft">
-                  {fact.a[lang]}
+          {facts.length > 0 && (
+            <div className="grid gap-[22px] border-t border-rule pt-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))]">
+              {facts.map((fact, index) => (
+                <div key={index}>
+                  <div className="label mb-[9px]">{fact.label[lang]}</div>
+                  {fact.lines.map((line, position) => (
+                    <div
+                      key={position}
+                      className="text-[12.5px] leading-[1.65] text-ink-soft"
+                    >
+                      {line[lang]}
+                    </div>
+                  ))}
                 </div>
-                <div className="text-[12.5px] leading-[1.65] text-ink-soft">
-                  {fact.b[lang]}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex max-w-[1180px] flex-col gap-[clamp(34px,5vw,72px)]">
+      <div className="ab-flow max-w-[1180px]">
         {about.blocks.map((block, index) => (
           <section
             key={index}
-            className="w-full min-w-0"
-            style={{ maxWidth: BLOCK_WIDTH[block.type] }}
+            className={`w-full min-w-0${block.type === "heading" ? " ab-heading" : ""}`}
+            style={{ maxWidth: blockWidth(block) }}
           >
             <Block block={block} lang={lang} />
           </section>
@@ -160,32 +171,47 @@ export default async function AboutPage({
             <span className="h-px flex-1 bg-rule" />
           </div>
 
-          {cv.map((entry) => (
-            <div key={entry.id} className="cv-row">
-              <div className="font-mono text-[10.5px] tracking-[0.12em] text-mute-3">
-                {entry.year}
-              </div>
-              <div className="text-[13.5px] leading-[1.55]">
-                {entry.url && entry.url !== "#" ? (
-                  <a
-                    href={entry.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="border-b border-[#e0ded6] pb-px transition-colors duration-200 hover:border-ink"
-                  >
-                    {entry.title[lang]}
-                  </a>
-                ) : (
-                  entry.title[lang]
-                )}
-              </div>
-              <div className="text-[9.5px] tracking-[0.16em] text-mute-3 uppercase">
-                {entry.kind === "solo" ? t.soloShort : t.groupShort}
-              </div>
-            </div>
-          ))}
+          {cv.map((section) => (
+            <section
+              key={section.group?.id ?? "unfiled"}
+              className="mb-[clamp(26px,3vw,44px)] last:mb-0"
+            >
+              {section.group && (
+                <h3 className="m-0 mb-[9px] text-[10.5px] font-normal tracking-[0.18em] text-mute uppercase">
+                  {section.group.title[lang]}
+                </h3>
+              )}
 
-          <div className="border-t border-[#f0efe9]" />
+              {section.entries.map((entry) => (
+                <div key={entry.id} className="cv-row">
+                  <div className="font-mono text-[10.5px] tracking-[0.12em] text-mute-3">
+                    {entry.year}
+                  </div>
+                  <div className="text-[13.5px] leading-[1.55]">
+                    {entry.url && entry.url !== "#" ? (
+                      <a
+                        href={entry.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="border-b border-[#e0ded6] pb-px transition-colors duration-200 hover:border-ink"
+                      >
+                        {entry.title[lang]}
+                      </a>
+                    ) : (
+                      entry.title[lang]
+                    )}
+                  </div>
+                  {/* Kept even when empty so the three columns stay aligned. */}
+                  <div className="text-[9.5px] tracking-[0.16em] text-mute-3 uppercase">
+                    {entry.kind === "solo" && t.soloShort}
+                    {entry.kind === "group" && t.groupShort}
+                  </div>
+                </div>
+              ))}
+
+              <div className="border-t border-[#f0efe9]" />
+            </section>
+          ))}
         </div>
       )}
     </main>

@@ -7,6 +7,7 @@ import {
 } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { ImageField } from "@/components/admin/image-field";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getExhibitionById } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -173,9 +174,12 @@ export default async function EditExhibition({
         )}
 
         <div className="flex items-center gap-3">
-          <button type="submit" className="adm-btn adm-btn-primary">
+          <SubmitButton
+            className="adm-btn adm-btn-primary"
+            busyLabel="Kaydediliyor…"
+          >
             Kaydet
-          </button>
+          </SubmitButton>
           <Link href="/admin/exhibitions" className="adm-btn">
             Vazgeç
           </Link>

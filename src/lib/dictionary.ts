@@ -89,7 +89,7 @@ export const DICTIONARY: Record<Lang, Dictionary> = {
     worksTitle: "Selected works",
     exhibitionsTitle: "Exhibitions",
     seriesBadge: "series",
-    cvTitle: "All exhibitions",
+    cvTitle: "Curriculum vitae",
     fullList: "full list — about",
     visit: "exhibition page →",
     soloShort: "solo",

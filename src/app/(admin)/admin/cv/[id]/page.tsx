@@ -3,19 +3,28 @@ import { notFound } from "next/navigation";
 
 import { deleteCvAction, saveCvAction } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import { getCvEntryById } from "@/lib/content";
+import { SubmitButton } from "@/components/admin/submit-button";
+import { getAllCvGroups, getCvEntryById } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditCv({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ group?: string }>;
 }) {
-  const { id } = await params;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
   const isNew = id === "new";
-  const entry = isNew ? null : await getCvEntryById(id);
+  const [entry, groups] = await Promise.all([
+    isNew ? null : getCvEntryById(id),
+    getAllCvGroups(),
+  ]);
   if (!isNew && !entry) notFound();
+
+  // "Satır ekle" next to a heading opens the form already filed under it.
+  const groupId = entry?.groupId ?? query.group ?? "";
 
   return (
     <>
@@ -29,7 +38,23 @@ export default async function EditCv({
       <form action={saveCvAction} className="mt-8 flex flex-col gap-6">
         {entry && <input type="hidden" name="id" value={entry.id} />}
 
-        <div className="grid gap-5 md:grid-cols-[120px_160px_minmax(0,1fr)_auto]">
+        <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_110px_150px_auto]">
+          <label className="block">
+            <span className="adm-label">Başlık</span>
+            <select
+              name="groupId"
+              className="adm-select"
+              defaultValue={groupId}
+            >
+              <option value="">— başlıksız</option>
+              {groups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.title.tr}
+                  {group.published ? "" : " (gizli)"}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="block">
             <span className="adm-label">Yıl</span>
             <input
@@ -45,20 +70,12 @@ export default async function EditCv({
             <select
               name="kind"
               className="adm-select"
-              defaultValue={entry?.kind ?? "group"}
+              defaultValue={entry?.kind ?? ""}
             >
+              <option value="">— etiket yok</option>
               <option value="solo">Kişisel</option>
               <option value="group">Grup</option>
             </select>
-          </label>
-          <label className="block">
-            <span className="adm-label">Bağlantı</span>
-            <input
-              name="url"
-              className="adm-input"
-              defaultValue={entry?.url ?? ""}
-              placeholder="https://… (boşsa düz metin görünür)"
-            />
           </label>
           <label className="flex items-center gap-2.5 self-end pb-2.5">
             <input
@@ -70,6 +87,13 @@ export default async function EditCv({
             <span className="text-[13px]">Yayında</span>
           </label>
         </div>
+
+        {groups.length === 0 && (
+          <p className="adm-note -mt-2 max-w-[62ch]">
+            Henüz hiç başlık yok. <Link href="/admin/cv/groups/new" className="underline">Yeni başlık</Link> açarsan
+            satırları Sergiler, Yarışmalar gibi bölümlere ayırabilirsin.
+          </p>
+        )}
 
         <div className="grid gap-5 md:grid-cols-2">
           <label className="block">
@@ -93,10 +117,23 @@ export default async function EditCv({
           </label>
         </div>
 
+        <label className="block">
+          <span className="adm-label">Bağlantı</span>
+          <input
+            name="url"
+            className="adm-input"
+            defaultValue={entry?.url ?? ""}
+            placeholder="https://… (boşsa düz metin görünür)"
+          />
+        </label>
+
         <div className="flex items-center gap-3">
-          <button type="submit" className="adm-btn adm-btn-primary">
+          <SubmitButton
+            className="adm-btn adm-btn-primary"
+            busyLabel="Kaydediliyor…"
+          >
             Kaydet
-          </button>
+          </SubmitButton>
           <Link href="/admin/cv" className="adm-btn">
             Vazgeç
           </Link>

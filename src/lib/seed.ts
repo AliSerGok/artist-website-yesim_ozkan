@@ -2,6 +2,7 @@ import type {
   AboutContent,
   ContactContent,
   CvEntry,
+  CvGroup,
   Exhibition,
   Series,
   SiteSettings,
@@ -590,23 +591,58 @@ export const SEED_EXHIBITIONS: Exhibition[] = [
 ];
 
 /** The complete list, kept as plain lines on the about page. */
+/**
+ * The headings the participation list is split into. The artist adds, renames
+ * and reorders these from the panel; these three are only a starting point.
+ */
+export const SEED_CV_GROUPS: CvGroup[] = [
+  {
+    id: "cvg_exhibitions",
+    order: 1,
+    title: { tr: "Sergiler", en: "Exhibitions" },
+    published: true,
+  },
+  {
+    id: "cvg_awards",
+    order: 2,
+    title: { tr: "Yarışmalar ve ödüller", en: "Competitions and awards" },
+    published: true,
+  },
+  {
+    id: "cvg_residencies",
+    order: 3,
+    title: { tr: "Konuk sanatçı programları", en: "Residencies" },
+    published: true,
+  },
+];
+
+const withinGroup: Record<string, number> = {};
+
 export const SEED_CV: CvEntry[] = [
-  ["2026", "Uzun Sabah — Galeri Nev, İstanbul", "The Long Morning — Galeri Nev, Istanbul", "solo"],
-  ["2025", "Yüzeye Dair — Zilberman, İstanbul", "On Surface — Zilberman, Istanbul", "group"],
-  ["2025", "Kağıt Ölçeği — Bilsart, İstanbul", "Paper Scale — Bilsart, Istanbul", "group"],
-  ["2024", "Kıvrım — Hangar, Lizbon", "Fold — Hangar, Lisbon", "solo"],
-  ["2024", "Yakın Bakış — Öktem Aykut, İstanbul", "Close Looking — Öktem Aykut, Istanbul", "group"],
-  ["2023", "İki Oda — Kunstraum Neukölln, Berlin", "Two Rooms — Kunstraum Neukölln, Berlin", "group"],
-  ["2023", "Kağıt İşleri — K2, İzmir", "Works on Paper — K2, Izmir", "solo"],
-  ["2022", "Baskı Günleri — Kasa Galeri, İstanbul", "Print Days — Kasa Galeri, Istanbul", "group"],
-  ["2021", "Yakın Ölçek — Halka Sanat, İstanbul", "Close Scale — Halka Sanat, Istanbul", "group"],
-  ["2021", "Oda Işığı — Torun, Ankara", "Room Light — Torun, Ankara", "group"],
-  ["2020", "Başlangıç Katmanı — Mimar Sinan GSÜ, İstanbul", "First Layer — Mimar Sinan FAU, Istanbul", "group"],
-  ["2019", "Genç Resim — Akbank Sanat, İstanbul", "Young Painting — Akbank Sanat, Istanbul", "group"],
-].map(([year, tr, en, kind], index) => ({
+  ["cvg_exhibitions", "2026", "Uzun Sabah — Galeri Nev, İstanbul", "The Long Morning — Galeri Nev, Istanbul", "solo"],
+  ["cvg_exhibitions", "2025", "Yüzeye Dair — Zilberman, İstanbul", "On Surface — Zilberman, Istanbul", "group"],
+  ["cvg_exhibitions", "2025", "Kağıt Ölçeği — Bilsart, İstanbul", "Paper Scale — Bilsart, Istanbul", "group"],
+  ["cvg_exhibitions", "2024", "Kıvrım — Hangar, Lizbon", "Fold — Hangar, Lisbon", "solo"],
+  ["cvg_exhibitions", "2024", "Yakın Bakış — Öktem Aykut, İstanbul", "Close Looking — Öktem Aykut, Istanbul", "group"],
+  ["cvg_exhibitions", "2023", "İki Oda — Kunstraum Neukölln, Berlin", "Two Rooms — Kunstraum Neukölln, Berlin", "group"],
+  ["cvg_exhibitions", "2023", "Kağıt İşleri — K2, İzmir", "Works on Paper — K2, Izmir", "solo"],
+  ["cvg_exhibitions", "2022", "Baskı Günleri — Kasa Galeri, İstanbul", "Print Days — Kasa Galeri, Istanbul", "group"],
+  ["cvg_exhibitions", "2021", "Yakın Ölçek — Halka Sanat, İstanbul", "Close Scale — Halka Sanat, Istanbul", "group"],
+  ["cvg_exhibitions", "2021", "Oda Işığı — Torun, Ankara", "Room Light — Torun, Ankara", "group"],
+  ["cvg_exhibitions", "2020", "Başlangıç Katmanı — Mimar Sinan GSÜ, İstanbul", "First Layer — Mimar Sinan FAU, Istanbul", "group"],
+  ["cvg_exhibitions", "2019", "Genç Resim — Akbank Sanat, İstanbul", "Young Painting — Akbank Sanat, Istanbul", "group"],
+  ["cvg_awards", "2025", "Baskı Bienali — mansiyon, İzmir", "Print Biennial — honourable mention, Izmir", ""],
+  ["cvg_awards", "2022", "Genç Sanatçı Ödülü — Akbank Sanat, İstanbul", "Young Artist Award — Akbank Sanat, Istanbul", ""],
+  ["cvg_awards", "2020", "Resim Yarışması — sergileme, DEÜ, İzmir", "Painting Prize — selected, DEU, Izmir", ""],
+  ["cvg_residencies", "2024", "Hangar, Lizbon", "Hangar, Lisbon", ""],
+  ["cvg_residencies", "2021", "Halka Sanat, İstanbul", "Halka Sanat, Istanbul", ""],
+].map(([groupId, year, tr, en, kind], index) => ({
   id: `cv${index + 1}`,
+  groupId: groupId as string,
   year: year as string,
-  order: index + 1,
+  // Restarts at 1 under each heading, the way the panel writes new rows.
+  order: (withinGroup[groupId as string] =
+    (withinGroup[groupId as string] ?? 0) + 1),
   title: { tr: tr as string, en: en as string },
   kind: kind as CvEntry["kind"],
   url: "#",
@@ -623,56 +659,98 @@ export const SEED_ABOUT: AboutContent = {
   facts: [
     {
       label: { tr: "Eğitim", en: "Education" },
-      a: { tr: "MFA Resim, Mimar Sinan", en: "MFA Painting, Mimar Sinan" },
-      b: { tr: "Lisans Resim, Dokuz Eylül", en: "BA Painting, Dokuz Eylül" },
+      lines: [
+        { tr: "MFA Resim, Mimar Sinan", en: "MFA Painting, Mimar Sinan" },
+        { tr: "Lisans Resim, Dokuz Eylül", en: "BA Painting, Dokuz Eylül" },
+      ],
     },
     {
       label: { tr: "Konuk sanatçı", en: "Residencies" },
-      a: { tr: "Hangar, Lizbon — 2024", en: "Hangar, Lisbon — 2024" },
-      b: {
-        tr: "Halka Sanat, İstanbul — 2021",
-        en: "Halka Sanat, Istanbul — 2021",
-      },
-    },
-    {
-      label: { tr: "Basın", en: "Press" },
-      a: { tr: "Argonotlar, 2025", en: "Argonotlar, 2025" },
-      b: { tr: "Unlimited, 2023", en: "Unlimited, 2023" },
-    },
-  ],
-  blocks: [
-    {
-      type: "text",
-      paragraphs: [
+      lines: [
+        { tr: "Hangar, Lizbon — 2024", en: "Hangar, Lisbon — 2024" },
         {
-          tr: "Resimleri çok sıradan yüzeylerin uzun süreli gözleminden doğuyor: geç ışıkta bir duvar, leğende duran su, bir perdenin kıvrımı. Ketende ince yağlıboya ve pigment katmanlarıyla çalışıyor; her geçişin izini kısmen görünür bırakıyor, böylece resim kendi yapılışının hafızasını koruyor.",
-          en: "Her paintings begin with sustained observation of very ordinary surfaces — a wall in late light, water held in a basin, the fold of a curtain. Working in thin layers of oil and pigment on linen, she lets each pass stay partly visible, so the finished picture keeps the memory of its own making.",
-        },
-        {
-          tr: "Son işleri resimle kağıt arasında gidip geliyor ve ikisini tek bir pratik olarak ele alıyor: desenler bir rengi netleştiriyor, resimler deseni yeniden atmosfere çeviriyor. Ölçek tercihen mahrem kalıyor.",
-          en: "Recent bodies of work move between painting and paper, treating the two as one continuous practice: drawings clarify a colour, paintings return the drawing to atmosphere. Scale stays intimate by choice.",
+          tr: "Halka Sanat, İstanbul — 2021",
+          en: "Halka Sanat, Istanbul — 2021",
         },
       ],
     },
     {
-      type: "image",
-      imageKey: null,
-      ratio: 1.49,
-      caption: {
-        tr: "Kadıköy'deki atölye, kuzey penceresi, 2025",
-        en: "The Kadıköy studio, north window, 2025",
-      },
+      label: { tr: "Basın", en: "Press" },
+      lines: [
+        { tr: "Argonotlar, 2025", en: "Argonotlar, 2025" },
+        { tr: "Unlimited, 2023", en: "Unlimited, 2023" },
+      ],
+    },
+  ],
+  blocks: [
+    {
+      type: "row",
+      cells: [
+        {
+          kind: "text",
+          paragraphs: [
+            {
+              tr: "Resimleri çok sıradan yüzeylerin uzun süreli gözleminden doğuyor: geç ışıkta bir duvar, leğende duran su, bir perdenin kıvrımı. Ketende ince yağlıboya ve pigment katmanlarıyla çalışıyor; her geçişin izini kısmen görünür bırakıyor, böylece resim kendi yapılışının hafızasını koruyor.",
+              en: "Her paintings begin with sustained observation of very ordinary surfaces — a wall in late light, water held in a basin, the fold of a curtain. Working in thin layers of oil and pigment on linen, she lets each pass stay partly visible, so the finished picture keeps the memory of its own making.",
+            },
+            {
+              tr: "Son işleri resimle kağıt arasında gidip geliyor ve ikisini tek bir pratik olarak ele alıyor: desenler bir rengi netleştiriyor, resimler deseni yeniden atmosfere çeviriyor. Ölçek tercihen mahrem kalıyor.",
+              en: "Recent bodies of work move between painting and paper, treating the two as one continuous practice: drawings clarify a colour, paintings return the drawing to atmosphere. Scale stays intimate by choice.",
+            },
+          ],
+        },
+      ],
     },
     {
-      type: "pair",
-      imageKeyA: null,
-      ratioA: 0.8,
-      imageKeyB: null,
-      ratioB: 0.8,
-      caption: {
-        tr: "Solda pigment denemeleri, sağda ilk katman sonrası bekleyen ketenler",
-        en: "Pigment tests, left; linens resting after the first layer, right",
-      },
+      type: "heading",
+      text: { tr: "Atölye", en: "The studio" },
+    },
+    {
+      type: "row",
+      cells: [
+        {
+          kind: "image",
+          imageKey: null,
+          ratio: 1.49,
+          caption: {
+            tr: "Kadıköy'deki atölye, kuzey penceresi, 2025",
+            en: "The Kadıköy studio, north window, 2025",
+          },
+        },
+      ],
+    },
+    // Three fields at once: two pictures and the note that belongs with them.
+    {
+      type: "row",
+      cells: [
+        {
+          kind: "image",
+          imageKey: null,
+          ratio: 0.8,
+          caption: {
+            tr: "Pigment denemeleri",
+            en: "Pigment tests",
+          },
+        },
+        {
+          kind: "image",
+          imageKey: null,
+          ratio: 0.8,
+          caption: {
+            tr: "İlk katman sonrası bekleyen ketenler",
+            en: "Linens resting after the first layer",
+          },
+        },
+        {
+          kind: "text",
+          paragraphs: [
+            {
+              tr: "Atölyede aynı anda beş altı iş bekliyor. Bir keten kuruyana kadar bir başkası boyanıyor; kağıt işleri ikisinin arasında, ayakta karar verilen şeyler.",
+              en: "Five or six works wait in the studio at once. While one linen dries another gets painted; the works on paper happen in between, decided standing up.",
+            },
+          ],
+        },
+      ],
     },
     {
       type: "quote",
@@ -686,22 +764,36 @@ export const SEED_ABOUT: AboutContent = {
       },
     },
     {
-      type: "text",
-      paragraphs: [
+      type: "heading",
+      text: { tr: "Arka plan", en: "Background" },
+    },
+    {
+      type: "row",
+      cells: [
         {
-          tr: "Mimar Sinan Güzel Sanatlar Üniversitesi'nde resim okudu; İstanbul, İzmir, Berlin ve Lizbon'da sergiler açtı. İşleri Türkiye ve Avrupa'daki özel koleksiyonlarda yer alıyor.",
-          en: "She studied painting at Mimar Sinan Fine Arts University and has exhibited in Istanbul, Izmir, Berlin and Lisbon. Her work is held in private collections in Turkey and Europe.",
+          kind: "text",
+          paragraphs: [
+            {
+              tr: "Mimar Sinan Güzel Sanatlar Üniversitesi'nde resim okudu; İstanbul, İzmir, Berlin ve Lizbon'da sergiler açtı. İşleri Türkiye ve Avrupa'daki özel koleksiyonlarda yer alıyor.",
+              en: "She studied painting at Mimar Sinan Fine Arts University and has exhibited in Istanbul, Izmir, Berlin and Lisbon. Her work is held in private collections in Turkey and Europe.",
+            },
+          ],
         },
       ],
     },
     {
-      type: "image",
-      imageKey: null,
-      ratio: 1.77,
-      caption: {
-        tr: "Kıvrım serisinin baskı günleri, Hangar, Lizbon, 2024",
-        en: "Printing days for the Fold series, Hangar, Lisbon, 2024",
-      },
+      type: "row",
+      cells: [
+        {
+          kind: "image",
+          imageKey: null,
+          ratio: 1.77,
+          caption: {
+            tr: "Kıvrım serisinin baskı günleri, Hangar, Lizbon, 2024",
+            en: "Printing days for the Fold series, Hangar, Lisbon, 2024",
+          },
+        },
+      ],
     },
   ],
 };

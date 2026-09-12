@@ -152,6 +152,15 @@
   }
 
   /*
+   * No work on the grid may stand taller than the screen. The frame keeps its
+   * width and crops a little more instead, so a 56 × 18 cm sheet still reads
+   * as a tall narrow work without running off the bottom of the page.
+   */
+  .work-grid .frame {
+    max-height: calc(100svh - 170px);
+  }
+
+  /*
    * Hovering brings the work forward rather than pushing the others back:
    * a single work zooms inside its frame, a series card lifts as a whole.
    */
@@ -284,6 +293,35 @@
     .ab-head {
       grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
       gap: clamp(28px, 5vw, 60px);
+    }
+  }
+
+  /*
+   * The body of the about page. Blocks are spaced evenly, except around a
+   * heading: extra air above it, and it sits close to whatever it introduces.
+   */
+  .ab-flow > * + * {
+    margin-top: clamp(34px, 5vw, 72px);
+  }
+
+  .ab-flow > * + .ab-heading {
+    margin-top: clamp(46px, 6.5vw, 96px);
+  }
+
+  .ab-flow > .ab-heading + * {
+    margin-top: clamp(12px, 1.6vw, 20px);
+  }
+
+  /* One to three fields running across the page; a single column on phones. */
+  .strip {
+    display: grid;
+    gap: clamp(14px, 2vw, 26px);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 768px) {
+    .strip {
+      grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
     }
   }
 
@@ -558,9 +596,30 @@
     letter-spacing: 0.13em;
     color: var(--color-mute);
     cursor: pointer;
+    user-select: none;
     transition:
       color 200ms ease,
-      border-color 200ms ease;
+      border-color 200ms ease,
+      background 200ms ease,
+      transform 90ms ease;
+  }
+
+  .adm-btn:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+
+  /* The press itself: it sinks, darkens, and holds until the pointer lifts. */
+  .adm-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    background: var(--color-panel);
+    border-color: var(--color-mute-2);
+    color: var(--color-ink);
+  }
+
+  .adm-btn:disabled {
+    opacity: 0.42;
+    cursor: default;
   }
 
   .adm-btn:hover {
@@ -589,6 +648,137 @@
     line-height: 1.6;
     color: var(--color-mute);
   }
+
+  .adm-btn-primary:active:not(:disabled) {
+    background: #000;
+    color: #fdfdfc;
+  }
+
+  /* While a form posts every button locks, but the one that was pressed
+     keeps its weight and breathes, so it is clear what is running. */
+  .adm-btn[data-busy="true"] {
+    opacity: 1;
+    cursor: progress;
+    color: var(--color-ink);
+    border-color: var(--color-mute-2);
+    animation: admPulse 950ms ease-in-out infinite;
+  }
+
+  .adm-btn-primary[data-busy="true"] {
+    color: #fdfdfc;
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+
+  .adm-btn-danger[data-busy="true"] {
+    color: #a3312a;
+    border-color: #a3312a;
+  }
+
+  /* ---------- The tab you are on ---------- */
+
+  .adm-bar .nav-link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .adm-bar .nav-link[data-active="true"] {
+    font-weight: 700;
+  }
+
+  /* Lights up between the click and the page arriving. */
+  .nav-spark {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 140ms ease;
+  }
+
+  .nav-spark[data-pending] {
+    opacity: 1;
+    animation: admPulse 700ms ease-in-out infinite;
+  }
+
+  /* ---------- Notes ---------- */
+
+  .adm-toasts {
+    position: fixed;
+    right: clamp(16px, 4vw, 32px);
+    bottom: clamp(16px, 4vw, 32px);
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .adm-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: min(380px, calc(100vw - 32px));
+    padding: 12px 14px;
+    border: 1px solid var(--color-ink);
+    background: var(--color-ink);
+    color: #fdfdfc;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.45;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 12px 34px rgba(20, 20, 15, 0.18);
+    animation: admToastIn 260ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  }
+
+  .adm-toast[data-tone="err"] {
+    background: #a3312a;
+    border-color: #a3312a;
+  }
+
+  .adm-toast-mark {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    border: 1px solid rgba(253, 253, 252, 0.55);
+    border-radius: 50%;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .adm-toast-text {
+    min-width: 0;
+  }
+}
+
+@keyframes admPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@keyframes admToastIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-toast { animation: none; }
+  .adm-btn[data-busy="true"],
+  .nav-spark[data-pending] { animation: none; }
+  .adm-btn:active:not(:disabled) { transform: none; }
 }
 
 /* ---------- The studio dancer ---------- */

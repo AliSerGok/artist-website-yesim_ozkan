@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 
+import { useToast } from "@/components/admin/toast";
 import { mediaUrl } from "@/lib/media";
 
 const FULL_EDGE = 2400;
@@ -70,14 +71,13 @@ export function ImageField({
   previewHeight?: number;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const toast = useToast();
   const [current, setCurrent] = useState(imageKey);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function upload(file: File) {
     setBusy(true);
-    setError(null);
     try {
       const [full, grid] = await Promise.all([
         resize(file, FULL_EDGE),
@@ -100,8 +100,14 @@ export function ImageField({
       const result = (await response.json()) as { key: string };
       setCurrent(result.key);
       setSize({ width: full.width, height: full.height });
+      toast("Görsel yüklendi — Kaydet’e basınca yerine geçer.");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Yükleme başarısız.");
+      toast(
+        cause instanceof Error
+          ? `Görsel yüklenemedi — ${cause.message}`
+          : "Görsel yüklenemedi.",
+        "err",
+      );
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -160,6 +166,7 @@ export function ImageField({
               onClick={() => {
                 setCurrent(null);
                 setSize({ width: 0, height: 0 });
+                toast("Görsel kaldırıldı — Kaydet’e basınca silinir.");
               }}
             >
               Kaldır
@@ -184,8 +191,6 @@ export function ImageField({
           "JPEG veya PNG yükle; tarayıcı web boyutuna küçültüp WebP’ye çevirir."}{" "}
         Değişiklik <strong>Kaydet</strong>’e bastığında geçerli olur.
       </p>
-
-      {error && <p className="adm-note mt-2 text-[#a3312a]">{error}</p>}
     </div>
   );
 }

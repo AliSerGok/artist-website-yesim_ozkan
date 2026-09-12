@@ -1,4 +1,5 @@
 import { saveSettingsAction } from "@/app/(admin)/admin/actions";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getSettings } from "@/lib/content";
 import type { SiteSettings } from "@/lib/types";
 
@@ -59,9 +60,12 @@ export default async function EditSettings() {
         ))}
 
         <div>
-          <button type="submit" className="adm-btn adm-btn-primary">
+          <SubmitButton
+            className="adm-btn adm-btn-primary"
+            busyLabel="Kaydediliyor…"
+          >
             Kaydet
-          </button>
+          </SubmitButton>
         </div>
       </form>
     </>

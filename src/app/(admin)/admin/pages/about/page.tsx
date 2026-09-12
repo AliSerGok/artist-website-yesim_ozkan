@@ -1,18 +1,63 @@
 import { saveAboutAction } from "@/app/(admin)/admin/actions";
 import { ImageField } from "@/components/admin/image-field";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getAbout } from "@/lib/content";
-import type { AboutBlock } from "@/lib/types";
+import { MAX_CELLS, type AboutBlock, type RowCell } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const FACT_SLOTS = [0, 1, 2, 3];
-
 const BLOCK_LABEL: Record<AboutBlock["type"], string> = {
-  text: "Metin",
-  image: "Görsel",
-  pair: "İkili görsel",
+  row: "Şerit",
+  heading: "Başlık",
   quote: "Alıntı",
 };
+
+const CELL_LABEL: Record<RowCell["kind"], string> = {
+  text: "Metin",
+  image: "Görsel",
+};
+
+/** ↑ ↓ pair used by both the fact columns and the page blocks. */
+function MoveButtons({
+  intent,
+  index,
+  count,
+  up = "up",
+  down = "down",
+  labels = ["Yukarı taşı", "Aşağı taşı"],
+  glyphs = ["↑", "↓"],
+}: {
+  intent: string;
+  index: number;
+  count: number;
+  up?: string;
+  down?: string;
+  labels?: [string, string];
+  glyphs?: [string, string];
+}) {
+  return (
+    <>
+      <SubmitButton
+        name="intent"
+        value={`${intent}:${index}:${up}`}
+        className="adm-btn px-2.5"
+        disabled={index === 0}
+        aria-label={labels[0]}
+      >
+        {glyphs[0]}
+      </SubmitButton>
+      <SubmitButton
+        name="intent"
+        value={`${intent}:${index}:${down}`}
+        className="adm-btn px-2.5"
+        disabled={index === count - 1}
+        aria-label={labels[1]}
+      >
+        {glyphs[1]}
+      </SubmitButton>
+    </>
+  );
+}
 
 export default async function EditAbout() {
   const about = await getAbout();
@@ -20,14 +65,16 @@ export default async function EditAbout() {
   return (
     <>
       <h1 className="adm-h1">Hakkında</h1>
-      <p className="adm-note mt-3 max-w-[60ch]">
+      <p className="adm-note mt-3 max-w-[64ch]">
         Sayfa üstte portre ve künyeyle açılıyor, altında sıraladığın bloklar
-        akıyor. Blok ekleme, taşıma ve silme düğmeleri formu da kaydeder, yani
-        yazdıkların kaybolmaz.
+        akıyor. Bir şerit bloğunda en çok {MAX_CELLS} alan olur ve her alan ya
+        metin ya görseldir. Ekleme, taşıma ve silme düğmeleri formu da kaydeder,
+        yani yazdıkların kaybolmaz.
       </p>
 
       <form action={saveAboutAction} className="mt-8 flex flex-col gap-6">
         <input type="hidden" name="blockCount" value={about.blocks.length} />
+        <input type="hidden" name="factCount" value={about.facts.length} />
 
         <div className="grid gap-5 md:grid-cols-2">
           <label className="block">
@@ -58,9 +105,7 @@ export default async function EditAbout() {
           />
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <label className="block">
-              <span className="adm-label">
-                Portre yer tutucusu (Türkçe)
-              </span>
+              <span className="adm-label">Portre yer tutucusu (Türkçe)</span>
               <input
                 name="portraitSlotTr"
                 className="adm-input"
@@ -68,9 +113,7 @@ export default async function EditAbout() {
               />
             </label>
             <label className="block">
-              <span className="adm-label">
-                Portre yer tutucusu (İngilizce)
-              </span>
+              <span className="adm-label">Portre yer tutucusu (İngilizce)</span>
               <input
                 name="portraitSlotEn"
                 className="adm-input"
@@ -82,68 +125,79 @@ export default async function EditAbout() {
 
         <div>
           <span className="adm-label">Künye sütunları</span>
+
           <div className="flex flex-col gap-4">
-            {FACT_SLOTS.map((index) => {
-              const fact = about.facts[index];
-              return (
-                <div key={index} className="adm-card grid gap-4 md:grid-cols-2">
+            {about.facts.map((fact, index) => (
+              <div key={index} className="adm-card">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <span className="label">{index + 1}. sütun</span>
+                  <div className="flex items-center gap-1.5">
+                    <MoveButtons
+                      intent="fact-move"
+                      index={index}
+                      count={about.facts.length}
+                    />
+                    <SubmitButton
+                      name="intent"
+                      value={`fact-delete:${index}`}
+                      className="adm-btn adm-btn-danger"
+                      busyLabel="Siliniyor…"
+                    >
+                      Sütunu sil
+                    </SubmitButton>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
                     <span className="adm-label">Başlık (TR)</span>
                     <input
-                      name={`factLabelTr${index}`}
+                      name={`factLabel${index}Tr`}
                       className="adm-input"
-                      defaultValue={fact?.label.tr ?? ""}
+                      defaultValue={fact.label.tr}
                       placeholder="Eğitim"
                     />
                   </label>
                   <label className="block">
                     <span className="adm-label">Başlık (EN)</span>
                     <input
-                      name={`factLabelEn${index}`}
+                      name={`factLabel${index}En`}
                       className="adm-input"
-                      defaultValue={fact?.label.en ?? ""}
+                      defaultValue={fact.label.en}
                       placeholder="Education"
                     />
                   </label>
                   <label className="block">
-                    <span className="adm-label">1. satır (TR)</span>
-                    <input
-                      name={`factATr${index}`}
-                      className="adm-input"
-                      defaultValue={fact?.a.tr ?? ""}
+                    <span className="adm-label">Satırlar (TR)</span>
+                    <textarea
+                      name={`factLines${index}Tr`}
+                      className="adm-textarea min-h-[84px]"
+                      defaultValue={fact.lines.map((line) => line.tr).join("\n")}
+                      placeholder="Her satıra bir şey yaz."
                     />
                   </label>
                   <label className="block">
-                    <span className="adm-label">1. satır (EN)</span>
-                    <input
-                      name={`factAEn${index}`}
-                      className="adm-input"
-                      defaultValue={fact?.a.en ?? ""}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="adm-label">2. satır (TR)</span>
-                    <input
-                      name={`factBTr${index}`}
-                      className="adm-input"
-                      defaultValue={fact?.b.tr ?? ""}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="adm-label">2. satır (EN)</span>
-                    <input
-                      name={`factBEn${index}`}
-                      className="adm-input"
-                      defaultValue={fact?.b.en ?? ""}
+                    <span className="adm-label">Satırlar (EN)</span>
+                    <textarea
+                      name={`factLines${index}En`}
+                      className="adm-textarea min-h-[84px]"
+                      defaultValue={fact.lines.map((line) => line.en).join("\n")}
                     />
                   </label>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
-          <p className="adm-note mt-2">
-            Başlığı boş bıraktığın sütun sitede görünmez.
-          </p>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <SubmitButton name="intent" value="fact-add" className="adm-btn">
+              Künye sütunu ekle
+            </SubmitButton>
+            <span className="adm-note">
+              Sütunlar üstte, portrenin yanında yan yana dizilir; başlığı ve
+              satırları boş kalan sütun sitede görünmez.
+            </span>
+          </div>
         </div>
 
         <div>
@@ -161,36 +215,23 @@ export default async function EditAbout() {
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <span className="label">
                     {index + 1}. blok · {BLOCK_LABEL[block.type]}
+                    {block.type === "row" &&
+                      ` · ${block.cells.length} alan`}
                   </span>
                   <div className="flex items-center gap-1.5">
-                    <button
-                      type="submit"
-                      name="intent"
-                      value={`move:${index}:up`}
-                      className="adm-btn px-2.5"
-                      disabled={index === 0}
-                      aria-label="Yukarı taşı"
-                    >
-                      ↑
-                    </button>
-                    <button
-                      type="submit"
-                      name="intent"
-                      value={`move:${index}:down`}
-                      className="adm-btn px-2.5"
-                      disabled={index === about.blocks.length - 1}
-                      aria-label="Aşağı taşı"
-                    >
-                      ↓
-                    </button>
-                    <button
-                      type="submit"
+                    <MoveButtons
+                      intent="move"
+                      index={index}
+                      count={about.blocks.length}
+                    />
+                    <SubmitButton
                       name="intent"
                       value={`delete:${index}`}
                       className="adm-btn adm-btn-danger"
+                      busyLabel="Siliniyor…"
                     >
                       Bloğu sil
-                    </button>
+                    </SubmitButton>
                   </div>
                 </div>
 
@@ -201,63 +242,55 @@ export default async function EditAbout() {
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="adm-note mr-2">Blok ekle:</span>
-            <button type="submit" name="intent" value="add:text" className="adm-btn">
-              Metin
-            </button>
-            <button type="submit" name="intent" value="add:image" className="adm-btn">
-              Görsel
-            </button>
-            <button type="submit" name="intent" value="add:pair" className="adm-btn">
-              İkili görsel
-            </button>
-            <button type="submit" name="intent" value="add:quote" className="adm-btn">
+            <SubmitButton name="intent" value="add:row" className="adm-btn">
+              Şerit
+            </SubmitButton>
+            <SubmitButton name="intent" value="add:heading" className="adm-btn">
+              Başlık
+            </SubmitButton>
+            <SubmitButton name="intent" value="add:quote" className="adm-btn">
               Alıntı
-            </button>
+            </SubmitButton>
           </div>
         </div>
 
         <div>
-          <button
-            type="submit"
+          <SubmitButton
             name="intent"
             value="save"
             className="adm-btn adm-btn-primary"
+            busyLabel="Kaydediliyor…"
           >
             Kaydet
-          </button>
+          </SubmitButton>
         </div>
       </form>
     </>
   );
 }
 
-function BlockFields({
-  block,
-  index,
-}: {
-  block: AboutBlock;
-  index: number;
-}) {
+function BlockFields({ block, index }: { block: AboutBlock; index: number }) {
   const at = (name: string) => `b${index}_${name}`;
 
-  if (block.type === "text") {
+  if (block.type === "heading") {
     return (
       <div className="grid gap-5 md:grid-cols-2">
         <label className="block">
-          <span className="adm-label">Metin (Türkçe)</span>
-          <textarea
-            name={at("textTr")}
-            className="adm-textarea"
-            defaultValue={block.paragraphs.map((p) => p.tr).join("\n\n")}
-            placeholder="Paragrafları boş satırla ayır."
+          <span className="adm-label">Başlık (Türkçe)</span>
+          <input
+            name={at("headTr")}
+            className="adm-input"
+            defaultValue={block.text.tr}
+            placeholder="Atölye"
           />
         </label>
         <label className="block">
-          <span className="adm-label">Metin (İngilizce)</span>
-          <textarea
-            name={at("textEn")}
-            className="adm-textarea"
-            defaultValue={block.paragraphs.map((p) => p.en).join("\n\n")}
+          <span className="adm-label">Başlık (İngilizce)</span>
+          <input
+            name={at("headEn")}
+            className="adm-input"
+            defaultValue={block.text.en}
+            placeholder="The studio"
           />
         </label>
       </div>
@@ -308,66 +341,156 @@ function BlockFields({
     );
   }
 
-  const caption = (
-    <div className="grid gap-5 md:grid-cols-2">
-      <label className="block">
-        <span className="adm-label">Alt yazı (Türkçe)</span>
-        <input
-          name={at("capTr")}
-          className="adm-input"
-          defaultValue={block.caption.tr}
-        />
-      </label>
-      <label className="block">
-        <span className="adm-label">Alt yazı (İngilizce)</span>
-        <input
-          name={at("capEn")}
-          className="adm-input"
-          defaultValue={block.caption.en}
-        />
-      </label>
-    </div>
-  );
-
-  if (block.type === "image") {
-    return (
-      <div className="flex flex-col gap-5">
-        <ImageField
-          name={at("imageKey")}
-          ratioName={at("ratio")}
-          ratio={block.ratio}
-          prefix="pages/about"
-          imageKey={block.imageKey}
-          label="Görsel"
-        />
-        {caption}
-      </div>
-    );
-  }
+  const full = block.cells.length >= MAX_CELLS;
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="grid gap-5 md:grid-cols-2">
-        <ImageField
-          name={at("imageKeyA")}
-          ratioName={at("ratioA")}
-          ratio={block.ratioA}
-          prefix="pages/about"
-          imageKey={block.imageKeyA}
-          label="Soldaki görsel"
-          previewHeight={150}
-        />
-        <ImageField
-          name={at("imageKeyB")}
-          ratioName={at("ratioB")}
-          ratio={block.ratioB}
-          prefix="pages/about"
-          imageKey={block.imageKeyB}
-          label="Sağdaki görsel"
-          previewHeight={150}
-        />
+    <div className="flex flex-col gap-4">
+      <input
+        type="hidden"
+        name={at("cellCount")}
+        value={block.cells.length}
+      />
+
+      <div
+        className="grid gap-4"
+        style={{
+          gridTemplateColumns: `repeat(${block.cells.length}, minmax(0, 1fr))`,
+        }}
+      >
+        {block.cells.map((cell, position) => (
+          <CellFields
+            key={position}
+            cell={cell}
+            block={index}
+            position={position}
+            count={block.cells.length}
+          />
+        ))}
       </div>
-      {caption}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="adm-note mr-1">Alan ekle:</span>
+        <SubmitButton
+          name="intent"
+          value={`cell-add:${index}:text`}
+          className="adm-btn"
+          disabled={full}
+        >
+          Metin
+        </SubmitButton>
+        <SubmitButton
+          name="intent"
+          value={`cell-add:${index}:image`}
+          className="adm-btn"
+          disabled={full}
+        >
+          Görsel
+        </SubmitButton>
+        {full && (
+          <span className="adm-note">
+            Bir şeritte en çok {MAX_CELLS} alan olabilir.
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CellFields({
+  cell,
+  block,
+  position,
+  count,
+}: {
+  cell: RowCell;
+  block: number;
+  position: number;
+  count: number;
+}) {
+  const on = (name: string) => `b${block}c${position}_${name}`;
+
+  return (
+    <div className="border border-rule p-4">
+      <input type="hidden" name={on("kind")} value={cell.kind} />
+
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <span className="label">
+          {position + 1}. alan · {CELL_LABEL[cell.kind]}
+        </span>
+        <div className="flex items-center gap-1.5">
+          <MoveButtons
+            intent={`cell-move:${block}`}
+            index={position}
+            count={count}
+            up="left"
+            down="right"
+            labels={["Sola taşı", "Sağa taşı"]}
+            glyphs={["←", "→"]}
+          />
+          <SubmitButton
+            name="intent"
+            value={`cell-delete:${block}:${position}`}
+            className="adm-btn adm-btn-danger px-2.5"
+            disabled={count === 1}
+            aria-label="Alanı sil"
+          >
+            ×
+          </SubmitButton>
+        </div>
+      </div>
+
+      {cell.kind === "text" ? (
+        <div className="flex flex-col gap-4">
+          <label className="block">
+            <span className="adm-label">Metin (Türkçe)</span>
+            <textarea
+              name={on("textTr")}
+              className="adm-textarea"
+              defaultValue={cell.paragraphs.map((p) => p.tr).join("\n\n")}
+              placeholder="Paragrafları boş satırla ayır."
+            />
+          </label>
+          <label className="block">
+            <span className="adm-label">Metin (İngilizce)</span>
+            <textarea
+              name={on("textEn")}
+              className="adm-textarea"
+              defaultValue={cell.paragraphs.map((p) => p.en).join("\n\n")}
+            />
+          </label>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <ImageField
+            // Remounts when a reorder puts a different picture in this slot,
+            // so the preview and the hidden key never lag behind.
+            key={cell.imageKey ?? "empty"}
+            name={on("imageKey")}
+            ratioName={on("ratio")}
+            ratio={cell.ratio}
+            prefix="pages/about"
+            imageKey={cell.imageKey}
+            label="Görsel"
+            previewHeight={150}
+          />
+          <label className="block">
+            <span className="adm-label">Alt yazı (Türkçe)</span>
+            <input
+              name={on("capTr")}
+              className="adm-input"
+              defaultValue={cell.caption.tr}
+            />
+          </label>
+          <label className="block">
+            <span className="adm-label">Alt yazı (İngilizce)</span>
+            <input
+              name={on("capEn")}
+              className="adm-input"
+              defaultValue={cell.caption.en}
+            />
+          </label>
+        </div>
+      )}
     </div>
   );
 }

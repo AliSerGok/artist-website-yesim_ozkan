@@ -30,10 +30,26 @@ type GridEntry =
 const MAX_COLUMNS = 3;
 const MIN_COLUMN_WIDTH = 260;
 
-/** Roughly how tall a tile is, in multiples of the column width. */
-function weightOf(entry: GridEntry): number {
+/** Room left for the sticky header, the caption and some air — see .work-grid. */
+const VIEWPORT_RESERVE = 170;
+
+/**
+ * Roughly how tall a tile is, in multiples of the column width — capped the
+ * same way the stylesheet caps it, or the tall works would be given far more
+ * room than they end up taking and leave their column short.
+ */
+function weightOf(
+  entry: GridEntry,
+  columnWidth: number,
+  maxTileHeight: number,
+): number {
   const captionRows = entry.kind === "series" ? 0.36 : 0.28;
-  return 1 / Math.max(entry.item.ratio, 0.1) + captionRows;
+  const natural = 1 / Math.max(entry.item.ratio, 0.1);
+  const capped =
+    columnWidth > 0 && maxTileHeight > 0
+      ? Math.min(natural, maxTileHeight / columnWidth)
+      : natural;
+  return capped + captionRows;
 }
 
 /**
@@ -44,7 +60,12 @@ function weightOf(entry: GridEntry): number {
  * CSS multi-column would balance too, but it fills the first column top to
  * bottom first and so scrambles the chronology.
  */
-function toColumns(entries: GridEntry[], count: number): GridEntry[][] {
+function toColumns(
+  entries: GridEntry[],
+  count: number,
+  columnWidth: number,
+  maxTileHeight: number,
+): GridEntry[][] {
   const columns: GridEntry[][] = Array.from({ length: count }, () => []);
   const heights = new Array<number>(count).fill(0);
 
@@ -54,15 +75,19 @@ function toColumns(entries: GridEntry[], count: number): GridEntry[][] {
       if (heights[index] < heights[target] - 0.001) target = index;
     }
     columns[target].push(entry);
-    heights[target] += weightOf(entry);
+    heights[target] += weightOf(entry, columnWidth, maxTileHeight);
   }
 
   return columns;
 }
 
-function useColumnCount() {
+function useGridMetrics() {
   const ref = useRef<HTMLDivElement>(null);
-  const [count, setCount] = useState(MAX_COLUMNS);
+  const [metrics, setMetrics] = useState({
+    count: MAX_COLUMNS,
+    columnWidth: 0,
+    maxTileHeight: 0,
+  });
 
   useEffect(() => {
     const element = ref.current;
@@ -73,16 +98,28 @@ function useColumnCount() {
       if (!width) return;
       const gap = Math.min(56, Math.max(26, width * 0.034));
       const fits = Math.floor((width + gap) / (MIN_COLUMN_WIDTH + gap));
-      setCount(Math.max(1, Math.min(MAX_COLUMNS, fits)));
+      const count = Math.max(1, Math.min(MAX_COLUMNS, fits));
+
+      setMetrics({
+        count,
+        columnWidth: (width - gap * (count - 1)) / count,
+        maxTileHeight: Math.max(240, window.innerHeight - VIEWPORT_RESERVE),
+      });
     };
 
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(element);
-    return () => observer.disconnect();
+    // The column count follows the container, the cap follows the window.
+    window.addEventListener("resize", measure);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, []);
 
-  return { ref, count };
+  return { ref, ...metrics };
 }
 
 export function WorkGallery({
@@ -99,7 +136,12 @@ export function WorkGallery({
 }) {
   const t = dict(lang);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const { ref: gridRef, count: columnCount } = useColumnCount();
+  const {
+    ref: gridRef,
+    count: columnCount,
+    columnWidth,
+    maxTileHeight,
+  } = useGridMetrics();
 
   /* The viewer walks the works only; series cards open their own page. */
 
@@ -149,13 +191,13 @@ export function WorkGallery({
     [series, works],
   );
 
-  const columns = toColumns(items, columnCount);
+  const columns = toColumns(items, columnCount, columnWidth, maxTileHeight);
 
   return (
     <>
       <div
         ref={gridRef}
-        className="gutter mt-[clamp(34px,5vw,62px)] flex items-start gap-[clamp(26px,3.4vw,56px)] pb-2"
+        className="work-grid gutter mt-[clamp(34px,5vw,62px)] flex items-start gap-[clamp(26px,3.4vw,56px)] pb-2"
       >
         {columns.map((column, columnIndex) => (
           <div key={columnIndex} className="min-w-0 flex-1">

@@ -1,20 +1,25 @@
 import { getDb } from "./db";
+import type { Localized } from "./i18n";
 import {
   SEED_ABOUT,
   SEED_CONTACT,
   SEED_CV,
+  SEED_CV_GROUPS,
   SEED_EXHIBITIONS,
   SEED_SERIES,
   SEED_SETTINGS,
   SEED_WORKS,
 } from "./seed";
 import type {
+  AboutBlock,
   AboutContent,
+  AboutFact,
   ContactContent,
   CvEntry,
-  CvKind,
+  CvGroup,
   Exhibition,
   Medium,
+  RowCell,
   Series,
   SiteSettings,
   Work,
@@ -80,12 +85,21 @@ interface ExhibitionRow {
 
 interface CvRow {
   id: string;
+  group_id: string | null;
   year: string;
   sort_order: number;
   title_tr: string;
   title_en: string;
   kind: string;
   url: string;
+  published: number;
+}
+
+interface CvGroupRow {
+  id: string;
+  sort_order: number;
+  title_tr: string;
+  title_en: string;
   published: number;
 }
 
@@ -141,11 +155,21 @@ function toExhibition(row: ExhibitionRow): Exhibition {
 function toCvEntry(row: CvRow): CvEntry {
   return {
     id: row.id,
+    groupId: row.group_id,
     year: row.year,
     order: row.sort_order,
     title: { tr: row.title_tr, en: row.title_en },
-    kind: row.kind as CvKind,
+    kind: row.kind as CvEntry["kind"],
     url: row.url,
+    published: row.published === 1,
+  };
+}
+
+function toCvGroup(row: CvGroupRow): CvGroup {
+  return {
+    id: row.id,
+    order: row.sort_order,
+    title: { tr: row.title_tr, en: row.title_en },
     published: row.published === 1,
   };
 }
@@ -252,19 +276,128 @@ async function getPage<T>(
   }
 }
 
+/*
+ * Shapes the about page used to be saved in. The editor now writes one kind of
+ * block -- a strip of up to three fields -- so anything stored before that is
+ * translated on the way out rather than migrated in place.
+ */
+interface LegacyFact {
+  label?: Localized;
+  a?: Localized;
+  b?: Localized;
+  lines?: Localized[];
+}
+
+interface LegacyBlock {
+  type?: string;
+  paragraphs?: Localized[];
+  cells?: RowCell[];
+  text?: Localized;
+  quote?: Localized;
+  by?: Localized;
+  imageKey?: string | null;
+  ratio?: number;
+  caption?: Localized;
+  imageKeyA?: string | null;
+  ratioA?: number;
+  imageKeyB?: string | null;
+  ratioB?: number;
+}
+
+const blank = (): Localized => ({ tr: "", en: "" });
+
+function toFact(fact: LegacyFact): AboutFact {
+  return {
+    label: fact.label ?? blank(),
+    // The two fixed lines became a list the artist can extend.
+    lines:
+      fact.lines ?? [fact.a, fact.b].filter((line): line is Localized => !!line),
+  };
+}
+
+function toBlock(block: LegacyBlock): AboutBlock | null {
+  if (block.type === "row" && Array.isArray(block.cells)) {
+    return { type: "row", cells: block.cells };
+  }
+
+  if (block.type === "heading") {
+    return { type: "heading", text: block.text ?? blank() };
+  }
+
+  if (block.type === "quote") {
+    return {
+      type: "quote",
+      quote: block.quote ?? blank(),
+      by: block.by ?? blank(),
+    };
+  }
+
+  if (block.type === "text") {
+    return {
+      type: "row",
+      cells: [{ kind: "text", paragraphs: block.paragraphs ?? [] }],
+    };
+  }
+
+  if (block.type === "image") {
+    return {
+      type: "row",
+      cells: [
+        {
+          kind: "image",
+          imageKey: block.imageKey ?? null,
+          ratio: block.ratio ?? 1.5,
+          caption: block.caption ?? blank(),
+        },
+      ],
+    };
+  }
+
+  if (block.type === "pair") {
+    return {
+      type: "row",
+      cells: [
+        {
+          kind: "image",
+          imageKey: block.imageKeyA ?? null,
+          ratio: block.ratioA ?? 0.8,
+          // A pair shared one caption; it belongs to the picture it described.
+          caption: block.caption ?? blank(),
+        },
+        {
+          kind: "image",
+          imageKey: block.imageKeyB ?? null,
+          ratio: block.ratioB ?? 0.8,
+          caption: blank(),
+        },
+      ],
+    };
+  }
+
+  return null;
+}
+
 export async function getAbout(): Promise<AboutContent> {
-  const about = await getPage("about", SEED_ABOUT);
-  // Older saves kept the body as a flat list of paragraphs.
-  return Array.isArray(about.blocks)
-    ? about
-    : { ...about, blocks: SEED_ABOUT.blocks };
+  const about = await getPage<AboutContent>("about", SEED_ABOUT);
+
+  return {
+    ...about,
+    facts: Array.isArray(about.facts)
+      ? (about.facts as LegacyFact[]).map(toFact)
+      : SEED_ABOUT.facts,
+    blocks: Array.isArray(about.blocks)
+      ? (about.blocks as LegacyBlock[])
+          .map(toBlock)
+          .filter((block): block is AboutBlock => block !== null)
+      : SEED_ABOUT.blocks,
+  };
 }
 
 /* ------------------------------------------------------------------- cv */
 
 export async function getCvEntries(): Promise<CvEntry[]> {
   const db = await getDb();
-  if (!db) return SEED_CV.filter((entry) => entry.published).sort(byOrder);
+  if (!db) return SEED_CV.filter((entry) => entry.published);
 
   const { results } = await db
     .prepare(
@@ -275,15 +408,69 @@ export async function getCvEntries(): Promise<CvEntry[]> {
   return results.map(toCvEntry);
 }
 
+export async function getCvGroups(): Promise<CvGroup[]> {
+  const db = await getDb();
+  if (!db) return SEED_CV_GROUPS.filter((group) => group.published);
+
+  const { results } = await db
+    .prepare("SELECT * FROM cv_groups WHERE published = 1 ORDER BY sort_order ASC")
+    .all<CvGroupRow>();
+
+  return results.map(toCvGroup);
+}
+
+/** One heading of the participation list together with the lines under it. */
+export interface CvSection {
+  /** Null for lines written before any heading existed. */
+  group: CvGroup | null;
+  entries: CvEntry[];
+}
+
+/**
+ * The participation list the way the about page reads it: loose lines first,
+ * then each heading in its own order. A heading with no lines is a heading
+ * still being filled in, so the site leaves it out; hiding a heading hides
+ * its lines with it.
+ */
+export async function getCvSections(): Promise<CvSection[]> {
+  const [groups, entries] = await Promise.all([getCvGroups(), getCvEntries()]);
+
+  const under = (groupId: string | null) =>
+    entries
+      .filter((entry) => entry.groupId === groupId)
+      .sort(byOrder);
+
+  const loose = under(null);
+  const sections: CvSection[] = loose.length > 0 ? [{ group: null, entries: loose }] : [];
+
+  for (const group of [...groups].sort(byOrder)) {
+    const members = under(group.id);
+    if (members.length > 0) sections.push({ group, entries: members });
+  }
+
+  return sections;
+}
+
 export async function getAllCvEntries(): Promise<CvEntry[]> {
   const db = await getDb();
-  if (!db) return [...SEED_CV].sort(byOrder);
+  if (!db) return [...SEED_CV];
 
   const { results } = await db
     .prepare("SELECT * FROM cv_entries ORDER BY sort_order ASC")
     .all<CvRow>();
 
   return results.map(toCvEntry);
+}
+
+export async function getAllCvGroups(): Promise<CvGroup[]> {
+  const db = await getDb();
+  if (!db) return [...SEED_CV_GROUPS].sort(byOrder);
+
+  const { results } = await db
+    .prepare("SELECT * FROM cv_groups ORDER BY sort_order ASC")
+    .all<CvGroupRow>();
+
+  return results.map(toCvGroup);
 }
 
 export async function getCvEntryById(id: string): Promise<CvEntry | null> {
@@ -296,6 +483,18 @@ export async function getCvEntryById(id: string): Promise<CvEntry | null> {
     .first<CvRow>();
 
   return row ? toCvEntry(row) : null;
+}
+
+export async function getCvGroupById(id: string): Promise<CvGroup | null> {
+  const db = await getDb();
+  if (!db) return SEED_CV_GROUPS.find((group) => group.id === id) ?? null;
+
+  const row = await db
+    .prepare("SELECT * FROM cv_groups WHERE id = ?")
+    .bind(id)
+    .first<CvGroupRow>();
+
+  return row ? toCvGroup(row) : null;
 }
 
 export async function getContact(): Promise<ContactContent> {

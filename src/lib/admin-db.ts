@@ -262,11 +262,16 @@ export async function deleteSeries(id: string): Promise<void> {
 
 /* -------------------------------------------------------------- ordering */
 
-/** Swaps a row with its neighbour so the artist can reorder the grid. */
+/**
+ * Swaps a row with its neighbour so the artist can reorder the grid. `scope`
+ * keeps the swap inside one group — a cv line moves within its own heading
+ * and never jumps into the one above it.
+ */
 async function move(
-  table: "works" | "exhibitions" | "series" | "cv_entries",
+  table: "works" | "exhibitions" | "series" | "cv_entries" | "cv_groups",
   id: string,
   direction: -1 | 1,
+  scope?: { column: string; value: string | null },
 ): Promise<void> {
   const db = await requireDb();
   const current = await db
@@ -275,13 +280,18 @@ async function move(
     .first<{ id: string; sort_order: number }>();
   if (!current) return;
 
+  // `IS` rather than `=` so an unfiled row still finds its own neighbours.
+  const within = scope ? ` AND ${scope.column} IS ?` : "";
+  const bindings: (string | number | null)[] = [current.sort_order];
+  if (scope) bindings.push(scope.value);
+
   const neighbour = await db
     .prepare(
       direction === -1
-        ? `SELECT id, sort_order FROM ${table} WHERE sort_order < ? ORDER BY sort_order DESC LIMIT 1`
-        : `SELECT id, sort_order FROM ${table} WHERE sort_order > ? ORDER BY sort_order ASC LIMIT 1`,
+        ? `SELECT id, sort_order FROM ${table} WHERE sort_order < ?${within} ORDER BY sort_order DESC LIMIT 1`
+        : `SELECT id, sort_order FROM ${table} WHERE sort_order > ?${within} ORDER BY sort_order ASC LIMIT 1`,
     )
-    .bind(current.sort_order)
+    .bind(...bindings)
     .first<{ id: string; sort_order: number }>();
   if (!neighbour) return;
 
@@ -304,8 +314,22 @@ export const moveSeries = (id: string, direction: -1 | 1) =>
 export const moveExhibition = (id: string, direction: -1 | 1) =>
   move("exhibitions", id, direction);
 
-export const moveCvEntry = (id: string, direction: -1 | 1) =>
-  move("cv_entries", id, direction);
+export const moveCvGroup = (id: string, direction: -1 | 1) =>
+  move("cv_groups", id, direction);
+
+export async function moveCvEntry(id: string, direction: -1 | 1) {
+  const db = await requireDb();
+  const row = await db
+    .prepare("SELECT group_id FROM cv_entries WHERE id = ?")
+    .bind(id)
+    .first<{ group_id: string | null }>();
+  if (!row) return;
+
+  await move("cv_entries", id, direction, {
+    column: "group_id",
+    value: row.group_id,
+  });
+}
 
 /* ---------------------------------------------------------- exhibitions */
 
@@ -395,27 +419,118 @@ export async function deleteExhibition(id: string): Promise<void> {
 
 /* ------------------------------------------------------------------- cv */
 
+export interface CvGroupInput {
+  id: string | null;
+  titleTr: string;
+  titleEn: string;
+  published: boolean;
+}
+
+export async function saveCvGroup(input: CvGroupInput): Promise<string> {
+  const db = await requireDb();
+
+  if (input.id) {
+    await db
+      .prepare(
+        `UPDATE cv_groups SET title_tr = ?, title_en = ?, published = ?,
+           updated_at = datetime('now')
+         WHERE id = ?`,
+      )
+      .bind(
+        input.titleTr,
+        input.titleEn,
+        input.published ? 1 : 0,
+        input.id,
+      )
+      .run();
+    return input.id;
+  }
+
+  const id = newId("cvg");
+  const last = await db
+    .prepare("SELECT COALESCE(MAX(sort_order), 0) AS max FROM cv_groups")
+    .first<{ max: number }>();
+
+  await db
+    .prepare(
+      `INSERT INTO cv_groups (id, sort_order, title_tr, title_en, published)
+       VALUES (?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      id,
+      (last?.max ?? 0) + 1,
+      input.titleTr,
+      input.titleEn,
+      input.published ? 1 : 0,
+    )
+    .run();
+
+  return id;
+}
+
+/** Deleting a heading keeps its lines; they come back as unfiled rows. */
+export async function deleteCvGroup(id: string): Promise<void> {
+  const db = await requireDb();
+  await db.batch([
+    db
+      .prepare("UPDATE cv_entries SET group_id = NULL WHERE group_id = ?")
+      .bind(id),
+    db.prepare("DELETE FROM cv_groups WHERE id = ?").bind(id),
+  ]);
+}
+
 export interface CvInput {
   id: string | null;
+  groupId: string | null;
   year: string;
   titleTr: string;
   titleEn: string;
-  kind: CvKind;
+  kind: CvKind | "";
   url: string;
   published: boolean;
+}
+
+/** Lines are numbered within their heading, so a new one lands at its end. */
+async function nextCvOrder(
+  db: D1Database,
+  groupId: string | null,
+): Promise<number> {
+  const last = await db
+    .prepare(
+      "SELECT COALESCE(MAX(sort_order), 0) AS max FROM cv_entries WHERE group_id IS ?",
+    )
+    .bind(groupId)
+    .first<{ max: number }>();
+
+  return (last?.max ?? 0) + 1;
 }
 
 export async function saveCvEntry(input: CvInput): Promise<string> {
   const db = await requireDb();
 
   if (input.id) {
+    const current = await db
+      .prepare("SELECT group_id, sort_order FROM cv_entries WHERE id = ?")
+      .bind(input.id)
+      .first<{ group_id: string | null; sort_order: number }>();
+
+    // Moved to another heading: park it at the end of the new one rather than
+    // wherever its old number happens to land.
+    const order =
+      current && current.group_id === input.groupId
+        ? current.sort_order
+        : await nextCvOrder(db, input.groupId);
+
     await db
       .prepare(
-        `UPDATE cv_entries SET year = ?, title_tr = ?, title_en = ?, kind = ?,
-           url = ?, published = ?, updated_at = datetime('now')
+        `UPDATE cv_entries SET group_id = ?, sort_order = ?, year = ?,
+           title_tr = ?, title_en = ?, kind = ?, url = ?, published = ?,
+           updated_at = datetime('now')
          WHERE id = ?`,
       )
       .bind(
+        input.groupId,
+        order,
         input.year,
         input.titleTr,
         input.titleEn,
@@ -429,19 +544,17 @@ export async function saveCvEntry(input: CvInput): Promise<string> {
   }
 
   const id = newId("cv");
-  const last = await db
-    .prepare("SELECT COALESCE(MAX(sort_order), 0) AS max FROM cv_entries")
-    .first<{ max: number }>();
 
   await db
     .prepare(
-      `INSERT INTO cv_entries (id, year, sort_order, title_tr, title_en, kind, url, published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO cv_entries (id, group_id, year, sort_order, title_tr, title_en, kind, url, published)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
+      input.groupId,
       input.year,
-      (last?.max ?? 0) + 1,
+      await nextCvOrder(db, input.groupId),
       input.titleTr,
       input.titleEn,
       input.kind,

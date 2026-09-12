@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { moveExhibitionAction } from "@/app/(admin)/admin/actions";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getAllExhibitions } from "@/lib/content";
 import { mediaUrl } from "@/lib/media";
 
@@ -58,26 +59,24 @@ export default async function AdminExhibitions() {
               <form action={moveExhibitionAction}>
                 <input type="hidden" name="id" value={exhibition.id} />
                 <input type="hidden" name="direction" value="up" />
-                <button
-                  type="submit"
+                <SubmitButton
                   className="adm-btn px-2.5"
                   disabled={index === 0}
                   aria-label="Yukarı taşı"
                 >
                   ↑
-                </button>
+                </SubmitButton>
               </form>
               <form action={moveExhibitionAction}>
                 <input type="hidden" name="id" value={exhibition.id} />
                 <input type="hidden" name="direction" value="down" />
-                <button
-                  type="submit"
+                <SubmitButton
                   className="adm-btn px-2.5"
                   disabled={index === exhibitions.length - 1}
                   aria-label="Aşağı taşı"
                 >
                   ↓
-                </button>
+                </SubmitButton>
               </form>
               <Link
                 href={`/admin/exhibitions/${exhibition.id}`}

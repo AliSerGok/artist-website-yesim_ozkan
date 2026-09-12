@@ -8,6 +8,7 @@ import {
   SEED_ABOUT,
   SEED_CONTACT,
   SEED_CV,
+  SEED_CV_GROUPS,
   SEED_EXHIBITIONS,
   SEED_SERIES,
   SEED_SETTINGS,
@@ -155,12 +156,25 @@ for (const e of SEED_EXHIBITIONS) {
 
 lines.push("");
 
+for (const g of SEED_CV_GROUPS) {
+  lines.push(
+    insert(
+      "cv_groups",
+      ["id", "sort_order", "title_tr", "title_en", "published"],
+      [q(g.id), g.order, q(g.title.tr), q(g.title.en), g.published ? 1 : 0],
+    ),
+  );
+}
+
+lines.push("");
+
 for (const c of SEED_CV) {
   lines.push(
     insert(
       "cv_entries",
       [
         "id",
+        "group_id",
         "year",
         "sort_order",
         "title_tr",
@@ -171,6 +185,7 @@ for (const c of SEED_CV) {
       ],
       [
         q(c.id),
+        q(c.groupId),
         q(c.year),
         c.order,
         q(c.title.tr),
@@ -197,5 +212,5 @@ lines.push("");
 
 writeFileSync("migrations/0002_seed.sql", lines.join("\n"), "utf8");
 console.log(
-  `migrations/0002_seed.sql: ${SEED_SERIES.length} series, ${SEED_WORKS.length} works, ${SEED_EXHIBITIONS.length} exhibitions, ${SEED_CV.length} cv, 3 pages`,
+  `migrations/0002_seed.sql: ${SEED_SERIES.length} series, ${SEED_WORKS.length} works, ${SEED_EXHIBITIONS.length} exhibitions, ${SEED_CV_GROUPS.length} cv groups, ${SEED_CV.length} cv, 3 pages`,
 );

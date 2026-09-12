@@ -13,6 +13,7 @@ import { existsSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { SEED_ABOUT } from "../src/lib/seed.ts";
+import type { AboutBlock } from "../src/lib/types.ts";
 
 const IMAGE_DIR = "seed/images";
 const BUCKET = "yesim-media";
@@ -64,6 +65,28 @@ const workIds = ids.filter((id) => /^w\d+$/.test(id));
 const exhibitionIds = ids.filter((id) => /^e\d+$/.test(id));
 
 /**
+ * A picture inside a strip is named after its block, plus a letter when the
+ * strip holds more than one field. Both seed scripts read the same rule.
+ */
+function cellImageId(index: number, block: AboutBlock): { id: string; cell: number; ratio: number }[] {
+  if (block.type !== "row") return [];
+  return block.cells.flatMap((cell, position) =>
+    cell.kind === "image"
+      ? [
+          {
+            id:
+              block.cells.length === 1
+                ? `about-b${index}`
+                : `about-b${index}${"abc"[position]}`,
+            cell: position,
+            ratio: cell.ratio,
+          },
+        ]
+      : [],
+  );
+}
+
+/**
  * The about page is one JSON document, so its images are patched in by path.
  * The paths come from the seed itself, which keeps them in step with it.
  */
@@ -71,21 +94,8 @@ const aboutPaths: [string, string][] = [
   ["$.portraitKey", keyFor("portrait")],
 ];
 SEED_ABOUT.blocks.forEach((block, index) => {
-  if (block.type === "image") {
-    aboutPaths.push([
-      `$.blocks[${index}].imageKey`,
-      keyFor(`about-b${index}`),
-    ]);
-  }
-  if (block.type === "pair") {
-    aboutPaths.push([
-      `$.blocks[${index}].imageKeyA`,
-      keyFor(`about-b${index}a`),
-    ]);
-    aboutPaths.push([
-      `$.blocks[${index}].imageKeyB`,
-      keyFor(`about-b${index}b`),
-    ]);
+  for (const { id, cell } of cellImageId(index, block)) {
+    aboutPaths.push([`$.blocks[${index}].cells[${cell}].imageKey`, keyFor(id)]);
   }
 });
 
