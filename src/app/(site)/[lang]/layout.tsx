@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { dict } from "@/lib/dictionary";
 import { isLang } from "@/lib/i18n";
+import { SITE_URL } from "@/lib/site";
 
 import "../../globals.css";
 
@@ -35,6 +36,10 @@ export async function generateMetadata({
   const t = dict(lang);
 
   return {
+    // The canonical and hreflang values below are written relative; Google
+    // ignores an hreflang that is not a fully qualified URL, so they have to
+    // be resolved against the site origin before they reach the head.
+    metadataBase: new URL(SITE_URL),
     title: { default: t.siteName, template: `%s — ${t.siteName}` },
     description:
       lang === "tr"

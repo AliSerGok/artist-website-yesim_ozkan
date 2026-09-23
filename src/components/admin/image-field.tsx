@@ -44,6 +44,7 @@ export function ImageField({
   previewHeight?: number;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const keyRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
   const [current, setCurrent] = useState(imageKey);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -51,6 +52,16 @@ export function ImageField({
   const [pending, setPending] = useState<{ blob: Blob; url: string } | null>(
     null,
   );
+
+  /*
+   * An uploaded key and its measured size are written here by React, not
+   * typed, so the browser raises nothing for the surrounding form to hear.
+   * Say it out loud the way a control set from script is meant to — the save
+   * button is listening, and so is anything else that watches this form.
+   */
+  useEffect(() => {
+    keyRef.current?.dispatchEvent(new Event("input", { bubbles: true }));
+  }, [current, size.width, size.height]);
 
   /**
    * The picture the crop works from. Keeping the file the admin chose means a
@@ -126,7 +137,7 @@ export function ImageField({
     <div>
       <span className="adm-label">{label}</span>
 
-      <input type="hidden" name={name} value={current ?? ""} />
+      <input ref={keyRef} type="hidden" name={name} value={current ?? ""} />
       {widthName && (
         <input type="hidden" name={widthName} value={size.width || ""} />
       )}

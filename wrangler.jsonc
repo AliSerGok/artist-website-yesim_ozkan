@@ -8,6 +8,15 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  // The hostnames the site answers on. On deploy Cloudflare creates the DNS
+  // record and the certificate for each one; the zone has to sit in the same
+  // account as the Worker. www serves the same site, and the canonical tag
+  // points search engines at the apex.
+  "routes": [
+    { "pattern": "yesimozkan.com", "custom_domain": true },
+    { "pattern": "www.yesimozkan.com", "custom_domain": true }
+  ],
+
   "observability": {
     "enabled": true
   },
