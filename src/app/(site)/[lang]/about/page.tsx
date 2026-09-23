@@ -5,7 +5,7 @@ import { ImageFrame } from "@/components/image-frame";
 import { getAbout, getCvSections } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { isLang, type Lang } from "@/lib/i18n";
-import type { AboutBlock, AboutFact, RowCell } from "@/lib/types";
+import type { AboutBlock, AboutFact, Alignment, RowCell } from "@/lib/types";
 
 export async function generateMetadata({
   params,
@@ -32,10 +32,26 @@ function blockWidth(block: AboutBlock): string {
     : "100%";
 }
 
+/**
+ * A caption capped at 56ch is narrower than a wide column, so it needs telling
+ * which edge to keep; the text inside it follows from `text-align`.
+ */
+const CAPTION_EDGE: Record<Alignment, string> = {
+  start: "0 auto",
+  center: "auto",
+  end: "auto 0",
+};
+
 function Cell({ cell, lang }: { cell: RowCell; lang: Lang }) {
+  // Across the column, and down the strip against the tallest field beside it.
+  const placement: React.CSSProperties = {
+    alignSelf: cell.align.y,
+    textAlign: cell.align.x,
+  };
+
   if (cell.kind === "text") {
     return (
-      <div className="min-w-0">
+      <div className="min-w-0" style={placement}>
         {cell.paragraphs.map((paragraph, index) => (
           <p
             key={index}
@@ -49,14 +65,17 @@ function Cell({ cell, lang }: { cell: RowCell; lang: Lang }) {
   }
 
   return (
-    <figure className="m-0 min-w-0">
+    <figure className="m-0 min-w-0" style={placement}>
       <ImageFrame
         imageKey={cell.imageKey}
         ratio={cell.ratio}
         alt={cell.caption[lang]}
       />
       {cell.caption[lang] && (
-        <figcaption className="mt-[11px] max-w-[56ch] text-[11.5px] tracking-[0.04em] text-mute-2">
+        <figcaption
+          className="mt-[11px] max-w-[56ch] text-[11.5px] tracking-[0.04em] text-mute-2"
+          style={{ marginInline: CAPTION_EDGE[cell.align.x] }}
+        >
           {cell.caption[lang]}
         </figcaption>
       )}

@@ -3,7 +3,13 @@ import type { Medium } from "./types";
 
 interface Dictionary {
   siteName: string;
-  nav: { works: string; exhibitions: string; about: string; contact: string };
+  nav: {
+    home: string;
+    works: string;
+    exhibitions: string;
+    about: string;
+    contact: string;
+  };
   /** Technique filter labels, shared by the grid tabs and detail pages. */
   medium: Record<"all" | Medium, string>;
   mediumLabel: string;
@@ -36,6 +42,7 @@ export const DICTIONARY: Record<Lang, Dictionary> = {
   tr: {
     siteName: "Yeşim Özkan",
     nav: {
+      home: "ana sayfa",
       works: "işler",
       exhibitions: "sergiler",
       about: "hakkında",
@@ -74,6 +81,7 @@ export const DICTIONARY: Record<Lang, Dictionary> = {
   en: {
     siteName: "Yeşim Özkan",
     nav: {
+      home: "home",
       works: "works",
       exhibitions: "exhibitions",
       about: "about",

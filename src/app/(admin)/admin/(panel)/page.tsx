@@ -5,24 +5,19 @@ import {
   getAllExhibitions,
   getAllSeries,
   getAllWorks,
-  getSettings,
+  getHome,
 } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHome() {
-  const [works, series, exhibitions, cv, settings] = await Promise.all([
+  const [works, series, exhibitions, cv, home] = await Promise.all([
     getAllWorks(),
     getAllSeries(),
     getAllExhibitions(),
     getAllCvEntries(),
-    getSettings(),
+    getHome(),
   ]);
-
-  const running = [
-    settings.dancer ? "dansçı" : null,
-    settings.birds ? "kuşlar" : null,
-  ].filter(Boolean);
 
   const published = works.filter((work) => work.published).length;
   const inSeries = works.filter((work) => work.seriesId !== null).length;
@@ -48,16 +43,19 @@ export default async function AdminHome() {
       title: "Katılımlar",
       detail: `${cv.length} satır · hakkında sayfasında`,
     },
+    {
+      href: "/admin/pages/home",
+      title: "Ana sayfa",
+      detail:
+        home.items.length > 0
+          ? `${home.items.length} slayt dönüyor`
+          : "Seçilmedi · ilk işler dönüyor",
+    },
     { href: "/admin/pages/about", title: "Hakkında", detail: "Metin ve künye" },
     {
       href: "/admin/pages/contact",
       title: "İletişim",
       detail: "Adresler ve notlar",
-    },
-    {
-      href: "/admin/settings",
-      title: "Animasyonlar",
-      detail: running.length ? `${running.join(" ve ")} açık` : "hepsi kapalı",
     },
   ];
 

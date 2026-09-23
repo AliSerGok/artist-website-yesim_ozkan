@@ -1,22 +1,27 @@
 import type { Metadata } from "next";
-import { Instrument_Serif } from "next/font/google";
+import { Fraunces } from "next/font/google";
 import { notFound } from "next/navigation";
 
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { PerchedBirds } from "@/components/perched-birds";
-import { StudioDancer } from "@/components/studio-dancer";
-import { getSettings } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { isLang } from "@/lib/i18n";
 
 import "../../globals.css";
 
-const serif = Instrument_Serif({
-  weight: "400",
+/*
+ * Başlıkların yüzü. Değişken ağırlıklı, ama opsz eksenini bilerek istemiyoruz:
+ * Fraunces varsayılan optik boyutunda (14) metin kesimini veriyor — dolgun ve
+ * düşük kontrastlı. opsz'yi açsaydık 44px'lik başlıklarda display kesimine
+ * geçip yine incelirdi. WONK da 0'da kalıyor, yani sakin formlar.
+ *
+ * Yüzü değiştirmek isteyen buradaki iki çağrıyı değiştirsin yeter: globals.css
+ * yüze adıyla değil --font-serif-face üzerinden bakıyor.
+ */
+const serif = Fraunces({
   style: ["normal", "italic"],
   subsets: ["latin", "latin-ext"],
-  variable: "--font-instrument-serif",
+  variable: "--font-serif-face",
   display: "swap",
 });
 
@@ -52,13 +57,9 @@ export default async function LangLayout({
   const { lang } = await params;
   if (!isLang(lang)) notFound();
 
-  const settings = await getSettings();
-
   return (
     <html lang={lang} className={serif.variable}>
       <body>
-        {settings.dancer && <StudioDancer />}
-        {settings.birds && <PerchedBirds />}
         <div className="flex min-h-screen flex-col">
           <SiteHeader lang={lang} />
           {children}

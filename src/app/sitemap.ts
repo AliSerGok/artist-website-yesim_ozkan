@@ -8,7 +8,7 @@ export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [works, series] = await Promise.all([getWorks(), getSeriesList()]);
-  const sections = ["", "/exhibitions", "/about", "/contact"];
+  const sections = ["", "/works", "/exhibitions", "/about", "/contact"];
 
   const pages = LANGS.flatMap((lang) => [
     ...sections.map((section) => `/${lang}${section}`),

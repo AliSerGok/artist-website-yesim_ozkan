@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { deleteWorkAction, saveWorkAction } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { ImageField } from "@/components/admin/image-field";
-import { SubmitButton } from "@/components/admin/submit-button";
+import { SaveButton } from "@/components/admin/save-button";
 import { getAllSeries, getWorkById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { MEDIUMS } from "@/lib/types";
@@ -149,22 +149,22 @@ export default async function EditWork({
           </label>
         </div>
 
-        {work ? (
-          <div className="adm-card">
-            <ImageField
-              name="imageKey"
-              prefix={`works/${work.id}`}
-              imageKey={work.imageKey}
-              widthName="imageWidth"
-              heightName="imageHeight"
-              ratio={work.width / work.height}
-            />
-          </div>
-        ) : (
-          <p className="adm-note">
-            Görseli, işi kaydettikten sonra yükleyebilirsin.
-          </p>
-        )}
+        <div className="adm-card">
+          <ImageField
+            name="imageKey"
+            /*
+             * A work that does not exist yet still needs somewhere to put its
+             * picture. The upload only ever hands back a key; writing that key
+             * onto a record is the save's job either way, so a new work simply
+             * files its image under works/new.
+             */
+            prefix={work ? `works/${work.id}` : "works/new"}
+            imageKey={work?.imageKey ?? null}
+            widthName="imageWidth"
+            heightName="imageHeight"
+            ratio={work ? work.width / work.height : 3 / 4}
+          />
+        </div>
 
         <details className="adm-card">
           <summary className="cursor-pointer text-[13px]">
@@ -207,12 +207,7 @@ export default async function EditWork({
         </details>
 
         <div className="flex items-center gap-3">
-          <SubmitButton
-            className="adm-btn adm-btn-primary"
-            busyLabel="Kaydediliyor…"
-          >
-            Kaydet
-          </SubmitButton>
+          <SaveButton />
           <Link href="/admin/works" className="adm-btn">
             Vazgeç
           </Link>

@@ -4,13 +4,14 @@ import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
+  { href: "/admin/pages/home", label: "Ana sayfa" },
   { href: "/admin/works", label: "İşler" },
   { href: "/admin/series", label: "Seriler" },
   { href: "/admin/exhibitions", label: "Sergiler" },
   { href: "/admin/cv", label: "Katılımlar" },
   { href: "/admin/pages/about", label: "Hakkında" },
   { href: "/admin/pages/contact", label: "İletişim" },
-  { href: "/admin/settings", label: "Animasyonlar" },
+  { href: "/admin/account", label: "Hesap" },
 ];
 
 /**

@@ -1,7 +1,12 @@
 import Link from "next/link";
 
-import { moveExhibitionAction } from "@/app/(admin)/admin/actions";
-import { SubmitButton } from "@/components/admin/submit-button";
+import {
+  deleteExhibitionRowAction,
+  reorderExhibitionsAction,
+} from "@/app/(admin)/admin/actions";
+import { ActionForm } from "@/components/admin/action-form";
+import { ConfirmButton } from "@/components/admin/confirm-button";
+import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { getAllExhibitions } from "@/lib/content";
 import { mediaUrl } from "@/lib/media";
 
@@ -21,73 +26,65 @@ export default async function AdminExhibitions() {
 
       <p className="adm-note mt-3 max-w-[62ch]">
         Öne çıkan sergiler; her biri görseli ve metniyle sergiler sayfasında
-        görünür. Yalnızca listede yer alacak katılımlar “Katılımlar”
-        bölümünde.
+        görünür. Sırayı soldaki tutamaçtan sürükleyerek değiştirirsin. Yalnızca
+        listede yer alacak katılımlar “Katılımlar” bölümünde.
       </p>
 
-      <div className="mt-8 border-t border-rule">
-        {exhibitions.map((exhibition, index) => (
-          <div
-            key={exhibition.id}
-            className="grid items-center gap-4 border-b border-rule py-3 [grid-template-columns:56px_minmax(0,1fr)_auto]"
-          >
-            {exhibition.imageKey ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={mediaUrl(exhibition.imageKey, "grid")}
-                alt=""
-                className="h-14 w-14 object-cover"
-              />
-            ) : (
-              <div className="slot h-14 w-14" />
-            )}
-            <div className="min-w-0">
-              <Link
-                href={`/admin/exhibitions/${exhibition.id}`}
-                className="font-serif text-[18px] leading-tight hover:text-mute"
-              >
-                {exhibition.title.tr}
-              </Link>
-              <div className="adm-note mt-1">
-                {exhibition.year} · {exhibition.venue.tr}
-                {exhibition.kind.tr ? ` · ${exhibition.kind.tr}` : ""}
-                {exhibition.published ? "" : " · taslak"}
-                {exhibition.imageKey ? "" : " · görsel yok"}
+      <SortableList
+        className="mt-8 border-t border-rule"
+        action={reorderExhibitionsAction}
+        rows={exhibitions.map((exhibition) => ({
+          id: exhibition.id,
+          content: (
+            <div className="grid items-center gap-4 border-b border-rule py-3 [grid-template-columns:auto_56px_minmax(0,1fr)_auto]">
+              <DragHandle id={exhibition.id} />
+
+              {exhibition.imageKey ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={mediaUrl(exhibition.imageKey, "grid")}
+                  alt=""
+                  className="h-14 w-14 object-cover"
+                />
+              ) : (
+                <div className="slot h-14 w-14" />
+              )}
+
+              <div className="min-w-0">
+                <Link
+                  href={`/admin/exhibitions/${exhibition.id}`}
+                  className="font-serif text-[18px] leading-tight hover:text-mute"
+                >
+                  {exhibition.title.tr}
+                </Link>
+                <div className="adm-note mt-1">
+                  {exhibition.year} · {exhibition.venue.tr}
+                  {exhibition.kind.tr ? ` · ${exhibition.kind.tr}` : ""}
+                  {exhibition.published ? "" : " · taslak"}
+                  {exhibition.imageKey ? "" : " · görsel yok"}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href={`/admin/exhibitions/${exhibition.id}`}
+                  className="adm-btn"
+                >
+                  Düzenle
+                </Link>
+                <ActionForm action={deleteExhibitionRowAction}>
+                  <input type="hidden" name="id" value={exhibition.id} />
+                  <ConfirmButton
+                    message={`"${exhibition.title.tr}" silinsin mi? Bu geri alınamaz.`}
+                  >
+                    Sil
+                  </ConfirmButton>
+                </ActionForm>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <form action={moveExhibitionAction}>
-                <input type="hidden" name="id" value={exhibition.id} />
-                <input type="hidden" name="direction" value="up" />
-                <SubmitButton
-                  className="adm-btn px-2.5"
-                  disabled={index === 0}
-                  aria-label="Yukarı taşı"
-                >
-                  ↑
-                </SubmitButton>
-              </form>
-              <form action={moveExhibitionAction}>
-                <input type="hidden" name="id" value={exhibition.id} />
-                <input type="hidden" name="direction" value="down" />
-                <SubmitButton
-                  className="adm-btn px-2.5"
-                  disabled={index === exhibitions.length - 1}
-                  aria-label="Aşağı taşı"
-                >
-                  ↓
-                </SubmitButton>
-              </form>
-              <Link
-                href={`/admin/exhibitions/${exhibition.id}`}
-                className="adm-btn"
-              >
-                Düzenle
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
+          ),
+        }))}
+      />
 
       {exhibitions.length === 0 && (
         <p className="adm-note mt-6">Henüz sergi eklenmemiş.</p>

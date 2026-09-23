@@ -49,7 +49,7 @@ export default async function SeriesPage({
     <main className="relative z-1 flex-1 animate-fade-up pt-[clamp(30px,5vw,60px)] pb-[90px]">
       <div className="gutter">
         <Link
-          href={`/${lang}`}
+          href={`/${lang}/works`}
           className="mb-[clamp(26px,4vw,46px)] inline-block text-[10px] tracking-[0.18em] text-mute-3 uppercase transition-colors duration-200 hover:text-ink"
         >
           {t.backToWorks}
@@ -60,7 +60,7 @@ export default async function SeriesPage({
             <div className="mb-3 text-[9.5px] tracking-[0.2em] text-mute-3 uppercase">
               {t.seriesBadge} · {works.length}
             </div>
-            <h1 className="m-0 font-serif text-[clamp(30px,4vw,50px)] leading-[1.04] font-normal tracking-[-0.01em]">
+            <h1 className="page-title">
               {series.title[lang]}
             </h1>
             <div className="mt-2.5 text-[12px] tracking-[0.08em] text-mute-2">

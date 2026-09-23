@@ -12,16 +12,28 @@
   --color-panel: #f5f4f0;
   --color-panel-line: #eae8e0;
 
-  --font-serif: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+  --font-serif: var(--font-serif-face), Georgia, "Times New Roman", serif;
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --animate-fade-up: fadeUp 520ms ease both;
+  --animate-slide-in: slideIn 1000ms cubic-bezier(0.22, 0.8, 0.3, 1) both;
 
   @keyframes fadeUp {
     from {
       opacity: 0;
       transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: scale(1.035);
     }
     to {
       opacity: 1;
@@ -109,7 +121,7 @@
     margin: 0;
     font-family: var(--font-serif);
     font-weight: 400;
-    font-size: clamp(28px, 3.6vw, 44px);
+    font-size: clamp(28px, 3.6vw, 37px);
     line-height: 1.05;
     letter-spacing: -0.01em;
   }
@@ -196,6 +208,146 @@
   .work-image {
     width: 100%;
     max-width: min(100%, calc(78vh * var(--ar)));
+  }
+
+  /*
+   * Home: two works at a time across the opening screen, a dark hairline
+   * between them. On a phone they stack, each a little over half the screen.
+   */
+  .home-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    /*
+     * A little over half the screen each, so a second slide shows below the
+     * fold and asks to be scrolled to. The open top end is what a screen
+     * holding a single slide needs: it takes the room the pair would have
+     * had, instead of leaving the grid's own dark ground showing under it.
+     */
+    grid-auto-rows: minmax(52vh, auto);
+    gap: 6px;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    background: var(--color-ink);
+  }
+
+  @media (min-width: 768px) {
+    .home-grid {
+      grid-template-columns: repeat(var(--panes, 2), minmax(0, 1fr));
+      grid-auto-rows: auto;
+      min-height: min(72vh, 780px);
+    }
+  }
+
+  .home-pane {
+    position: relative;
+    margin: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--color-panel);
+    animation: var(--animate-slide-in);
+  }
+
+  .home-link {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .home-link img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .home-link .slot {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* The caption lies over the picture, so the whole pane stays clickable. */
+  .home-cap {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    pointer-events: none;
+    padding: 40px clamp(18px, 2.2vw, 30px) clamp(16px, 2vw, 24px);
+    background: linear-gradient(
+      to top,
+      rgba(12, 12, 9, 0.72),
+      rgba(12, 12, 9, 0)
+    );
+  }
+
+  /* Fetches the pair coming next without putting it on the page. */
+  .home-ahead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .home-dots {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px clamp(20px, 4vw, 56px) 14px;
+  }
+
+  .home-arrow {
+    padding: 6px 10px;
+    border: 0;
+    background: none;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--color-mute-3);
+    cursor: pointer;
+    transition: color 240ms ease;
+  }
+
+  .home-arrow:hover {
+    color: var(--color-ink);
+  }
+
+  /* A wide target around a hairline: the bar is drawn, the button is felt. */
+  .home-dot {
+    display: block;
+    width: 26px;
+    height: 18px;
+    padding: 8px 0 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  .home-dot::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 1.5px;
+    background: #dedcd4;
+    transition: background 240ms ease;
+  }
+
+  .home-dot:hover::after {
+    background: var(--color-mute-3);
+  }
+
+  .home-dot[data-active="true"]::after {
+    background: var(--color-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-pane {
+      animation: none;
+    }
   }
 
   /* Header: full nav on wide screens, a burger and a full-screen menu below. */
@@ -643,10 +795,128 @@
     border-color: #a3312a;
   }
 
+  /* ---- dragging a list into order ---- */
+
+  /* A row sits still until a drag asks it to make room. */
+  .adm-sortable {
+    position: relative;
+    transition: transform 190ms cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+
+  /* The one under the pointer: off the page, following, and never eased. */
+  .adm-sortable[data-lifted="true"] {
+    z-index: 3;
+    transition: none;
+    background: var(--color-bg);
+    box-shadow: 0 14px 34px rgba(20, 20, 15, 0.13);
+    cursor: grabbing;
+  }
+
+  [data-sorting="true"] {
+    user-select: none;
+  }
+
+  .adm-grip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid transparent;
+    background: none;
+    color: var(--color-mute-3);
+    font-size: 16px;
+    line-height: 1;
+    cursor: grab;
+    /* The grip answers a touch itself rather than scrolling the page. */
+    touch-action: none;
+    user-select: none;
+    transition:
+      color 180ms ease,
+      border-color 180ms ease,
+      background 180ms ease;
+  }
+
+  .adm-grip:hover {
+    color: var(--color-ink);
+    border-color: var(--color-rule);
+    background: #fff;
+  }
+
+  .adm-grip:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+
+  .adm-grip[data-lifted="true"] {
+    color: var(--color-ink);
+    cursor: grabbing;
+  }
+
+  /* A slide's long form, folded until the panel asks to see it. */
+  .adm-fold > summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .adm-fold > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .adm-fold > summary [data-fold="open"],
+  .adm-fold[open] > summary [data-fold="shut"] {
+    display: none;
+  }
+
+  .adm-fold[open] > summary [data-fold="open"] {
+    display: inline;
+  }
+
   .adm-note {
     font-size: 12px;
     line-height: 1.6;
     color: var(--color-mute);
+  }
+
+  .adm-note code,
+  .adm-pre {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+  }
+
+  /* The one command the login screen has to hand over, before there is an
+     account to type into it. */
+  .adm-pre {
+    border: 1px solid var(--color-rule);
+    background: var(--color-panel);
+    padding: 9px 11px;
+    line-height: 1.6;
+    color: var(--color-mute);
+    /* A command is copied, not read around a line break: it stays on one
+       line and the box scrolls instead. */
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .adm-error {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #a3312a;
+  }
+
+  /* The login screen: one card, centred, and nothing else on the page. */
+  .adm-gate {
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 40px clamp(20px, 5vw, 40px) 80px;
+  }
+
+  .adm-gate-card {
+    width: min(100%, 340px);
   }
 
   .adm-btn-primary:active:not(:disabled) {
@@ -700,6 +970,240 @@
   .nav-spark[data-pending] {
     opacity: 1;
     animation: admPulse 700ms ease-in-out infinite;
+  }
+
+  /* ---------- Crop step ---------- */
+
+  /* Every upload passes through here: one picture, one frame over it, and
+     the two ways out. It covers the panel so nothing else can be clicked
+     while the crop is being set. */
+  .adm-crop {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: flex;
+    /* Centred by the panel's own auto margins rather than by the box: when
+       the panel is taller than the screen, centring would put its top out of
+       reach, while auto margins leave both ends scrollable. */
+    overflow: auto;
+    padding: clamp(8px, 1.6vw, 20px);
+    background: rgba(20, 20, 15, 0.62);
+    backdrop-filter: blur(3px);
+    animation: admFade 180ms ease both;
+  }
+
+  /* Takes the whole screen: the picture being cropped is the work, and every
+     pixel the panel does not need belongs to it. */
+  .adm-crop-panel {
+    margin: auto;
+    /* A grid, not a stack: `minmax(0, 1fr)` hands the stage exactly what the
+       other three rows leave over. A flex row sized by its content cannot do
+       that — the picture inside it would be the thing deciding the height. */
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    gap: 12px;
+    width: min(1500px, 100%);
+    height: 100%;
+    max-height: 100%;
+    padding: 16px 20px 18px;
+    border: 1px solid var(--color-rule);
+    background: var(--color-bg);
+    box-shadow: 0 24px 60px rgba(20, 20, 15, 0.28);
+  }
+
+  .adm-crop-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  /* No height of its own: it is handed whatever the heading, the ratios and
+     the buttons leave behind, so the picture is always shown whole and as
+     large as the screen allows. */
+  .adm-crop-stage {
+    position: relative;
+    min-height: 160px;
+    overflow: hidden;
+    /* A quiet check pattern, so a transparent PNG is judged against itself
+       and not against the panel behind it. */
+    background-color: var(--color-panel);
+    background-image:
+      linear-gradient(45deg, #eae8e0 25%, transparent 25%),
+      linear-gradient(-45deg, #eae8e0 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #eae8e0 75%),
+      linear-gradient(-45deg, transparent 75%, #eae8e0 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    touch-action: none;
+  }
+
+  /*
+   * Taken out of the flow on purpose. Laid out in the flow, a percentage
+   * height has nothing definite to resolve against — the stage would be
+   * sized by the picture rather than the other way round, and a tall file
+   * would run off the bottom of the screen. Positioned, the percentages
+   * resolve against the stage's own box, so the element always covers the
+   * stage exactly and `contain` fits the whole picture inside it.
+   *
+   * The padding is what keeps the picture off the edges, so the frame's
+   * handles are never cut in half by the clipping above.
+   */
+  .adm-crop-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 18px;
+    box-sizing: border-box;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  /* The kept part: everything outside it is dimmed by the frame's own shadow,
+     which needs no second element to do it. */
+  .adm-crop-rect {
+    position: absolute;
+    cursor: move;
+    touch-action: none;
+    outline: 1px solid rgba(253, 253, 252, 0.92);
+    box-shadow: 0 0 0 9999px rgba(20, 20, 15, 0.56);
+    background:
+      linear-gradient(to right, rgba(253, 253, 252, 0.28) 1px, transparent 1px)
+        33.333% 0 / 33.333% 100% no-repeat,
+      linear-gradient(to right, rgba(253, 253, 252, 0.28) 1px, transparent 1px)
+        66.666% 0 / 33.333% 100% no-repeat,
+      linear-gradient(to bottom, rgba(253, 253, 252, 0.28) 1px, transparent 1px)
+        0 33.333% / 100% 33.333% no-repeat,
+      linear-gradient(to bottom, rgba(253, 253, 252, 0.28) 1px, transparent 1px)
+        0 66.666% / 100% 33.333% no-repeat;
+  }
+
+  .adm-crop-handle {
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    background: #fdfdfc;
+    border: 1px solid var(--color-ink);
+    touch-action: none;
+  }
+
+  .adm-crop-handle[data-handle="nw"] { left: -7px; top: -7px; cursor: nwse-resize; }
+  .adm-crop-handle[data-handle="ne"] { right: -7px; top: -7px; cursor: nesw-resize; }
+  .adm-crop-handle[data-handle="se"] { right: -7px; bottom: -7px; cursor: nwse-resize; }
+  .adm-crop-handle[data-handle="sw"] { left: -7px; bottom: -7px; cursor: nesw-resize; }
+
+  .adm-crop-handle[data-handle="n"] {
+    left: 50%;
+    top: -7px;
+    margin-left: -7px;
+    cursor: ns-resize;
+  }
+
+  .adm-crop-handle[data-handle="s"] {
+    left: 50%;
+    bottom: -7px;
+    margin-left: -7px;
+    cursor: ns-resize;
+  }
+
+  .adm-crop-handle[data-handle="w"] {
+    left: -7px;
+    top: 50%;
+    margin-top: -7px;
+    cursor: ew-resize;
+  }
+
+  .adm-crop-handle[data-handle="e"] {
+    right: -7px;
+    top: 50%;
+    margin-top: -7px;
+    cursor: ew-resize;
+  }
+
+  .adm-crop-ratios {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .adm-crop-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .adm-crop-foot .adm-note {
+    max-width: 46ch;
+  }
+
+  .adm-chip {
+    border: 1px solid var(--color-rule);
+    background: #fff;
+    padding: 6px 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: var(--color-mute);
+    cursor: pointer;
+    transition:
+      color 160ms ease,
+      border-color 160ms ease,
+      background 160ms ease;
+  }
+
+  .adm-chip:hover {
+    color: var(--color-ink);
+    border-color: var(--color-mute-2);
+  }
+
+  .adm-chip[data-on="true"] {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: #fdfdfc;
+  }
+
+  /* A finger needs more than a corner pixel to hold on to. */
+  @media (pointer: coarse) {
+    .adm-crop-handle {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+    }
+
+    .adm-crop-handle[data-handle="nw"],
+    .adm-crop-handle[data-handle="sw"],
+    .adm-crop-handle[data-handle="w"] { left: -10px; }
+    .adm-crop-handle[data-handle="ne"],
+    .adm-crop-handle[data-handle="se"],
+    .adm-crop-handle[data-handle="e"] { right: -10px; }
+    .adm-crop-handle[data-handle="nw"],
+    .adm-crop-handle[data-handle="ne"],
+    .adm-crop-handle[data-handle="n"] { top: -10px; }
+    .adm-crop-handle[data-handle="sw"],
+    .adm-crop-handle[data-handle="se"],
+    .adm-crop-handle[data-handle="s"] { bottom: -10px; }
+    .adm-crop-handle[data-handle="n"],
+    .adm-crop-handle[data-handle="s"] { margin-left: -10px; }
+    .adm-crop-handle[data-handle="w"],
+    .adm-crop-handle[data-handle="e"] { margin-top: -10px; }
+  }
+
+  @media (max-width: 640px) {
+    .adm-crop-panel {
+      padding: 12px 12px 14px;
+    }
+
+    .adm-crop-image {
+      padding: 14px;
+    }
+
+    .adm-crop-foot {
+      justify-content: flex-end;
+    }
   }
 
   /* ---------- Notes ---------- */
@@ -756,11 +1260,101 @@
   .adm-toast-text {
     min-width: 0;
   }
+
+  /* ---- asking before something that cannot be taken back ---- */
+
+  .adm-ask {
+    width: min(430px, calc(100vw - 32px));
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--color-ink);
+    border-radius: 0;
+    background: #fff;
+    color: var(--color-ink);
+    box-shadow: 0 24px 60px rgba(20, 20, 15, 0.22);
+  }
+
+  .adm-ask::backdrop {
+    background: rgba(20, 20, 15, 0.36);
+  }
+
+  .adm-ask[open] {
+    animation: admAskIn 240ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  }
+
+  .adm-ask[open]::backdrop {
+    animation: admFade 240ms ease both;
+  }
+
+  .adm-ask-body {
+    padding: 24px 26px 0;
+  }
+
+  .adm-ask-title {
+    margin: 0 0 10px;
+    font-family: var(--font-serif);
+    font-size: 24px;
+    line-height: 1.12;
+    font-weight: 400;
+  }
+
+  .adm-ask-text {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.66;
+    color: var(--color-ink-soft);
+    text-wrap: pretty;
+  }
+
+  .adm-ask-foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+    padding: 15px 26px;
+    border-top: 1px solid var(--color-rule);
+    background: var(--color-panel);
+  }
+
+  .adm-ask-foot .adm-btn {
+    background: #fff;
+  }
+
+  /* Elsewhere a danger button only reddens under the pointer. Here it is the
+     whole point of the dialog, so it says so before it is reached for. */
+  .adm-ask-foot .adm-btn-danger {
+    background: #a3312a;
+    border-color: #a3312a;
+    color: #fdfdfc;
+  }
+
+  .adm-ask-foot .adm-btn-danger:hover {
+    background: #8c2a24;
+    border-color: #8c2a24;
+    color: #fdfdfc;
+  }
 }
 
 @keyframes admPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.45; }
+}
+
+@keyframes admFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes admAskIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @keyframes admToastIn {
@@ -775,248 +1369,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .adm-toast { animation: none; }
+  .adm-toast,
+  .adm-crop { animation: none; }
+  .adm-ask[open],
+  .adm-ask[open]::backdrop { animation: none; }
   .adm-btn[data-busy="true"],
   .nav-spark[data-pending] { animation: none; }
   .adm-btn:active:not(:disabled) { transform: none; }
+  .adm-sortable { transition: none; }
 }
-
-/* ---------- The studio dancer ---------- */
-/* She waits on whatever the reader is pointing at. Pointer devices only. */
-
-@keyframes danceDrift {
-  0%, 100% { transform: translateX(0) scaleX(1); }
-  24% { transform: translateX(9px) scaleX(1); }
-  26% { transform: translateX(9px) scaleX(-1); }
-  74% { transform: translateX(-9px) scaleX(-1); }
-  76% { transform: translateX(-9px) scaleX(1); }
-}
-
-@keyframes danceBody {
-  0%, 100% { transform: translateY(0) rotate(-6deg); }
-  25% { transform: translateY(-4px) rotate(4deg); }
-  50% { transform: translateY(0) rotate(6deg); }
-  75% { transform: translateY(-4px) rotate(-4deg); }
-}
-
-@keyframes danceHips {
-  0%, 100% { transform: translateX(-1.5px) rotate(-4deg); }
-  50% { transform: translateX(1.5px) rotate(4deg); }
-}
-
-@keyframes danceArmA {
-  0%, 100% { transform: rotate(-150deg); }
-  30% { transform: rotate(-40deg); }
-  60% { transform: rotate(-118deg); }
-}
-
-@keyframes danceArmB {
-  0%, 100% { transform: rotate(148deg); }
-  30% { transform: rotate(52deg); }
-  60% { transform: rotate(112deg); }
-}
-
-@keyframes danceLegA {
-  0%, 100% { transform: rotate(14deg); }
-  50% { transform: rotate(-22deg); }
-}
-
-@keyframes danceLegB {
-  0%, 100% { transform: rotate(-20deg); }
-  50% { transform: rotate(16deg); }
-}
-
-@keyframes danceSkirt {
-  0%, 100% { transform: rotate(-7deg) scaleX(1); }
-  50% { transform: rotate(7deg) scaleX(1.1); }
-}
-
-@keyframes danceHair {
-  0%, 100% { transform: rotate(-16deg); }
-  50% { transform: rotate(18deg); }
-}
-
-#dancer .drift { animation: danceDrift 7.2s ease-in-out infinite; }
-#dancer .body { animation: danceBody 1.15s ease-in-out infinite; }
-#dancer .hips { animation: danceHips 0.575s ease-in-out infinite; }
-#dancer .arm-a { animation: danceArmA 1.15s ease-in-out infinite; }
-#dancer .arm-b { animation: danceArmB 1.15s ease-in-out infinite; }
-#dancer .leg-a { animation: danceLegA 0.575s ease-in-out infinite; }
-#dancer .leg-b { animation: danceLegB 0.575s ease-in-out infinite; }
-#dancer .skirt { animation: danceSkirt 0.575s ease-in-out infinite; }
-#dancer .hair { animation: danceHair 1.15s ease-in-out infinite; }
-
-@media (prefers-reduced-motion: reduce) {
-  #dancer { display: none; }
-}
-
-@media (hover: none), (max-width: 767px) {
-  #dancer { display: none !important; }
-}
-
-/* ---------- The birds ---------- */
-/* Four of them live along the header: they perch, hop, stretch, chase each
-   other and scatter when the cursor gets too close. */
-
-@keyframes flap {
-  0%, 100% { transform: rotate(-42deg) scaleY(1); }
-  50% { transform: rotate(26deg) scaleY(0.7); }
-}
-
-@keyframes flapB {
-  0%, 100% { transform: rotate(42deg) scaleY(1); }
-  50% { transform: rotate(-26deg) scaleY(0.7); }
-}
-
-@keyframes perchBob {
-  0%, 62%, 100% { transform: translateY(0) rotate(0deg); }
-  70% { transform: translateY(-1.5px) rotate(-11deg); }
-  78% { transform: translateY(0) rotate(7deg); }
-  86% { transform: translateY(-1px) rotate(-5deg); }
-}
-
-@keyframes hopUp {
-  0% { transform: translateY(0); }
-  40% { transform: translateY(-7px); }
-  100% { transform: translateY(0); }
-}
-
-@keyframes tailFlick {
-  0%, 70%, 100% { transform: rotate(0deg); }
-  80% { transform: rotate(-16deg); }
-  90% { transform: rotate(9deg); }
-}
-
-@keyframes stretchWings {
-  0%, 100% { transform: rotate(-42deg) scaleX(1); }
-  35%, 65% { transform: rotate(-104deg) scaleX(1.5); }
-}
-
-@keyframes stretchWingsB {
-  0%, 100% { transform: rotate(42deg) scaleX(1); }
-  35%, 65% { transform: rotate(104deg) scaleX(1.5); }
-}
-
-.bird {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 23px;
-  height: 17px;
-  pointer-events: none;
-  z-index: 85;
-  opacity: 0;
-  will-change: transform;
-  transform-origin: 0% 100%;
-}
-
-.bird .hop { position: absolute; inset: 0; }
-.bird.hopping .hop { animation: hopUp 0.42s cubic-bezier(0.3, 0.9, 0.3, 1); }
-
-.bird .body {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 20px;
-  height: 9px;
-  border-radius: 60% 34% 44% 50%;
-  background: currentColor;
-  transform-origin: 30% 100%;
-  animation: perchBob 7s ease-in-out infinite;
-}
-
-.bird .head {
-  position: absolute;
-  left: 13px;
-  bottom: 6px;
-  width: 7.5px;
-  height: 7.5px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.bird .head::after {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 2px;
-  width: 2px;
-  height: 2px;
-  border-radius: 50%;
-  background: #fdfdfc;
-}
-
-.bird .beak {
-  position: absolute;
-  left: 20px;
-  bottom: 8.5px;
-  width: 4.5px;
-  height: 2.2px;
-  background: oklch(0.72 0.17 62);
-  clip-path: polygon(0 0, 100% 50%, 0 100%);
-}
-
-.bird .tail {
-  position: absolute;
-  left: -6px;
-  bottom: 3px;
-  width: 9px;
-  height: 3px;
-  background: currentColor;
-  clip-path: polygon(100% 0, 0 40%, 0 70%, 100% 100%);
-  transform-origin: 100% 50%;
-  animation: tailFlick 5s ease-in-out infinite;
-}
-
-.bird .wing-a,
-.bird .wing-b {
-  position: absolute;
-  left: 5px;
-  bottom: 5px;
-  width: 12px;
-  height: 4.5px;
-  border-radius: 60% 40% 50% 50%;
-  background: currentColor;
-  transform-origin: 20% 100%;
-}
-
-.bird .wing-a { animation: flap 1.9s ease-in-out infinite; }
-.bird .wing-b { filter: brightness(0.82); animation: flapB 1.9s ease-in-out infinite; }
-
-.bird.flying .wing-a { animation: flap 0.62s ease-in-out infinite; }
-.bird.flying .wing-b { animation: flapB 0.62s ease-in-out infinite; }
-.bird.flying .body { animation: none; }
-
-.bird.stretch .wing-a { animation: stretchWings 1.5s ease-in-out; }
-.bird.stretch .wing-b { animation: stretchWingsB 1.5s ease-in-out; }
-
-#bird1 { color: oklch(0.55 0.13 255); }
-#bird1 .head { background: oklch(0.42 0.12 262); }
-#bird1 .tail { background: oklch(0.68 0.14 78); }
-
-#bird2 { color: oklch(0.6 0.16 28); }
-#bird2 .head { background: oklch(0.36 0.09 32); }
-#bird2 .tail { background: oklch(0.5 0.14 22); }
-#bird2 .body { width: 18px; height: 8px; }
-
-#bird3 { color: oklch(0.58 0.11 168); }
-#bird3 .head { background: oklch(0.72 0.15 82); width: 8.5px; height: 8.5px; }
-#bird3 .tail { background: oklch(0.44 0.1 172); }
-#bird3 .body { width: 21.5px; height: 10px; }
-
-#bird4 { color: oklch(0.5 0.11 330); }
-#bird4 .head { background: oklch(0.66 0.13 350); width: 6.5px; height: 6.5px; }
-#bird4 .tail { background: oklch(0.38 0.09 328); }
-#bird4 .body { width: 17px; height: 7.5px; }
-
-@media (prefers-reduced-motion: reduce) {
-  .bird { display: none; }
-}
-
-/* Two of them is enough on a phone, and none over the open menu. */
-@media (max-width: 767px) {
-  #bird3,
-  #bird4 { display: none; }
-}
-
-body.menu-open .bird { display: none; }

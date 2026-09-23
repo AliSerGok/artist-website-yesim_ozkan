@@ -1,5 +1,7 @@
+import type { HomeSlide } from "@/components/home-slideshow";
 import type { GallerySeries, GalleryWork } from "@/components/work-gallery";
 
+import type { HomeEntry } from "./content";
 import type { Lang } from "./i18n";
 import type { Series, Work } from "./types";
 
@@ -39,5 +41,34 @@ export function toGallerySeries(
     slot: cover?.slot ?? "",
     ratio: cover ? ratio(cover) : 0.8,
     imageKey: cover?.imageKey ?? null,
+  };
+}
+
+/**
+ * The home page shows the picture at full bleed with a line of text over it,
+ * so a slide carries no note — whether it stands for a work or for a picture
+ * of its own.
+ */
+export function toHomeSlide(entry: HomeEntry, lang: Lang): HomeSlide {
+  if (entry.type === "work") {
+    const { work } = entry;
+    return {
+      title: work.title[lang],
+      aside: work.year,
+      caption: work.caption[lang],
+      slot: work.slot,
+      imageKey: work.imageKey,
+      href: `/${lang}/works/${work.slug}`,
+    };
+  }
+
+  const { item } = entry;
+  return {
+    title: item.title[lang],
+    aside: item.aside[lang],
+    caption: item.caption[lang],
+    slot: "",
+    imageKey: item.imageKey,
+    href: item.href || null,
   };
 }

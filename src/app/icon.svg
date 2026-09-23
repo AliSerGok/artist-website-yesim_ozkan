@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!--
+    Yeşim Özkan'ın Y'si. Başlık fontunun glifi değil: metin yüzlerinin ince
+    vuruşları 16px'lik sekme ikonunda kayboluyor. Bu harf 16px ızgarasına
+    oturtuldu — gövde tam 2px (x 28→36), tepe y=12, taban y=52 — ki küçük boyda
+    yarım piksele düşüp bulanmasın. Zemin kağıt, harf mürekkep: aynı dosya hem
+    açık hem koyu sekme çubuğunda okunuyor, ayrı bir koyu varyant gerekmiyor.
+  -->
+  <rect width="64" height="64" fill="#fdfdfc"/>
+  <path fill="#14140f" d="M10.3 12
+    L22.92 12 L22.92 16 L21.22 16
+    L33.795 31.72 L46.37 16
+    L44.67 16 L44.67 12 L53.7 12 L53.7 16 L52 16
+    L36 36 L36 48 L43 48 L43 52
+    L21 52 L21 48 L28 48 L28 36
+    L12 16 L10.3 16 Z"/>
+</svg>

@@ -1,53 +1,18 @@
 import Link from "next/link";
 
 import {
-  moveCvAction,
-  moveCvGroupAction,
+  deleteCvGroupRowAction,
+  deleteCvRowAction,
+  reorderCvAction,
+  reorderCvGroupsAction,
 } from "@/app/(admin)/admin/actions";
-import { SubmitButton } from "@/components/admin/submit-button";
+import { ActionForm } from "@/components/admin/action-form";
+import { ConfirmButton } from "@/components/admin/confirm-button";
+import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { getAllCvEntries, getAllCvGroups } from "@/lib/content";
 import type { CvEntry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-function MoveButtons({
-  action,
-  id,
-  first,
-  last,
-}: {
-  action: (form: FormData) => Promise<void>;
-  id: string;
-  first: boolean;
-  last: boolean;
-}) {
-  return (
-    <>
-      <form action={action}>
-        <input type="hidden" name="id" value={id} />
-        <input type="hidden" name="direction" value="up" />
-        <SubmitButton
-          className="adm-btn px-2.5"
-          disabled={first}
-          aria-label="Yukarı taşı"
-        >
-          ↑
-        </SubmitButton>
-      </form>
-      <form action={action}>
-        <input type="hidden" name="id" value={id} />
-        <input type="hidden" name="direction" value="down" />
-        <SubmitButton
-          className="adm-btn px-2.5"
-          disabled={last}
-          aria-label="Aşağı taşı"
-        >
-          ↓
-        </SubmitButton>
-      </form>
-    </>
-  );
-}
 
 const KIND_LABEL: Record<CvEntry["kind"], string> = {
   solo: "kişisel",
@@ -55,21 +20,15 @@ const KIND_LABEL: Record<CvEntry["kind"], string> = {
   "": "",
 };
 
-function Row({
-  entry,
-  first,
-  last,
-}: {
-  entry: CvEntry;
-  first: boolean;
-  last: boolean;
-}) {
+function Row({ entry }: { entry: CvEntry }) {
   const note = [KIND_LABEL[entry.kind], entry.published ? "" : "taslak"]
     .filter(Boolean)
     .join(" · ");
 
   return (
-    <div className="grid items-center gap-4 border-b border-rule py-2.5 [grid-template-columns:56px_minmax(0,1fr)_auto]">
+    <div className="grid items-center gap-4 border-b border-rule py-2.5 [grid-template-columns:auto_56px_minmax(0,1fr)_auto]">
+      <DragHandle id={entry.id} />
+
       <div className="font-mono text-[11px] tracking-[0.12em] text-mute-3">
         {entry.year}
       </div>
@@ -85,17 +44,32 @@ function Row({
       </div>
 
       <div className="flex items-center gap-1.5">
-        <MoveButtons
-          action={moveCvAction}
-          id={entry.id}
-          first={first}
-          last={last}
-        />
         <Link href={`/admin/cv/${entry.id}`} className="adm-btn">
           Düzenle
         </Link>
+        <ActionForm action={deleteCvRowAction}>
+          <input type="hidden" name="id" value={entry.id} />
+          <ConfirmButton
+            message={`"${entry.title.tr}" silinsin mi? Bu geri alınamaz.`}
+          >
+            Sil
+          </ConfirmButton>
+        </ActionForm>
       </div>
     </div>
+  );
+}
+
+/** One heading's lines, dragged among themselves and nowhere else. */
+function Lines({ entries }: { entries: CvEntry[] }) {
+  return (
+    <SortableList
+      action={reorderCvAction}
+      rows={entries.map((entry) => ({
+        id: entry.id,
+        content: <Row entry={entry} />,
+      }))}
+    />
   );
 }
 
@@ -131,8 +105,8 @@ export default async function AdminCv() {
       <p className="adm-note mt-3 max-w-[62ch]">
         Hakkında sayfasının altındaki tam liste. İstediğin kadar başlık
         açabilirsin — Sergiler, Yarışmalar, Ödüller… Başlıklar kendi aralarında,
-        satırlar da kendi başlığı içinde taşınır. Boş başlık ve gizlenen başlık
-        sitede görünmez.
+        satırlar da kendi başlığı içinde sürüklenir; tutamaç her satırın
+        solunda. Boş başlık ve gizlenen başlık sitede görünmez.
       </p>
 
       {unfiled.length > 0 && (
@@ -146,66 +120,77 @@ export default async function AdminCv() {
             </span>
           </div>
 
-          {unfiled.map((entry, index) => (
-            <Row
-              key={entry.id}
-              entry={entry}
-              first={index === 0}
-              last={index === unfiled.length - 1}
-            />
-          ))}
+          <Lines entries={unfiled} />
         </section>
       )}
 
-      {groups.map((group, groupIndex) => {
-        const rows = entries
-          .filter((entry) => entry.groupId === group.id)
-          .sort(byOrder);
+      <SortableList
+        className="mt-9 flex flex-col gap-9"
+        action={reorderCvGroupsAction}
+        rows={groups.map((group) => {
+          const rows = entries
+            .filter((entry) => entry.groupId === group.id)
+            .sort(byOrder);
 
-        return (
-          <section key={group.id} className="mt-9">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink pb-2">
-              <h2 className="font-serif text-[19px] leading-none">
-                {group.title.tr}
-                {!group.published && (
-                  <span className="adm-note ml-2.5">gizli</span>
+          return {
+            id: group.id,
+            content: (
+              <section>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink pb-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <DragHandle
+                      id={group.id}
+                      label="Başlığı sürükleyerek taşı"
+                    />
+                    <h2 className="font-serif text-[19px] leading-none">
+                      {group.title.tr}
+                      {!group.published && (
+                        <span className="adm-note ml-2.5">gizli</span>
+                      )}
+                    </h2>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <Link
+                      href={`/admin/cv/groups/${group.id}`}
+                      className="adm-btn"
+                    >
+                      Başlığı düzenle
+                    </Link>
+                    <Link
+                      href={`/admin/cv/new?group=${group.id}`}
+                      className="adm-btn"
+                    >
+                      Satır ekle
+                    </Link>
+                    <ActionForm action={deleteCvGroupRowAction}>
+                      <input type="hidden" name="id" value={group.id} />
+                      <ConfirmButton
+                        message={
+                          rows.length > 0
+                            ? `"${group.title.tr}" başlığı silinsin mi? Altındaki ${rows.length} satır silinmez, başlıksız olarak listenin üstüne taşınır.`
+                            : `"${group.title.tr}" başlığı silinsin mi? Bu geri alınamaz.`
+                        }
+                      >
+                        Başlığı sil
+                      </ConfirmButton>
+                    </ActionForm>
+                  </div>
+                </div>
+
+                <Lines entries={rows} />
+
+                {rows.length === 0 && (
+                  <p className="adm-note py-3">
+                    Bu başlıkta henüz satır yok; boş kaldığı sürece sitede
+                    görünmez.
+                  </p>
                 )}
-              </h2>
-
-              <div className="flex items-center gap-1.5">
-                <MoveButtons
-                  action={moveCvGroupAction}
-                  id={group.id}
-                  first={groupIndex === 0}
-                  last={groupIndex === groups.length - 1}
-                />
-                <Link href={`/admin/cv/groups/${group.id}`} className="adm-btn">
-                  Başlığı düzenle
-                </Link>
-                <Link href={`/admin/cv/new?group=${group.id}`} className="adm-btn">
-                  Satır ekle
-                </Link>
-              </div>
-            </div>
-
-            {rows.map((entry, index) => (
-              <Row
-                key={entry.id}
-                entry={entry}
-                first={index === 0}
-                last={index === rows.length - 1}
-              />
-            ))}
-
-            {rows.length === 0 && (
-              <p className="adm-note py-3">
-                Bu başlıkta henüz satır yok; boş kaldığı sürece sitede
-                görünmez.
-              </p>
-            )}
-          </section>
-        );
-      })}
+              </section>
+            ),
+          };
+        })}
+      />
 
       {groups.length === 0 && unfiled.length === 0 && (
         <p className="adm-note mt-6">Henüz katılım eklenmemiş.</p>

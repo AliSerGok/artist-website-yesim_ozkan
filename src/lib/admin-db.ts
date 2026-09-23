@@ -262,74 +262,70 @@ export async function deleteSeries(id: string): Promise<void> {
 
 /* -------------------------------------------------------------- ordering */
 
+type Sortable = "works" | "exhibitions" | "series" | "cv_entries" | "cv_groups";
+
+/** Nothing sane drags more than this; the rest is somebody poking the action. */
+const MAX_REORDER = 500;
+
 /**
- * Swaps a row with its neighbour so the artist can reorder the grid. `scope`
- * keeps the swap inside one group — a cv line moves within its own heading
- * and never jumps into the one above it.
+ * Writes a whole list's order in one go, which is what a drag hands over.
+ *
+ * Only the rows named in `ids` are touched, and they keep the set of
+ * `sort_order` values they already held between them — just handed out in the
+ * new order. So a cv heading's lines can be dragged among themselves without
+ * ever crossing into the heading above or below, and no other row moves.
  */
-async function move(
-  table: "works" | "exhibitions" | "series" | "cv_entries" | "cv_groups",
-  id: string,
-  direction: -1 | 1,
-  scope?: { column: string; value: string | null },
-): Promise<void> {
+async function reorder(table: Sortable, ids: string[]): Promise<void> {
+  const wanted = [...new Set(ids)].slice(0, MAX_REORDER);
+  if (wanted.length < 2) return;
+
   const db = await requireDb();
-  const current = await db
-    .prepare(`SELECT id, sort_order FROM ${table} WHERE id = ?`)
-    .bind(id)
-    .first<{ id: string; sort_order: number }>();
-  if (!current) return;
-
-  // `IS` rather than `=` so an unfiled row still finds its own neighbours.
-  const within = scope ? ` AND ${scope.column} IS ?` : "";
-  const bindings: (string | number | null)[] = [current.sort_order];
-  if (scope) bindings.push(scope.value);
-
-  const neighbour = await db
+  const holes = wanted.map(() => "?").join(", ");
+  const { results } = await db
     .prepare(
-      direction === -1
-        ? `SELECT id, sort_order FROM ${table} WHERE sort_order < ?${within} ORDER BY sort_order DESC LIMIT 1`
-        : `SELECT id, sort_order FROM ${table} WHERE sort_order > ?${within} ORDER BY sort_order ASC LIMIT 1`,
+      `SELECT id, sort_order FROM ${table} WHERE id IN (${holes}) ORDER BY sort_order ASC`,
     )
-    .bind(...bindings)
-    .first<{ id: string; sort_order: number }>();
-  if (!neighbour) return;
+    .bind(...wanted)
+    .all<{ id: string; sort_order: number }>();
 
-  await db.batch([
-    db
-      .prepare(`UPDATE ${table} SET sort_order = ? WHERE id = ?`)
-      .bind(neighbour.sort_order, current.id),
-    db
-      .prepare(`UPDATE ${table} SET sort_order = ? WHERE id = ?`)
-      .bind(current.sort_order, neighbour.id),
-  ]);
+  const rows = results ?? [];
+  const held = new Map(rows.map((row) => [row.id, row.sort_order]));
+  // The slots this set of rows already occupies, lowest first. Seeded rows
+  // can share a number; nudging each one past the last keeps the new order
+  // sayable without disturbing anything above or below the set.
+  const slots = rows.reduce<number[]>((kept, row, index) => {
+    const last = kept[index - 1];
+    kept.push(
+      index === 0 ? row.sort_order : Math.max(row.sort_order, last + 1),
+    );
+    return kept;
+  }, []);
+  // A row the page named but the table no longer has is simply dropped, so a
+  // list left open in another tab cannot resurrect it.
+  const next = wanted.filter((id) => held.has(id));
+
+  const writes = next
+    .map((id, index) => ({ id, order: slots[index] }))
+    .filter(({ id, order }) => held.get(id) !== order)
+    .map(({ id, order }) =>
+      db
+        .prepare(`UPDATE ${table} SET sort_order = ? WHERE id = ?`)
+        .bind(order, id),
+    );
+
+  if (writes.length) await db.batch(writes);
 }
 
-export const moveWork = (id: string, direction: -1 | 1) =>
-  move("works", id, direction);
+export const reorderWorks = (ids: string[]) => reorder("works", ids);
 
-export const moveSeries = (id: string, direction: -1 | 1) =>
-  move("series", id, direction);
+export const reorderSeries = (ids: string[]) => reorder("series", ids);
 
-export const moveExhibition = (id: string, direction: -1 | 1) =>
-  move("exhibitions", id, direction);
+export const reorderExhibitions = (ids: string[]) =>
+  reorder("exhibitions", ids);
 
-export const moveCvGroup = (id: string, direction: -1 | 1) =>
-  move("cv_groups", id, direction);
+export const reorderCvGroups = (ids: string[]) => reorder("cv_groups", ids);
 
-export async function moveCvEntry(id: string, direction: -1 | 1) {
-  const db = await requireDb();
-  const row = await db
-    .prepare("SELECT group_id FROM cv_entries WHERE id = ?")
-    .bind(id)
-    .first<{ group_id: string | null }>();
-  if (!row) return;
-
-  await move("cv_entries", id, direction, {
-    column: "group_id",
-    value: row.group_id,
-  });
-}
+export const reorderCvEntries = (ids: string[]) => reorder("cv_entries", ids);
 
 /* ---------------------------------------------------------- exhibitions */
 
@@ -436,12 +432,7 @@ export async function saveCvGroup(input: CvGroupInput): Promise<string> {
            updated_at = datetime('now')
          WHERE id = ?`,
       )
-      .bind(
-        input.titleTr,
-        input.titleEn,
-        input.published ? 1 : 0,
-        input.id,
-      )
+      .bind(input.titleTr, input.titleEn, input.published ? 1 : 0, input.id)
       .run();
     return input.id;
   }
@@ -574,7 +565,7 @@ export async function deleteCvEntry(id: string): Promise<void> {
 /* ---------------------------------------------------------------- pages */
 
 export async function savePageContent(
-  key: "about" | "contact" | "settings",
+  key: "home" | "about" | "contact",
   data: unknown,
 ): Promise<void> {
   const db = await requireDb();

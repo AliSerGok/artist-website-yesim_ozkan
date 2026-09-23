@@ -14,46 +14,50 @@
 
   "vars": {
     // Public origin, used for canonical URLs and the sitemap.
-    "SITE_URL": "https://yesimozkan.com",
-
-    // Cloudflare Access. Leave both empty until the Access application exists:
-    // while they are empty a deployed /admin answers 404 instead of opening.
-    // Team domain looks like "yesim.cloudflareaccess.com"; the AUD tag is on
-    // the Access application's overview page.
-    "CF_ACCESS_TEAM_DOMAIN": "",
-    "CF_ACCESS_AUD": ""
+    "SITE_URL": "https://yesimozkan.com"
   },
 
-  // Site content, written only by the admin panel.
-  // Create with: npm run cf:d1:create   (then paste the id below)
+  // Site content and the panel account, written only by the admin panel.
+  // Created with: npm run cf:d1:create
+  //
+  // "remote": true points a binding at the real Cloudflare resource instead of
+  // a local copy — one database, one bucket, whether you are on localhost or on
+  // the deployed site, so local edits are live edits.
+  //
+  // This only takes effect under `pnpm dev:remote`. Plain `pnpm dev` ignores it
+  // and uses the local copies in .wrangler/state; see next.config.ts.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "yesim-content",
-      "database_id": "PLACEHOLDER_RUN_npm_run_cf:d1:create",
-      "migrations_dir": "migrations"
+      "database_id": "d7ffc518-fa41-4116-bdbf-89dd5c0192a6",
+      "migrations_dir": "migrations",
+      "remote": true
     },
     {
       // Used by Next's revalidateTag/revalidatePath, same database.
       "binding": "NEXT_TAG_CACHE_D1",
       "database_name": "yesim-content",
-      "database_id": "PLACEHOLDER_RUN_npm_run_cf:d1:create"
+      "database_id": "d7ffc518-fa41-4116-bdbf-89dd5c0192a6",
+      "remote": true
     }
   ],
 
-  // Uploaded images. Create with: npm run cf:r2:create
+  // Uploaded images. Created with: npm run cf:r2:create
   "r2_buckets": [
     {
       "binding": "MEDIA",
-      "bucket_name": "yesim-media"
+      "bucket_name": "yesim-media",
+      "remote": true
     }
   ],
 
-  // Rendered-page cache (ISR). Create with: npm run cf:kv:create
+  // Rendered-page cache (ISR). Created with: npm run cf:kv:create
   "kv_namespaces": [
     {
       "binding": "NEXT_INC_CACHE_KV",
-      "id": "PLACEHOLDER_RUN_npm_run_cf:kv:create"
+      "id": "35ee49c860cf4d34a165cf078d0e2680",
+      "remote": true
     }
   ]
 }

@@ -1,18 +1,19 @@
-import { getAdminIdentity } from "@/lib/admin-auth";
+import { getAdminIdentity } from "@/lib/auth";
 import { getMedia } from "@/lib/db";
 
 /**
  * Stores one already-resized image pair and hands back its key. Writing the
  * key onto a record — and cleaning up whatever it replaced — is the saving
- * action's job, so the same endpoint serves works, exhibitions and the blocks
- * of the about page, and nothing is destroyed before the form is submitted.
+ * action's job, so the same endpoint serves works, exhibitions, the blocks of
+ * the about page and the home page slides, and nothing is destroyed before
+ * the form is submitted.
  */
 
 const CACHE_FOREVER = "public, max-age=31536000, immutable";
 const MAX_BYTES = 12 * 1024 * 1024;
 
 /** Only the prefixes the panel is allowed to write to. */
-const PREFIX = /^(works\/[A-Za-z0-9_-]{1,64}|exhibitions\/[A-Za-z0-9_-]{1,64}|pages\/about)$/;
+const PREFIX = /^(works\/[A-Za-z0-9_-]{1,64}|exhibitions\/[A-Za-z0-9_-]{1,64}|pages\/(about|home))$/;
 
 export async function POST(request: Request) {
   if (!(await getAdminIdentity())) {

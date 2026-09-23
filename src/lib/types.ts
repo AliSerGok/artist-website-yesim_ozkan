@@ -96,9 +96,26 @@ export const CELL_TYPES = ["text", "image"] as const;
 
 export type CellType = (typeof CELL_TYPES)[number];
 
+/** The same three stops on both axes, named the way CSS names them. */
+export const ALIGNMENTS = ["start", "center", "end"] as const;
+
+export type Alignment = (typeof ALIGNMENTS)[number];
+
+/** Where a field sits inside the column the strip gives it. */
+export interface CellAlign {
+  /** Across the column. */
+  x: Alignment;
+  /** Down the strip, against the tallest field standing beside it. */
+  y: Alignment;
+}
+
+/** Top left, which is where every field sat before any of this. */
+export const FLUSH: CellAlign = { x: "start", y: "start" };
+
 export interface TextCell {
   kind: "text";
   paragraphs: Localized[];
+  align: CellAlign;
 }
 
 export interface ImageCell {
@@ -107,6 +124,7 @@ export interface ImageCell {
   /** Width over height, measured when the picture is uploaded. */
   ratio: number;
   caption: Localized;
+  align: CellAlign;
 }
 
 export type RowCell = TextCell | ImageCell;
@@ -157,14 +175,59 @@ export interface ContactRow {
   href: string;
 }
 
-/** Which of the decorative animations are switched on. */
-export interface SiteSettings {
-  dancer: boolean;
-  birds: boolean;
-}
+/** The contact page lists at most this many ways to reach her. */
+export const MAX_CONTACT_ROWS = 8;
 
 export interface ContactContent {
   lead: Localized;
   note: Localized;
   rows: ContactRow[];
+}
+
+export const HOME_ITEM_TYPES = ["work", "image"] as const;
+
+export type HomeItemType = (typeof HOME_ITEM_TYPES)[number];
+
+/** A slide showing a work the site already holds. */
+export interface HomeWorkItem {
+  type: "work";
+  workId: string;
+}
+
+/**
+ * A slide with a picture of its own — an exhibition view, a poster, the
+ * studio — one that is not filed as a work anywhere else on the site.
+ */
+export interface HomeImageItem {
+  type: "image";
+  imageKey: string | null;
+  /** Width over height, measured when the picture is uploaded. */
+  ratio: number;
+  title: Localized;
+  /** The italic tail after the title: a year, a place, or nothing. */
+  aside: Localized;
+  /** The small line under the title. */
+  caption: Localized;
+  /** Where the slide leads; left empty it leads nowhere. */
+  href: string;
+}
+
+/**
+ * A slot on a screen that has been made but not yet told what it holds. The
+ * panel shows it as a choice; the site passes over it, so the slide beside it
+ * takes the whole screen until it is filled.
+ */
+export interface HomeBlankItem {
+  type: "blank";
+}
+
+export type HomeItem = HomeWorkItem | HomeImageItem | HomeBlankItem;
+
+/**
+ * The home page: slides turning across the opening screen, two at a time.
+ * Left empty, the site falls back to the first works on the grid, so the
+ * page is never blank before the panel has been used.
+ */
+export interface HomeContent {
+  items: HomeItem[];
 }

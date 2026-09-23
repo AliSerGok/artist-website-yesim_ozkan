@@ -1,7 +1,10 @@
 import { saveAboutAction } from "@/app/(admin)/admin/actions";
+import { ActionForm } from "@/components/admin/action-form";
 import { ImageField } from "@/components/admin/image-field";
+import { SaveButton } from "@/components/admin/save-button";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { getAbout } from "@/lib/content";
+import { revision } from "@/lib/revision";
 import { MAX_CELLS, type AboutBlock, type RowCell } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -72,7 +75,11 @@ export default async function EditAbout() {
         yani yazdıkların kaybolmaz.
       </p>
 
-      <form action={saveAboutAction} className="mt-8 flex flex-col gap-6">
+      <ActionForm
+        action={saveAboutAction}
+        formKey={revision(about)}
+        className="mt-8 flex flex-col gap-6"
+      >
         <input type="hidden" name="blockCount" value={about.blocks.length} />
         <input type="hidden" name="factCount" value={about.facts.length} />
 
@@ -255,16 +262,9 @@ export default async function EditAbout() {
         </div>
 
         <div>
-          <SubmitButton
-            name="intent"
-            value="save"
-            className="adm-btn adm-btn-primary"
-            busyLabel="Kaydediliyor…"
-          >
-            Kaydet
-          </SubmitButton>
+          <SaveButton name="intent" value="save" />
         </div>
-      </form>
+      </ActionForm>
     </>
   );
 }
@@ -396,6 +396,25 @@ function BlockFields({ block, index }: { block: AboutBlock; index: number }) {
   );
 }
 
+/**
+ * Says what the two menus will and will not move, so nobody sets one and
+ * waits for something to happen that cannot.
+ */
+function alignHint(cell: RowCell, count: number): string {
+  const lines =
+    cell.kind === "image"
+      ? ["Görsel sütununu boydan boya kaplar; yatay hizalama alt yazıyı taşır."]
+      : ["Yatay hizalama metnin satırlarını yaslar."];
+
+  lines.push(
+    count === 1
+      ? "Dikey hizalama, şeritte yan yana birden çok alan varken görünür."
+      : "Dikey hizalama alanı, yanındaki en uzun alana göre yerleştirir.",
+  );
+
+  return lines.join(" ");
+}
+
 function CellFields({
   cell,
   block,
@@ -491,6 +510,36 @@ function CellFields({
           </label>
         </div>
       )}
+
+      <div className="mt-4 border-t border-rule pt-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block">
+            <span className="adm-label">Yatay</span>
+            <select
+              name={on("alignX")}
+              className="adm-select"
+              defaultValue={cell.align.x}
+            >
+              <option value="start">Sola yaslı</option>
+              <option value="center">Ortalı</option>
+              <option value="end">Sağa yaslı</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="adm-label">Dikey</span>
+            <select
+              name={on("alignY")}
+              className="adm-select"
+              defaultValue={cell.align.y}
+            >
+              <option value="start">Üste yaslı</option>
+              <option value="center">Ortalı</option>
+              <option value="end">Alta yaslı</option>
+            </select>
+          </label>
+        </div>
+        <p className="adm-note mt-2">{alignHint(cell, count)}</p>
+      </div>
     </div>
   );
 }

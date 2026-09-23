@@ -1,47 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { CropDialog } from "@/components/admin/crop-dialog";
 import { useToast } from "@/components/admin/toast";
+import { type CropArea, uploadImage } from "@/lib/image-upload";
 import { mediaUrl } from "@/lib/media";
 
-const FULL_EDGE = 2400;
-const GRID_EDGE = 900;
-
-interface Resized {
-  blob: Blob;
-  width: number;
-  height: number;
-}
-
-/** Downscales and re-encodes in the browser, so R2 only ever stores web-sized files. */
-async function resize(file: File, maxEdge: number): Promise<Resized> {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
-  const width = Math.max(1, Math.round(bitmap.width * scale));
-  const height = Math.max(1, Math.round(bitmap.height * scale));
-
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-
-  const context = canvas.getContext("2d");
-  if (!context) throw new Error("Tarayıcı görseli işleyemedi.");
-  context.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
-
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/webp", 0.9),
-  );
-  if (!blob) throw new Error("Görsel dönüştürülemedi.");
-
-  return { blob, width, height };
-}
-
 /**
- * An image slot inside a form. Uploading stores the file straight away and
- * puts its key in a hidden input; the record only points at it once the form
- * is saved, and the old image is cleaned up then.
+ * An image slot inside a form. Picking a file opens the crop step; uploading
+ * stores the result straight away and puts its key in a hidden input. The
+ * record only points at it once the form is saved, and the old image is
+ * cleaned up then.
  */
 export function ImageField({
   name,
@@ -53,6 +23,7 @@ export function ImageField({
   heightName,
   ratioName,
   ratio,
+  cropRatio,
   disabled = false,
   previewHeight = 200,
 }: {
@@ -67,6 +38,8 @@ export function ImageField({
   /** Or a single width/height ratio, for the about-page blocks. */
   ratioName?: string;
   ratio?: number;
+  /** Ratio the site itself crops this slot to, offered in the crop step. */
+  cropRatio?: number;
   disabled?: boolean;
   previewHeight?: number;
 }) {
@@ -75,31 +48,38 @@ export function ImageField({
   const [current, setCurrent] = useState(imageKey);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<{ blob: Blob; url: string } | null>(
+    null,
+  );
 
-  async function upload(file: File) {
+  /**
+   * The picture the crop works from. Keeping the file the admin chose means a
+   * second crop starts from the original again, rather than from the already
+   * downscaled copy in R2.
+   */
+  const sourceRef = useRef<Blob | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (pending) URL.revokeObjectURL(pending.url);
+    };
+  }, [pending]);
+
+  function openCrop(blob: Blob) {
+    setPending({ blob, url: URL.createObjectURL(blob) });
+  }
+
+  function closeCrop() {
+    if (pending) URL.revokeObjectURL(pending.url);
+    setPending(null);
+  }
+
+  async function upload(blob: Blob, area: CropArea | null) {
     setBusy(true);
     try {
-      const [full, grid] = await Promise.all([
-        resize(file, FULL_EDGE),
-        resize(file, GRID_EDGE),
-      ]);
-
-      const body = new FormData();
-      body.append("prefix", prefix);
-      body.append("full", full.blob, "full.webp");
-      body.append("grid", grid.blob, "grid.webp");
-      body.append("width", String(full.width));
-      body.append("height", String(full.height));
-
-      const response = await fetch("/admin/api/upload", {
-        method: "POST",
-        body,
-      });
-      if (!response.ok) throw new Error(await response.text());
-
-      const result = (await response.json()) as { key: string };
-      setCurrent(result.key);
-      setSize({ width: full.width, height: full.height });
+      const stored = await uploadImage(prefix, blob, area);
+      setCurrent(stored.key);
+      setSize({ width: stored.width, height: stored.height });
       toast("Görsel yüklendi — Kaydet’e basınca yerine geçer.");
     } catch (cause) {
       toast(
@@ -110,7 +90,31 @@ export function ImageField({
       );
     } finally {
       setBusy(false);
-      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
+  /** Crops what is already in the slot, uploading the result as a new image. */
+  async function recrop() {
+    if (!current) return;
+    if (sourceRef.current) {
+      openCrop(sourceRef.current);
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const response = await fetch(mediaUrl(current, "full"));
+      if (!response.ok) throw new Error("Görsel okunamadı.");
+      openCrop(await response.blob());
+    } catch (cause) {
+      toast(
+        cause instanceof Error
+          ? `Görsel açılamadı — ${cause.message}`
+          : "Görsel açılamadı.",
+        "err",
+      );
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -137,6 +141,8 @@ export function ImageField({
         {current ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
+            // The browser has the old crop under this key cached for a year;
+            // a new upload has a new key, so the preview always follows.
             src={mediaUrl(current, "grid")}
             alt=""
             className="border border-rule object-contain"
@@ -159,18 +165,29 @@ export function ImageField({
             {busy ? "Yükleniyor…" : current ? "Değiştir" : "Görsel yükle"}
           </button>
           {current && (
-            <button
-              type="button"
-              className="adm-btn adm-btn-danger"
-              disabled={busy || disabled}
-              onClick={() => {
-                setCurrent(null);
-                setSize({ width: 0, height: 0 });
-                toast("Görsel kaldırıldı — Kaydet’e basınca silinir.");
-              }}
-            >
-              Kaldır
-            </button>
+            <>
+              <button
+                type="button"
+                className="adm-btn"
+                disabled={busy || disabled}
+                onClick={() => void recrop()}
+              >
+                Kırp
+              </button>
+              <button
+                type="button"
+                className="adm-btn adm-btn-danger"
+                disabled={busy || disabled}
+                onClick={() => {
+                  sourceRef.current = null;
+                  setCurrent(null);
+                  setSize({ width: 0, height: 0 });
+                  toast("Görsel kaldırıldı — Kaydet’e basınca silinir.");
+                }}
+              >
+                Kaldır
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -182,15 +199,33 @@ export function ImageField({
         hidden
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) void upload(file);
+          // Cleared straight away: a crop that is called off has to leave the
+          // same file pickable again, and the File itself is already in hand.
+          event.target.value = "";
+          if (!file) return;
+          sourceRef.current = file;
+          openCrop(file);
         }}
       />
 
       <p className="adm-note mt-2">
         {hint ??
-          "JPEG veya PNG yükle; tarayıcı web boyutuna küçültüp WebP’ye çevirir."}{" "}
+          "JPEG veya PNG yükle; yüklemeden önce kırpabilirsin, tarayıcı web boyutuna küçültüp WebP’ye çevirir."}{" "}
         Değişiklik <strong>Kaydet</strong>’e bastığında geçerli olur.
       </p>
+
+      {pending && (
+        <CropDialog
+          src={pending.url}
+          suggested={cropRatio}
+          onCancel={closeCrop}
+          onConfirm={(area) => {
+            const blob = pending.blob;
+            closeCrop();
+            void upload(blob, area);
+          }}
+        />
+      )}
     </div>
   );
 }

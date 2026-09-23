@@ -6,10 +6,11 @@ import {
   SEED_CV,
   SEED_CV_GROUPS,
   SEED_EXHIBITIONS,
+  SEED_HOME,
   SEED_SERIES,
-  SEED_SETTINGS,
   SEED_WORKS,
 } from "./seed";
+import { FLUSH } from "./types";
 import type {
   AboutBlock,
   AboutContent,
@@ -18,10 +19,14 @@ import type {
   CvEntry,
   CvGroup,
   Exhibition,
+  HomeContent,
+  HomeImageItem,
+  HomeItem,
+  ImageCell,
   Medium,
   RowCell,
   Series,
-  SiteSettings,
+  TextCell,
   Work,
 } from "./types";
 
@@ -256,7 +261,7 @@ export async function getExhibitions(): Promise<Exhibition[]> {
 /* ---------------------------------------------------------------- pages */
 
 async function getPage<T>(
-  key: "about" | "contact" | "settings",
+  key: "home" | "about" | "contact",
   fallback: T,
 ): Promise<T> {
   const db = await getDb();
@@ -276,6 +281,122 @@ async function getPage<T>(
   }
 }
 
+/** How many works stand in before any slide has been chosen in the panel. */
+const HOME_FALLBACK = 6;
+
+/**
+ * Only the panel writes these rows, so the shape is trusted; what is checked
+ * is that the slide still says which kind it is. A slide left unfinished —
+ * no work picked, no picture uploaded — is kept for the panel to go on
+ * showing, and skipped by the page below.
+ */
+function toHomeItem(item: HomeItem): HomeItem | null {
+  if (item?.type === "blank") {
+    return { type: "blank" };
+  }
+
+  if (item?.type === "work") {
+    return { type: "work", workId: item.workId ?? "" };
+  }
+
+  if (item?.type === "image") {
+    return {
+      ...item,
+      imageKey: item.imageKey ?? null,
+      ratio: item.ratio > 0 ? item.ratio : 1.5,
+      title: item.title ?? blank(),
+      aside: item.aside ?? blank(),
+      caption: item.caption ?? blank(),
+      href: item.href ?? "",
+    };
+  }
+
+  return null;
+}
+
+export async function getHome(): Promise<HomeContent> {
+  const home = await getPage<HomeContent>("home", SEED_HOME);
+  const items = Array.isArray(home.items) ? home.items : [];
+
+  const kept = items
+    .map(toHomeItem)
+    .filter((item): item is HomeItem => item !== null);
+
+  /*
+   * Screens are pairs, so an odd list leaves a half standing open. Giving it
+   * a blank keeps every screen whole, which is what lets a slide be taken out
+   * without re-pairing all the slides after it. The site skips blanks, so a
+   * screen filled on one side still goes out as one picture, full width.
+   */
+  if (kept.length % 2 === 1) kept.push({ type: "blank" });
+
+  return { items: kept };
+}
+
+/** A slide together with whatever it takes to draw it. */
+export type HomeEntry =
+  | { type: "work"; work: Work }
+  | { type: "image"; item: HomeImageItem };
+
+/**
+ * The slides the home page turns through, in the order the panel put them in.
+ * A slide with nothing to show — a picture not uploaded yet, a work not
+ * picked, or one since unpublished or deleted — drops out silently; the panel
+ * keeps it either way.
+ * If nothing is left, the works at the head of the grid stand in, so the
+ * opening screen is never empty.
+ */
+/** What one screen actually shows: two slides, or one filling it on its own. */
+export type HomeScreen = HomeEntry[];
+
+/** Cuts a flat list into the screens it makes, two slots at a time. */
+function byTwos<T>(items: T[]): T[][] {
+  const pairs: T[][] = [];
+
+  for (let index = 0; index < items.length; index += 2) {
+    pairs.push(items.slice(index, index + 2));
+  }
+
+  return pairs;
+}
+
+export async function getHomeScreens(): Promise<HomeScreen[]> {
+  const [home, works] = await Promise.all([getHome(), getWorks()]);
+
+  const drawable = (item: HomeItem): HomeEntry | null => {
+    if (item.type === "image") {
+      return item.imageKey ? { type: "image", item } : null;
+    }
+    // A slot whose kind has not been picked yet has nothing to draw.
+    if (item.type !== "work") return null;
+
+    const work = works.find((candidate) => candidate.id === item.workId);
+    return work ? { type: "work", work } : null;
+  };
+
+  /*
+   * Empty halves are dropped inside the screen they belong to, never across
+   * screens. Flattening the whole list first and pairing it up again would
+   * close the gap by pulling the next screen's first picture into it.
+   */
+  const screens = byTwos(home.items)
+    .map((slots) =>
+      slots
+        .map(drawable)
+        .filter((entry): entry is HomeEntry => entry !== null),
+    )
+    .filter((screen) => screen.length > 0);
+
+  if (screens.length > 0) return screens;
+
+  // Nothing arranged yet: the first works stand in, two to a screen.
+  return byTwos(
+    works
+      .slice(0, HOME_FALLBACK)
+      .map((work) => ({ type: "work" as const, work })),
+  );
+}
+
 /*
  * Shapes the about page used to be saved in. The editor now writes one kind of
  * block -- a strip of up to three fields -- so anything stored before that is
@@ -288,10 +409,14 @@ interface LegacyFact {
   lines?: Localized[];
 }
 
+type LegacyCell =
+  | (Omit<TextCell, "align"> & Partial<Pick<TextCell, "align">>)
+  | (Omit<ImageCell, "align"> & Partial<Pick<ImageCell, "align">>);
+
 interface LegacyBlock {
   type?: string;
   paragraphs?: Localized[];
-  cells?: RowCell[];
+  cells?: LegacyCell[];
   text?: Localized;
   quote?: Localized;
   by?: Localized;
@@ -306,6 +431,12 @@ interface LegacyBlock {
 
 const blank = (): Localized => ({ tr: "", en: "" });
 
+/** A field saved before the panel could align them stays where it sat. */
+const toCell = (cell: LegacyCell): RowCell => ({
+  ...cell,
+  align: cell.align ?? FLUSH,
+});
+
 function toFact(fact: LegacyFact): AboutFact {
   return {
     label: fact.label ?? blank(),
@@ -317,7 +448,7 @@ function toFact(fact: LegacyFact): AboutFact {
 
 function toBlock(block: LegacyBlock): AboutBlock | null {
   if (block.type === "row" && Array.isArray(block.cells)) {
-    return { type: "row", cells: block.cells };
+    return { type: "row", cells: block.cells.map(toCell) };
   }
 
   if (block.type === "heading") {
@@ -335,7 +466,7 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
   if (block.type === "text") {
     return {
       type: "row",
-      cells: [{ kind: "text", paragraphs: block.paragraphs ?? [] }],
+      cells: [{ kind: "text", paragraphs: block.paragraphs ?? [], align: FLUSH }],
     };
   }
 
@@ -348,6 +479,7 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
           imageKey: block.imageKey ?? null,
           ratio: block.ratio ?? 1.5,
           caption: block.caption ?? blank(),
+          align: FLUSH,
         },
       ],
     };
@@ -363,12 +495,14 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
           ratio: block.ratioA ?? 0.8,
           // A pair shared one caption; it belongs to the picture it described.
           caption: block.caption ?? blank(),
+          align: FLUSH,
         },
         {
           kind: "image",
           imageKey: block.imageKeyB ?? null,
           ratio: block.ratioB ?? 0.8,
           caption: blank(),
+          align: FLUSH,
         },
       ],
     };
@@ -499,11 +633,6 @@ export async function getCvGroupById(id: string): Promise<CvGroup | null> {
 
 export async function getContact(): Promise<ContactContent> {
   return getPage("contact", SEED_CONTACT);
-}
-
-export async function getSettings(): Promise<SiteSettings> {
-  const stored = await getPage<Partial<SiteSettings>>("settings", {});
-  return { ...SEED_SETTINGS, ...stored };
 }
 
 /* ---------------------------------------------------------------- admin */

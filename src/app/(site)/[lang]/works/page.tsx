@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { WorkGallery } from "@/components/work-gallery";
@@ -5,6 +6,23 @@ import { toGallerySeries, toGalleryWork } from "@/lib/cards";
 import { getSeriesList, getWorks } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { isLang } from "@/lib/i18n";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLang(lang)) return {};
+
+  return {
+    title: dict(lang).worksTitle,
+    alternates: {
+      canonical: `/${lang}/works`,
+      languages: { tr: "/tr/works", en: "/en/works" },
+    },
+  };
+}
 
 export default async function WorksPage({
   params,

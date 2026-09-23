@@ -4,8 +4,7 @@ import { mediaUrl } from "@/lib/media";
  * A picture cropped to the proportions of the work it shows. Falls back to the
  * hatched placeholder until an image has been uploaded.
  *
- * `zoom` makes the picture grow inside the frame on hover; `perch` marks the
- * frame as somewhere the studio dancer can stand.
+ * `zoom` makes the picture grow inside the frame on hover.
  */
 export function ImageFrame({
   imageKey,
@@ -14,7 +13,6 @@ export function ImageFrame({
   alt,
   variant = "grid",
   zoom = false,
-  perch = true,
   loading = "lazy",
 }: {
   imageKey: string | null;
@@ -23,15 +21,10 @@ export function ImageFrame({
   alt: string;
   variant?: "full" | "grid";
   zoom?: boolean;
-  perch?: boolean;
   loading?: "lazy" | "eager";
 }) {
   return (
-    <div
-      className="frame"
-      style={{ aspectRatio: ratio }}
-      {...(perch ? { "data-perch": "" } : {})}
-    >
+    <div className="frame" style={{ aspectRatio: ratio }}>
       {imageKey ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img

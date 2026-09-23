@@ -1,11 +1,12 @@
+import { FLUSH } from "./types";
 import type {
   AboutContent,
   ContactContent,
   CvEntry,
   CvGroup,
   Exhibition,
+  HomeContent,
   Series,
-  SiteSettings,
   Work,
 } from "./types";
 
@@ -688,6 +689,7 @@ export const SEED_ABOUT: AboutContent = {
       cells: [
         {
           kind: "text",
+          align: FLUSH,
           paragraphs: [
             {
               tr: "Resimleri çok sıradan yüzeylerin uzun süreli gözleminden doğuyor: geç ışıkta bir duvar, leğende duran su, bir perdenin kıvrımı. Ketende ince yağlıboya ve pigment katmanlarıyla çalışıyor; her geçişin izini kısmen görünür bırakıyor, böylece resim kendi yapılışının hafızasını koruyor.",
@@ -710,6 +712,7 @@ export const SEED_ABOUT: AboutContent = {
       cells: [
         {
           kind: "image",
+          align: FLUSH,
           imageKey: null,
           ratio: 1.49,
           caption: {
@@ -725,6 +728,7 @@ export const SEED_ABOUT: AboutContent = {
       cells: [
         {
           kind: "image",
+          align: FLUSH,
           imageKey: null,
           ratio: 0.8,
           caption: {
@@ -734,6 +738,7 @@ export const SEED_ABOUT: AboutContent = {
         },
         {
           kind: "image",
+          align: FLUSH,
           imageKey: null,
           ratio: 0.8,
           caption: {
@@ -743,6 +748,7 @@ export const SEED_ABOUT: AboutContent = {
         },
         {
           kind: "text",
+          align: FLUSH,
           paragraphs: [
             {
               tr: "Atölyede aynı anda beş altı iş bekliyor. Bir keten kuruyana kadar bir başkası boyanıyor; kağıt işleri ikisinin arasında, ayakta karar verilen şeyler.",
@@ -772,6 +778,7 @@ export const SEED_ABOUT: AboutContent = {
       cells: [
         {
           kind: "text",
+          align: FLUSH,
           paragraphs: [
             {
               tr: "Mimar Sinan Güzel Sanatlar Üniversitesi'nde resim okudu; İstanbul, İzmir, Berlin ve Lizbon'da sergiler açtı. İşleri Türkiye ve Avrupa'daki özel koleksiyonlarda yer alıyor.",
@@ -786,6 +793,7 @@ export const SEED_ABOUT: AboutContent = {
       cells: [
         {
           kind: "image",
+          align: FLUSH,
           imageKey: null,
           ratio: 1.77,
           caption: {
@@ -831,7 +839,10 @@ export const SEED_CONTACT: ContactContent = {
   ],
 };
 
-export const SEED_SETTINGS: SiteSettings = {
-  dancer: true,
-  birds: true,
+/** The slides the home page opens with until the panel says otherwise. */
+export const SEED_HOME: HomeContent = {
+  items: ["w14", "w11", "w1", "w6", "w13", "w12"].map((workId) => ({
+    type: "work",
+    workId,
+  })),
 };

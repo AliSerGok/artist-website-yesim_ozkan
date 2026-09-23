@@ -30,6 +30,8 @@ export default async function ContactPage({
   if (!isLang(lang)) notFound();
 
   const contact = await getContact();
+  // A row with nothing to click is one she has not filled in yet.
+  const rows = contact.rows.filter((row) => row.value);
 
   return (
     <main className="gutter flex-1 animate-fade-up pt-[clamp(36px,6vw,86px)] pb-[110px]">
@@ -44,7 +46,7 @@ export default async function ContactPage({
         </div>
 
         <div className="flex flex-col">
-          {contact.rows.map((row, index) => (
+          {rows.map((row, index) => (
             <div
               key={index}
               className="flex items-baseline justify-between gap-5 border-t border-rule py-[16px]"
@@ -58,7 +60,7 @@ export default async function ContactPage({
               </a>
             </div>
           ))}
-          <div className="border-t border-rule" />
+          {rows.length > 0 && <div className="border-t border-rule" />}
         </div>
       </div>
     </main>

@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
-import { Instrument_Serif } from "next/font/google";
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import { Fraunces } from "next/font/google";
 
-import { AdminNav } from "@/components/admin/admin-nav";
 import { ToastProvider } from "@/components/admin/toast";
-import { getAdminIdentity } from "@/lib/admin-auth";
 
 import "../../globals.css";
 
-const serif = Instrument_Serif({
-  weight: "400",
+/* Sitenin yüzüyle aynı — gerekçesi (site)/[lang]/layout.tsx'te. */
+const serif = Fraunces({
   style: ["normal", "italic"],
   subsets: ["latin", "latin-ext"],
-  variable: "--font-instrument-serif",
+  variable: "--font-serif-face",
   display: "swap",
 });
 
@@ -22,31 +18,20 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdminLayout({
+/**
+ * The shell every page under /admin sits in, the login screen included — the
+ * lock itself is one layer further in, at (panel)/layout.tsx, so that the way
+ * in is the one address it does not guard.
+ */
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Cloudflare Access already blocks unauthorised visitors before they reach
-  // the app. This is the second lock: without a verified identity the panel
-  // does not exist, and an unconfigured deployment answers 404 rather than
-  // opening a door.
-  const identity = await getAdminIdentity();
-  if (!identity) notFound();
-
   return (
     <html lang="tr" className={serif.variable}>
       <body>
-        <ToastProvider>
-          <div className="adm-bar">
-            <Link href="/admin" className="font-serif text-[20px] leading-none">
-              Yönetim
-            </Link>
-            <AdminNav />
-            <span className="label">{identity?.email ?? "—"}</span>
-          </div>
-          <main className="adm-shell pt-[clamp(26px,4vw,44px)]">{children}</main>
-        </ToastProvider>
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

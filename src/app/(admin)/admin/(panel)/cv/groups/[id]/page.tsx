@@ -6,7 +6,7 @@ import {
   saveCvGroupAction,
 } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import { SubmitButton } from "@/components/admin/submit-button";
+import { SaveButton } from "@/components/admin/save-button";
 import { getAllCvEntries, getCvGroupById } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -37,8 +37,8 @@ export default async function EditCvGroup({
       </div>
 
       <p className="adm-note mt-3 max-w-[62ch]">
-        Katılım listesindeki bir ara başlık. Sırasını listedeki ↑↓ düğmeleriyle
-        değiştirirsin.
+        Katılım listesindeki bir ara başlık. Sırasını listede, başlığın
+        yanındaki tutamaçtan sürükleyerek değiştirirsin.
       </p>
 
       <form action={saveCvGroupAction} className="mt-8 flex flex-col gap-6">
@@ -76,12 +76,7 @@ export default async function EditCvGroup({
         </div>
 
         <div className="flex items-center gap-3">
-          <SubmitButton
-            className="adm-btn adm-btn-primary"
-            busyLabel="Kaydediliyor…"
-          >
-            Kaydet
-          </SubmitButton>
+          <SaveButton />
           <Link href="/admin/cv" className="adm-btn">
             Vazgeç
           </Link>

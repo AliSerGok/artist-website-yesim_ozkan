@@ -8,10 +8,11 @@ import { createPortal } from "react-dom";
 import { dict } from "@/lib/dictionary";
 import type { Lang } from "@/lib/i18n";
 
-type Section = "works" | "exhibitions" | "about" | "contact";
+type Section = "home" | "works" | "exhibitions" | "about" | "contact";
 
 const SECTIONS: { key: Section; path: string }[] = [
-  { key: "works", path: "" },
+  { key: "home", path: "" },
+  { key: "works", path: "/works" },
   { key: "exhibitions", path: "/exhibitions" },
   { key: "about", path: "/about" },
   { key: "contact", path: "/contact" },
@@ -25,13 +26,16 @@ export function SiteHeader({ lang }: { lang: Lang }) {
   /** Path inside the language, e.g. "/works/esik" — kept when switching language. */
   const rest = pathname.replace(/^\/(tr|en)/, "");
 
+  /* A work or a series belongs to the works tab, whichever way it was opened. */
   const active: Section = rest.startsWith("/exhibitions")
     ? "exhibitions"
     : rest.startsWith("/about")
       ? "about"
       : rest.startsWith("/contact")
         ? "contact"
-        : "works";
+        : rest === "" || rest === "/"
+          ? "home"
+          : "works";
 
   useEffect(() => setMenuOpen(false), [pathname]);
 
@@ -39,8 +43,6 @@ export function SiteHeader({ lang }: { lang: Lang }) {
     if (!menuOpen) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    // Keeps the birds from flying over the open menu.
-    document.body.classList.add("menu-open");
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMenuOpen(false);
@@ -49,7 +51,6 @@ export function SiteHeader({ lang }: { lang: Lang }) {
 
     return () => {
       document.body.style.overflow = previous;
-      document.body.classList.remove("menu-open");
       window.removeEventListener("keydown", onKey);
     };
   }, [menuOpen]);

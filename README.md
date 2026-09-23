@@ -2,18 +2,20 @@
 
 Yeşim Özkan'ın sanatçı sitesi. Next.js 16 (App Router), Cloudflare Workers
 üzerinde; içerik D1'de, görseller R2'de. Sanatçı tüm içeriği `/admin`
-panelinden kendisi yönetir; panel Cloudflare Access ile kapalıdır.
+panelinden kendisi yönetir; panele e-posta ve şifreyle girilir.
 
 ```
 /                     → /tr
-/tr, /en              seçilmiş işler: seri kartları + tek işler, teknik filtresi
+/tr, /en              ana sayfa: seçilen slaytlar ikişer ikişer dönen tam ekran
+/tr/works             seçilmiş işler: seri kartları + tek işler, teknik filtresi
 /tr/series/<slug>     seri sayfası (serinin tüm işleri)
 /tr/works/<slug>      tek eser sayfası — ızgaradan tıklanınca tam ekran
                       görüntüleyici açılır, doğrudan açılınca bu sayfa gelir
 /tr/exhibitions       öne çıkan sergiler (görsel + metin)
 /tr/about             hakkında: portre, künye, içerik blokları, tam katılım listesi
 /tr/contact           iletişim
-/admin                yönetim paneli (Cloudflare Access arkasında)
+/admin                yönetim paneli (e-posta + şifre)
+/admin/login          panelin giriş ekranı
 /media/<key>          R2'deki görseller
 ```
 
@@ -24,26 +26,40 @@ Node 22 gerekir (`.nvmrc` var, `nvm use` yeterli).
 ```bash
 nvm use
 npm install
-npm run db:reset:local     # yerel D1'i kurar, içeriği ve yer tutucu görselleri yükler
+npx wrangler login         # bir kez; binding'ler uzak kaynaklara bağlanıyor
 npm run dev                # http://localhost:3000
 ```
 
-`npm run db:reset:local` tabloları yerinde siler ve yeniden kurar, dosyalara
-dokunmaz — yani dev sunucusunu durdurman gerekmez. Next 16 aynı dizin için tek
-bir dev sunucusuna izin verdiğinden, ikinci bir kopya farklı portta bile
-açılmaz.
+**Tek veritabanı vardır.** `wrangler.jsonc` içindeki D1, R2 ve KV binding'leri
+`"remote": true` işaretli: `next dev` de, yayındaki Worker da Cloudflare'deki
+aynı veritabanına ve aynı kovaya bakar. Yani localhost'ta panelden yaptığın
+kayıt canlı siteye de işler, sildiğin görsel gerçekten silinir. Karşılığında
+"yereldeki içerik başka, canlıdaki başka" karışıklığı yoktur.
 
-Yerelde Cloudflare Access yoktur; `/admin` doğrudan açılır. Bu yalnızca
-`NODE_ENV=development` içindir — dağıtılmış bir kopyada Access ayarlanmamışsa
-panel 404 verir.
+Bunun iki sonucu var: çalışmak için internete ve `wrangler login` oturumuna
+ihtiyaç duyarsın, ve her sorgu ağ üzerinden gittiği için sayfalar yereldeki
+kadar anında açılmaz.
+
+Gerçekten izole bir kopyayla oynamak istersen `wrangler.jsonc` içindeki
+`"remote": true` satırlarını kaldır, sonra:
+
+```bash
+npm run db:reset:local     # yerel D1'i kurar, içeriği ve yer tutucu görselleri yükler
+                           # sonunda yerel hesabı da açar: yesim@yerel.test / yesim1234
+```
+
+Next 16 aynı dizin için tek bir dev sunucusuna izin verdiğinden, ikinci bir
+kopya farklı portta bile açılmaz.
 
 Faydalı komutlar:
 
 ```bash
-npm run db:console:local "SELECT slug, medium, series_id FROM works ORDER BY sort_order"
+npm run admin:set -- --email … --password "…"   # panel hesabı açar / şifresini sıfırlar
+npm run admin:set -- --email … --remove         # hesabı siler
+npm run admin:set -- … --local                  # aynısını yerel kopya için yapar
+npm run db:console:local "SELECT slug, medium FROM works ORDER BY sort_order"
 npm run db:seed:sql        # src/lib/seed.ts → migrations/0002_seed.sql
-npm run seed:images        # seed/images/ → R2 + kayıtlara bağla (yereldeki)
-npm run db:reset:local     # veritabanını sıfırdan kurar (sunucu açıkken de olur)
+npm run seed:images:remote # seed/images/ → R2 + kayıtlara bağla
 npm run cf:typegen         # wrangler.jsonc değişince binding tiplerini yeniler
 npm run preview            # üretim derlemesini yerelde Worker olarak çalıştırır
 ```
@@ -57,6 +73,7 @@ npm run cf:r2:create
 npm run cf:kv:create       # çıktıdaki id'yi wrangler.jsonc'a yaz
 npm run cf:typegen
 npm run db:migrate         # şemayı ve başlangıç içeriğini uzak D1'e uygular
+npm run admin:set -- --email yesim@... --password "…"   # panel hesabı
 npm run seed:images:remote # yer tutucu görselleri uzak R2'ye yükler
 npm run deploy
 ```
@@ -68,25 +85,39 @@ npm run deploy
 
 Alan adını Cloudflare'e ekle (nameserver'ları Cloudflare'e yönlendir), sonra
 Workers → yesim → Settings → Domains & Routes'tan `yesimozkan.com` ve
-`www.yesimozkan.com` bağla. Access, alan adının Cloudflare üzerinde olmasını
-şart koşar.
+`www.yesimozkan.com` bağla.
 
-## Cloudflare Access (panelin kilidi)
+## Panelin kilidi
 
-1. Zero Trust → Access → Applications → **Add an application** → *Self-hosted*.
-2. Application domain: `yesimozkan.com`, path: `admin`.
-3. Policy: **Allow**, Include → *Emails* → Yeşim'in e-postası. Başka kimse yok.
-4. Login method: One-time PIN (e-postaya kod) veya Google.
-5. Uygulamanın Overview sekmesindeki **Application Audience (AUD) Tag**'i ve
-   ekip alan adını (`<takım>.cloudflareaccess.com`) `wrangler.jsonc` içindeki
-   `CF_ACCESS_AUD` ve `CF_ACCESS_TEAM_DOMAIN` değerlerine yaz, sonra
-   `npm run deploy`.
+Panele `/admin/login` üzerinden e-posta ve şifreyle giriliyor. Hesap
+veritabanında duruyor; şifreden saklanan tek şey PBKDF2-SHA256 özeti
+(`src/lib/password.ts`).
 
-Sonuç: yetkisiz bir ziyaretçi `/admin`'e giderse Cloudflare'in kendi ekranını
-görür; istek uygulamaya hiç ulaşmaz. Sitede hiçbir yerde giriş bağlantısı
-yoktur ve `/admin` `noindex` gönderir. Uygulama ayrıca Access'in imzaladığı
-JWT'yi kendisi de doğrular: token yoksa veya geçersizse panel 404 verir.
-`workers.dev` adresini Workers ayarlarından kapat ki Access atlanamasın.
+İlk hesabı terminalden açıyorsun — giriş ekranının kendisi hesap açmaz, yoksa
+siteyi ilk bulan panelin sahibi olurdu:
+
+```bash
+npm run admin:set -- --email yesim@site.com --password "…"
+```
+
+Aynı komut, aynı adresle ikinci kez çalıştırıldığında şifreyi sıfırlar:
+unutulan şifrenin çıkış yolu bu. Şifre ya da adres değişikliği panelin
+**Hesap** sekmesinden de yapılabilir; ikisi de mevcut şifreyi soruyor.
+
+Girişten sonra tarayıcıda 30 gün ömürlü bir çerez kalıyor: içinde rastgele bir
+anahtar var, veritabanında ise yalnızca onun SHA-256'sı — veritabanının bir
+kopyası kimsenin oturumunu açmaya yetmiyor. Çerez yalnızca `/admin` yoluna
+gönderiliyor; `HttpOnly` ve `SameSite=Lax`. Şifre değişince o tarayıcı hariç bütün oturumlar
+düşüyor; **Hesap** sekmesindeki "Bütün oturumları kapat" düğmesi ise hepsini,
+kendi tarayıcın dâhil, kapatıyor.
+
+Üst üste sekiz yanlış denemeden sonra hesap 15 dakika hiçbir şifreye cevap
+vermiyor. Giriş ekranı hatanın adreste mi şifrede mi olduğunu söylemiyor ve
+olmayan bir adres için de doğru hesapla aynı süreyi harcıyor.
+
+Sitede hiçbir yerde panele bağlantı yok, `/admin` `noindex` gönderiyor ve
+`robots.txt` kapatıyor. Panelin her sayfası ve yazan her işlem oturumu
+yeniden kontrol ediyor (`src/lib/auth.ts`).
 
 ## İçerik yapısı
 
@@ -108,6 +139,20 @@ otomatik siliniyor. Görselleri yeniden üretmek gerekirse
 `npm run seed:images:render` — bunun için Google Chrome ve `cwebp`
 (`brew install webp`) gerekiyor; üretilen dosyalar depoda olduğu için normal
 kullanımda ikisine de ihtiyaç yok.
+
+**Ana sayfa slaytları iki türlü.** Panelin **Ana sayfa** sekmesinde sıralanan
+her slayt ya sitedeki bir **işi** gösterir — adı, yılı ve tekniği kendiliğinden
+yazılır, slayt işin sayfasına götürür — ya da yalnızca ana sayfa için
+**yüklenmiş bir görseli**: sergiden bir kare, bir afiş, atölyeden bir fotoğraf.
+Yüklenen görselin başlığı, başlıktan sonraki italik metni ve alt satırı elle
+yazılıyor; bağlantı isteğe bağlı, boş bırakılırsa slayt tıklanmıyor.
+
+Slaytlar ikişer ikişer ekranı paylaşıyor ve altı saniyede bir sonraki çifte
+geçiliyor; panel her slaytın kaçıncı ekranda, sağda mı solda mı duracağını
+yazıyor. Telefonda çift yan yana değil alt alta duruyor. Gösterecek bir şeyi
+olmayan slayt — görseli yüklenmemiş ya da işi yayından kaldırılmış olan —
+sitede atlanıyor ama panelde duruyor; hiç slayt kalmazsa işler sayfasının
+başındaki altı iş dönüyor, yani sayfa hiçbir durumda boş kalmıyor.
 
 **Sergiler ile katılımlar ayrı.** Sergiler sayfasında yalnızca öne çıkan
 sergiler var; her biri kapak görseli, kısa metni ve varsa sergi sayfası
@@ -189,18 +234,22 @@ boş bırakılırsa Türkçesi kullanılır. Diller ayrı URL'lerde (`/tr`, `/en
 ```
 src/lib/content.ts             okuma tarafı (D1, binding yoksa seed'e düşer)
 src/lib/admin-db.ts            yazma tarafı
-src/lib/access.ts              Access JWT doğrulaması
+src/lib/auth.ts                giriş, oturum, şifre değişimi
+src/lib/password.ts            PBKDF2 özetleme (panel ve scripts/admin-user.ts)
 src/lib/seed.ts                başlangıç içeriği (0002_seed.sql'in kaynağı)
                                ve animasyon anahtarlarının varsayılanları
 seed/images/                   yer tutucu eser görselleri
 src/lib/cards.ts               kayıt → kart dönüşümleri
+src/components/home-slideshow.tsx ana sayfanın ikili slaytı
 src/components/work-gallery.tsx  ızgara: seri kartları ve tek işler
 src/components/image-frame.tsx   orana kırpan görsel çerçevesi
 src/components/lightbox.tsx      tam ekran görüntüleyici
 src/components/studio-dancer.tsx tünenen dansçı
 src/components/perched-birds.tsx başlıkta yaşayan kuşlar
 src/app/(site)/                genel site
-src/app/(admin)/               yönetim paneli
+src/app/(admin)/               yönetim paneli — (panel)/ oturum ister,
+                               login/ istemez
+scripts/admin-user.ts          hesabı açan / şifresini sıfırlayan komut
 migrations/                    D1 şeması
 ```
 

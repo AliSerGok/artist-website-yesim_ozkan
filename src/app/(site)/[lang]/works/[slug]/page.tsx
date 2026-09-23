@@ -65,7 +65,7 @@ export default async function WorkPage({
   return (
     <main className="gutter relative z-1 flex-1 animate-fade-up pt-[clamp(30px,5vw,60px)] pb-[110px]">
       <Link
-        href={series ? `/${lang}/series/${series.slug}` : `/${lang}`}
+        href={series ? `/${lang}/series/${series.slug}` : `/${lang}/works`}
         className="inline-block text-[10px] tracking-[0.18em] text-mute-3 uppercase transition-colors duration-200 hover:text-ink"
       >
         {series ? t.backToSeries : t.backToWorks}

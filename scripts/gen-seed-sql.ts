@@ -10,8 +10,8 @@ import {
   SEED_CV,
   SEED_CV_GROUPS,
   SEED_EXHIBITIONS,
+  SEED_HOME,
   SEED_SERIES,
-  SEED_SETTINGS,
   SEED_WORKS,
 } from "../src/lib/seed.ts";
 
@@ -200,13 +200,13 @@ for (const c of SEED_CV) {
 
 lines.push("");
 lines.push(
+  `INSERT INTO pages (key, data) VALUES ('home', ${q(JSON.stringify(SEED_HOME))});`,
+);
+lines.push(
   `INSERT INTO pages (key, data) VALUES ('about', ${q(JSON.stringify(SEED_ABOUT))});`,
 );
 lines.push(
   `INSERT INTO pages (key, data) VALUES ('contact', ${q(JSON.stringify(SEED_CONTACT))});`,
-);
-lines.push(
-  `INSERT INTO pages (key, data) VALUES ('settings', ${q(JSON.stringify(SEED_SETTINGS))});`,
 );
 lines.push("");
 

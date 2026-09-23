@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { deleteCvAction, saveCvAction } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import { SubmitButton } from "@/components/admin/submit-button";
+import { SaveButton } from "@/components/admin/save-button";
 import { getAllCvGroups, getCvEntryById } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -128,12 +128,7 @@ export default async function EditCv({
         </label>
 
         <div className="flex items-center gap-3">
-          <SubmitButton
-            className="adm-btn adm-btn-primary"
-            busyLabel="Kaydediliyor…"
-          >
-            Kaydet
-          </SubmitButton>
+          <SaveButton />
           <Link href="/admin/cv" className="adm-btn">
             Vazgeç
           </Link>

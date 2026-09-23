@@ -23,6 +23,12 @@ const nextConfig: NextConfig = {
 export default nextConfig;
 
 // Gives `next dev` the same D1/R2/KV bindings the Worker gets in production.
+//
+// Local by default: queries hit the miniflare copies under .wrangler/state, so a
+// render costs no network round trips. Use `pnpm dev:remote` when you need the
+// real Cloudflare resources — live content, at the cost of ~2s per render.
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
-void initOpenNextCloudflareForDev();
+void initOpenNextCloudflareForDev({
+  remoteBindings: process.env.CF_REMOTE === "1",
+});

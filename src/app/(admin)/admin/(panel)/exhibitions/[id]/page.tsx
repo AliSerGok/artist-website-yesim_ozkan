@@ -7,7 +7,7 @@ import {
 } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { ImageField } from "@/components/admin/image-field";
-import { SubmitButton } from "@/components/admin/submit-button";
+import { SaveButton } from "@/components/admin/save-button";
 import { getExhibitionById } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -156,30 +156,28 @@ export default async function EditExhibition({
           </label>
         </div>
 
-        {exhibition ? (
-          <div className="adm-card">
-            <ImageField
-              name="imageKey"
-              prefix={`exhibitions/${exhibition.id}`}
-              imageKey={exhibition.imageKey}
-              label="Sergi görseli"
-              hint="Sergiler sayfasında 3:2 oranında kırpılarak gösterilir."
-              ratio={1.5}
-            />
-          </div>
-        ) : (
-          <p className="adm-note">
-            Görseli, sergiyi kaydettikten sonra yükleyebilirsin.
-          </p>
-        )}
+        <div className="adm-card">
+          <ImageField
+            name="imageKey"
+            /*
+             * A show that does not exist yet still needs somewhere to put its
+             * picture. The upload only ever hands back a key; writing that key
+             * onto a record is the save's job either way, so a new show simply
+             * files its image under exhibitions/new.
+             */
+            prefix={
+              exhibition ? `exhibitions/${exhibition.id}` : "exhibitions/new"
+            }
+            imageKey={exhibition?.imageKey ?? null}
+            label="Sergi görseli"
+            hint="Sergiler sayfasında 3:2 oranında kırpılarak gösterilir."
+            ratio={1.5}
+            cropRatio={1.5}
+          />
+        </div>
 
         <div className="flex items-center gap-3">
-          <SubmitButton
-            className="adm-btn adm-btn-primary"
-            busyLabel="Kaydediliyor…"
-          >
-            Kaydet
-          </SubmitButton>
+          <SaveButton />
           <Link href="/admin/exhibitions" className="adm-btn">
             Vazgeç
           </Link>

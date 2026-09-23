@@ -7,4 +7,6 @@ DROP TABLE IF EXISTS exhibitions;
 DROP TABLE IF EXISTS cv_entries;
 DROP TABLE IF EXISTS cv_groups;
 DROP TABLE IF EXISTS pages;
+DROP TABLE IF EXISTS admin_sessions;
+DROP TABLE IF EXISTS admin_users;
 DROP TABLE IF EXISTS d1_migrations;
