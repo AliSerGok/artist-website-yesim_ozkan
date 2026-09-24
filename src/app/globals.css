@@ -687,6 +687,75 @@
     border-bottom: 1px solid var(--color-rule);
   }
 
+  /* Both of these are laid out here rather than with utilities: the media
+     query below hides them, and a `flex` utility would win over it — the
+     utilities layer is emitted after the components one. */
+  .adm-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: clamp(12px, 2vw, 24px);
+  }
+
+  .adm-bar-right {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  /* Eight tabs, an address and a sign-out wrap into three or four rows on a
+     phone, which left the sticky bar covering a third of the screen. Below
+     768px they move behind the burger the site header already uses. */
+  @media (max-width: 767px) {
+    .adm-bar {
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+    }
+
+    .adm-nav,
+    .adm-bar-right {
+      display: none;
+    }
+  }
+
+  .adm-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Centred by the auto margins below, not by justify-content. */
+    justify-content: flex-start;
+    gap: 26px;
+    /* Room for the cross at the top. */
+    padding: 72px 24px 32px;
+    overflow-y: auto;
+    background: var(--color-bg);
+  }
+
+  /* Centring with justify-content would push the first rows above the scroll
+     origin once the list outgrows a landscape screen, where they could not be
+     reached. Auto margins centre the same way and collapse instead. */
+  .adm-menu-list {
+    margin-top: auto;
+  }
+
+  .adm-menu-foot {
+    margin-bottom: auto;
+  }
+
+  /* Squared with the bar: 18px of padding less the burger's own -10px pull. */
+  .adm-menu-close {
+    display: flex;
+    position: absolute;
+    top: 10px;
+    right: 8px;
+    margin-right: 0;
+  }
+
   .adm-h1 {
     margin: 0;
     font-family: var(--font-serif);

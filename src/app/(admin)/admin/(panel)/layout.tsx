@@ -21,8 +21,8 @@ export default async function PanelLayout({
         <Link href="/admin" className="font-serif text-[20px] leading-none">
           Yönetim
         </Link>
-        <AdminNav />
-        <div className="flex items-baseline gap-4">
+        <AdminNav email={identity.email} />
+        <div className="adm-bar-right">
           <span className="label">{identity.email}</span>
           <form action={signOutAction}>
             <button type="submit" className="nav-link">
