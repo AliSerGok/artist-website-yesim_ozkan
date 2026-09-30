@@ -154,12 +154,23 @@ export interface QuoteBlock {
   by: Localized;
 }
 
-export const BLOCK_TYPES = ["row", "heading", "quote"] as const;
+/**
+ * The participation list, standing wherever the artist puts it in the flow.
+ * The lines themselves live in the cv tables; the block only says where the
+ * list goes and what it is called.
+ */
+export interface CvBlock {
+  type: "cv";
+  /** The heading over the list; left empty the list runs without one. */
+  title: Localized;
+}
+
+export const BLOCK_TYPES = ["row", "heading", "quote", "cv"] as const;
 
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
 /** The about page is a stream of these, in order. */
-export type AboutBlock = RowBlock | HeadingBlock | QuoteBlock;
+export type AboutBlock = RowBlock | HeadingBlock | QuoteBlock | CvBlock;
 
 export interface AboutContent {
   lead: Localized;
@@ -167,6 +178,13 @@ export interface AboutContent {
   blocks: AboutBlock[];
   portraitSlot: Localized;
   portraitKey: string | null;
+  /**
+   * Set the first time the page is saved by a panel that knows the list is a
+   * block of its own. Content saved before that has no such block and wants
+   * one at the foot of the page; without the flag a list the artist took off
+   * the page would simply come back.
+   */
+  cvPlaced?: boolean;
 }
 
 export interface ContactRow {

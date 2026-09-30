@@ -35,7 +35,7 @@ export default async function ContactPage({
 
   return (
     <main className="gutter flex-1 animate-fade-up pt-[clamp(36px,6vw,86px)] pb-[110px]">
-      <div className="grid max-w-[1080px] items-start gap-[clamp(30px,5vw,74px)] [grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))]">
+      <div className="grid items-start gap-[clamp(30px,5vw,74px)] [grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))]">
         <div>
           <h1 className="mb-[24px] font-serif text-[clamp(25px,2.9vw,37px)] leading-[1.14] font-normal text-pretty">
             {contact.lead[lang]}

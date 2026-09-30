@@ -64,7 +64,7 @@ export default async function SeriesPage({
           {t.backToWorks}
         </Link>
 
-        <div className="grid max-w-[1180px] items-end gap-[clamp(24px,4vw,64px)] [grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))]">
+        <div className="grid items-end gap-[clamp(24px,4vw,64px)] [grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))]">
           <div>
             <div className="mb-3 text-[9.5px] tracking-[0.2em] text-mute-3 uppercase">
               {t.seriesBadge} · {works.length}

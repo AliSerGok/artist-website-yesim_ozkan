@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ImageFrame } from "@/components/image-frame";
-import { getAbout, getCvSections } from "@/lib/content";
+import { getAbout, getCvSections, type CvSection } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { isLang, type Lang } from "@/lib/i18n";
 import type { AboutBlock, AboutFact, Alignment, RowCell } from "@/lib/types";
@@ -26,11 +26,17 @@ export async function generateMetadata({
 /** Prose reads at a comfortable measure; pictures and strips run wide. */
 function blockWidth(block: AboutBlock): string {
   if (block.type === "quote") return "34ch";
-  if (block.type === "heading") return "100%";
+  if (block.type === "heading" || block.type === "cv") return "100%";
   return block.cells.length === 1 && block.cells[0].kind === "text"
     ? "62ch"
     : "100%";
 }
+
+/** Blocks that open a chapter of their own stand further from what is above. */
+const EXTRA_AIR: Partial<Record<AboutBlock["type"], string>> = {
+  heading: " ab-heading",
+  cv: " ab-cv",
+};
 
 /**
  * A caption capped at 56ch is narrower than a wide column, so it needs telling
@@ -83,7 +89,87 @@ function Cell({ cell, lang }: { cell: RowCell; lang: Lang }) {
   );
 }
 
-function Block({ block, lang }: { block: AboutBlock; lang: Lang }) {
+/** The participation list, wherever in the flow the artist has put it. */
+function CvList({
+  title,
+  sections,
+  lang,
+}: {
+  title: string;
+  sections: CvSection[];
+  lang: Lang;
+}) {
+  const t = dict(lang);
+
+  return (
+    <>
+      {title && (
+        <div className="mb-[22px] flex items-baseline gap-4">
+          <h2 className="m-0 font-serif text-[clamp(22px,2.4vw,30px)] leading-[1.1] font-normal">
+            {title}
+          </h2>
+          <span className="h-px flex-1 bg-rule" />
+        </div>
+      )}
+
+      {sections.map((section) => (
+        <section
+          key={section.group?.id ?? "unfiled"}
+          className="mb-[clamp(26px,3vw,44px)] last:mb-0"
+        >
+          {section.group && (
+            <h3 className="m-0 mb-[9px] text-[10.5px] font-normal tracking-[0.18em] text-mute uppercase">
+              {section.group.title[lang]}
+            </h3>
+          )}
+
+          {section.entries.map((entry) => (
+            <div key={entry.id} className="cv-row">
+              <div className="font-mono text-[10.5px] tracking-[0.12em] text-mute-3">
+                {entry.year}
+              </div>
+              <div className="text-[13.5px] leading-[1.55]">
+                {entry.url && entry.url !== "#" ? (
+                  <a
+                    href={entry.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border-b border-[#e0ded6] pb-px transition-colors duration-200 hover:border-ink"
+                  >
+                    {entry.title[lang]}
+                  </a>
+                ) : (
+                  entry.title[lang]
+                )}
+              </div>
+              {/* Kept even when empty so the three columns stay aligned. */}
+              <div className="text-[9.5px] tracking-[0.16em] text-mute-3 uppercase">
+                {entry.kind === "solo" && t.soloShort}
+                {entry.kind === "group" && t.groupShort}
+              </div>
+            </div>
+          ))}
+
+          <div className="border-t border-[#f0efe9]" />
+        </section>
+      ))}
+    </>
+  );
+}
+
+function Block({
+  block,
+  lang,
+  cv,
+}: {
+  block: AboutBlock;
+  lang: Lang;
+  cv: CvSection[];
+}) {
+  if (block.type === "cv") {
+    return <CvList title={block.title[lang]} sections={cv} lang={lang} />;
+  }
+
   if (block.type === "heading") {
     return (
       <h2 className="m-0 font-serif text-[clamp(19px,2.1vw,26px)] leading-[1.15] font-normal">
@@ -129,9 +215,14 @@ export default async function AboutPage({
   const { lang } = await params;
   if (!isLang(lang)) notFound();
 
-  const t = dict(lang);
   const [about, cv] = await Promise.all([getAbout(), getCvSections()]);
   const facts = about.facts.filter((fact) => hasContent(fact, lang));
+
+  // An empty list is one the artist has not written yet; its block waits.
+  const blocks =
+    cv.length > 0
+      ? about.blocks
+      : about.blocks.filter((block) => block.type !== "cv");
 
   return (
     <main className="gutter relative z-1 flex-1 animate-fade-up pt-[clamp(36px,6vw,86px)] pb-[110px]">
@@ -169,70 +260,17 @@ export default async function AboutPage({
         </div>
       </div>
 
-      <div className="ab-flow max-w-[1180px]">
-        {about.blocks.map((block, index) => (
+      <div className="ab-flow">
+        {blocks.map((block, index) => (
           <section
             key={index}
-            className={`w-full min-w-0${block.type === "heading" ? " ab-heading" : ""}`}
+            className={`w-full min-w-0${EXTRA_AIR[block.type] ?? ""}`}
             style={{ maxWidth: blockWidth(block) }}
           >
-            <Block block={block} lang={lang} />
+            <Block block={block} lang={lang} cv={cv} />
           </section>
         ))}
       </div>
-
-      {cv.length > 0 && (
-        <div className="mt-[clamp(44px,6vw,84px)] max-w-[1180px]">
-          <div className="mb-[22px] flex items-baseline gap-4">
-            <h2 className="m-0 font-serif text-[clamp(22px,2.4vw,30px)] leading-[1.1] font-normal">
-              {t.cvTitle}
-            </h2>
-            <span className="h-px flex-1 bg-rule" />
-          </div>
-
-          {cv.map((section) => (
-            <section
-              key={section.group?.id ?? "unfiled"}
-              className="mb-[clamp(26px,3vw,44px)] last:mb-0"
-            >
-              {section.group && (
-                <h3 className="m-0 mb-[9px] text-[10.5px] font-normal tracking-[0.18em] text-mute uppercase">
-                  {section.group.title[lang]}
-                </h3>
-              )}
-
-              {section.entries.map((entry) => (
-                <div key={entry.id} className="cv-row">
-                  <div className="font-mono text-[10.5px] tracking-[0.12em] text-mute-3">
-                    {entry.year}
-                  </div>
-                  <div className="text-[13.5px] leading-[1.55]">
-                    {entry.url && entry.url !== "#" ? (
-                      <a
-                        href={entry.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="border-b border-[#e0ded6] pb-px transition-colors duration-200 hover:border-ink"
-                      >
-                        {entry.title[lang]}
-                      </a>
-                    ) : (
-                      entry.title[lang]
-                    )}
-                  </div>
-                  {/* Kept even when empty so the three columns stay aligned. */}
-                  <div className="text-[9.5px] tracking-[0.16em] text-mute-3 uppercase">
-                    {entry.kind === "solo" && t.soloShort}
-                    {entry.kind === "group" && t.groupShort}
-                  </div>
-                </div>
-              ))}
-
-              <div className="border-t border-[#f0efe9]" />
-            </section>
-          ))}
-        </div>
-      )}
     </main>
   );
 }

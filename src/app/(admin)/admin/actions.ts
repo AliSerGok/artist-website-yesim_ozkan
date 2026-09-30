@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
+import { defaultCvTitle } from "@/lib/dictionary";
 import { finish, stay } from "@/lib/flash";
 import type { Localized } from "@/lib/i18n";
 import {
@@ -537,6 +538,7 @@ function alignment(form: FormData, key: string): Alignment {
 function emptyBlock(type: BlockType): AboutBlock {
   if (type === "heading") return { type, text: blank() };
   if (type === "quote") return { type, quote: blank(), by: blank() };
+  if (type === "cv") return { type, title: defaultCvTitle() };
   return { type: "row", cells: [emptyCell("text")] };
 }
 
@@ -579,6 +581,11 @@ function readBlocks(form: FormData): AboutBlock[] {
         quote: localized(form, at("quote")),
         by: localized(form, at("by")),
       });
+      continue;
+    }
+
+    if (type === "cv") {
+      blocks.push({ type: "cv", title: localized(form, at("cvTitle")) });
       continue;
     }
 
@@ -648,7 +655,11 @@ function applyIntent(
   };
 
   if (command === "add") {
-    if ((BLOCK_TYPES as readonly string[]).includes(rest[0])) {
+    // A second list would only repeat the first, so there is one at most.
+    const twice =
+      rest[0] === "cv" && blocks.some((block) => block.type === "cv");
+
+    if ((BLOCK_TYPES as readonly string[]).includes(rest[0]) && !twice) {
       blocks.push(emptyBlock(rest[0] as BlockType));
     }
     return;
@@ -754,6 +765,8 @@ export async function saveAboutAction(form: FormData) {
       blocks,
       portraitSlot: localized(form, "portraitSlot"),
       portraitKey,
+      // The block list is now the whole truth, list block included.
+      cvPlaced: true,
     };
 
     await savePageContent("about", about);

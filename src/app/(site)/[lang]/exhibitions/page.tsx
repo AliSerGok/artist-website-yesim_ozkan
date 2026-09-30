@@ -35,7 +35,7 @@ export default async function ExhibitionsPage({
   const exhibitions = await getExhibitions();
 
   return (
-    <main className="gutter relative z-1 max-w-[1240px] flex-1 animate-fade-up pt-[clamp(36px,6vw,86px)] pb-[110px]">
+    <main className="gutter relative z-1 flex-1 animate-fade-up pt-[clamp(36px,6vw,86px)] pb-[110px]">
       <div className="mb-[clamp(30px,4.5vw,58px)] flex flex-wrap items-end justify-between gap-6">
         <h1 className="page-title">{t.exhibitionsTitle}</h1>
         <Link

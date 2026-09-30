@@ -1,4 +1,5 @@
 import { getDb } from "./db";
+import { defaultCvTitle } from "./dictionary";
 import type { Localized } from "./i18n";
 import {
   SEED_ABOUT,
@@ -442,6 +443,7 @@ interface LegacyBlock {
   paragraphs?: Localized[];
   cells?: LegacyCell[];
   text?: Localized;
+  title?: Localized;
   quote?: Localized;
   by?: Localized;
   imageKey?: string | null;
@@ -485,6 +487,10 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
       quote: block.quote ?? blank(),
       by: block.by ?? blank(),
     };
+  }
+
+  if (block.type === "cv") {
+    return { type: "cv", title: block.title ?? defaultCvTitle() };
   }
 
   if (block.type === "text") {
@@ -535,6 +541,28 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
   return null;
 }
 
+/**
+ * The participation list used to be nailed to the foot of the page. Content
+ * saved before it became a block gets one there, so nothing moves until the
+ * panel says so; once the panel has saved the page, a page without the block
+ * is a page the artist took the list off, and it stays off. A second list
+ * would only repeat the first, so it is dropped either way.
+ */
+function placeCvBlock(blocks: AboutBlock[], saved: boolean): AboutBlock[] {
+  let found = false;
+
+  const kept = blocks.filter((block) => {
+    if (block.type !== "cv") return true;
+    if (found) return false;
+    found = true;
+    return true;
+  });
+
+  if (found || saved) return kept;
+
+  return [...kept, { type: "cv", title: defaultCvTitle() }];
+}
+
 export async function getAbout(): Promise<AboutContent> {
   const about = await getPage<AboutContent>("about", SEED_ABOUT);
 
@@ -543,11 +571,14 @@ export async function getAbout(): Promise<AboutContent> {
     facts: Array.isArray(about.facts)
       ? (about.facts as LegacyFact[]).map(toFact)
       : SEED_ABOUT.facts,
-    blocks: Array.isArray(about.blocks)
-      ? (about.blocks as LegacyBlock[])
-          .map(toBlock)
-          .filter((block): block is AboutBlock => block !== null)
-      : SEED_ABOUT.blocks,
+    blocks: placeCvBlock(
+      Array.isArray(about.blocks)
+        ? (about.blocks as LegacyBlock[])
+            .map(toBlock)
+            .filter((block): block is AboutBlock => block !== null)
+        : SEED_ABOUT.blocks,
+      about.cvPlaced === true,
+    ),
   };
 }
 

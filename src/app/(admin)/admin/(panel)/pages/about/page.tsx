@@ -1,11 +1,18 @@
+import Link from "next/link";
+
 import { saveAboutAction } from "@/app/(admin)/admin/actions";
 import { ActionForm } from "@/components/admin/action-form";
 import { ImageField } from "@/components/admin/image-field";
 import { SaveButton } from "@/components/admin/save-button";
 import { SubmitButton } from "@/components/admin/submit-button";
-import { getAbout } from "@/lib/content";
+import { getAbout, getCvSections, type CvSection } from "@/lib/content";
 import { revision } from "@/lib/revision";
-import { MAX_CELLS, type AboutBlock, type RowCell } from "@/lib/types";
+import {
+  MAX_CELLS,
+  type AboutBlock,
+  type CvEntry,
+  type RowCell,
+} from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +20,13 @@ const BLOCK_LABEL: Record<AboutBlock["type"], string> = {
   row: "Şerit",
   heading: "Başlık",
   quote: "Alıntı",
+  cv: "Katılımlar",
+};
+
+const KIND_LABEL: Record<CvEntry["kind"], string> = {
+  solo: "kişisel",
+  group: "grup",
+  "": "",
 };
 
 const CELL_LABEL: Record<RowCell["kind"], string> = {
@@ -63,7 +77,8 @@ function MoveButtons({
 }
 
 export default async function EditAbout() {
-  const about = await getAbout();
+  const [about, cv] = await Promise.all([getAbout(), getCvSections()]);
+  const hasCvBlock = about.blocks.some((block) => block.type === "cv");
 
   return (
     <>
@@ -71,8 +86,9 @@ export default async function EditAbout() {
       <p className="adm-note mt-3 max-w-[64ch]">
         Sayfa üstte portre ve künyeyle açılıyor, altında sıraladığın bloklar
         akıyor. Bir şerit bloğunda en çok {MAX_CELLS} alan olur ve her alan ya
-        metin ya görseldir. Ekleme, taşıma ve silme düğmeleri formu da kaydeder,
-        yani yazdıkların kaybolmaz.
+        metin ya görseldir. Katılım listesi de bir blok: başlığını buradan
+        yazıyor, yerini ok düğmeleriyle değiştiriyorsun. Ekleme, taşıma ve
+        silme düğmeleri formu da kaydeder, yani yazdıkların kaybolmaz.
       </p>
 
       <ActionForm
@@ -242,7 +258,7 @@ export default async function EditAbout() {
                   </div>
                 </div>
 
-                <BlockFields block={block} index={index} />
+                <BlockFields block={block} index={index} cv={cv} />
               </div>
             ))}
           </div>
@@ -258,6 +274,19 @@ export default async function EditAbout() {
             <SubmitButton name="intent" value="add:quote" className="adm-btn">
               Alıntı
             </SubmitButton>
+            <SubmitButton
+              name="intent"
+              value="add:cv"
+              className="adm-btn"
+              disabled={hasCvBlock}
+            >
+              Katılımlar
+            </SubmitButton>
+            {hasCvBlock && (
+              <span className="adm-note">
+                Katılım listesi sayfada bir kez görünür.
+              </span>
+            )}
           </div>
         </div>
 
@@ -269,8 +298,52 @@ export default async function EditAbout() {
   );
 }
 
-function BlockFields({ block, index }: { block: AboutBlock; index: number }) {
+function BlockFields({
+  block,
+  index,
+  cv,
+}: {
+  block: AboutBlock;
+  index: number;
+  cv: CvSection[];
+}) {
   const at = (name: string) => `b${index}_${name}`;
+
+  if (block.type === "cv") {
+    return (
+      <div className="flex flex-col gap-5">
+        <div className="grid gap-5 md:grid-cols-2">
+          <label className="block">
+            <span className="adm-label">Liste başlığı (Türkçe)</span>
+            <input
+              name={at("cvTitleTr")}
+              className="adm-input"
+              defaultValue={block.title.tr}
+              placeholder="Tüm katılımlar"
+            />
+          </label>
+          <label className="block">
+            <span className="adm-label">Liste başlığı (İngilizce)</span>
+            <input
+              name={at("cvTitleEn")}
+              className="adm-input"
+              defaultValue={block.title.en}
+              placeholder="Curriculum vitae"
+            />
+          </label>
+        </div>
+
+        <p className="adm-note">
+          Başlığı boş bırakırsan liste başlıksız akar. Satırların kendisi
+          “Katılımlar” bölümünde yazılıyor; bu blok listenin sayfadaki yerini
+          ve adını tutar. Aşağıdaki bağlantılar yeni sekmede açılır, burada
+          yazdıkların kaybolmaz.
+        </p>
+
+        <CvPreview sections={cv} />
+      </div>
+    );
+  }
 
   if (block.type === "heading") {
     return (
@@ -392,6 +465,64 @@ function BlockFields({ block, index }: { block: AboutBlock; index: number }) {
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+/** The lines this block will put on the page, as the site will show them. */
+function CvPreview({ sections }: { sections: CvSection[] }) {
+  const count = sections.reduce(
+    (total, section) => total + section.entries.length,
+    0,
+  );
+
+  return (
+    <div className="border border-rule p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <span className="label">
+          Sitede görünecek satırlar{count > 0 && ` · ${count}`}
+        </span>
+        <div className="flex items-center gap-1.5">
+          <Link href="/admin/cv/new" className="adm-btn" target="_blank">
+            Satır ekle
+          </Link>
+          <Link href="/admin/cv" className="adm-btn" target="_blank">
+            Katılımları düzenle
+          </Link>
+        </div>
+      </div>
+
+      {count === 0 ? (
+        <p className="adm-note">
+          Henüz katılım eklenmemiş; liste boş kaldığı sürece bu blok sitede
+          görünmez.
+        </p>
+      ) : (
+        <div className="flex max-h-[340px] flex-col gap-4 overflow-y-auto">
+          {sections.map((section) => (
+            <div key={section.group?.id ?? "unfiled"}>
+              <div className="label mb-1.5">
+                {section.group ? section.group.title.tr : "Başlıksız"}
+              </div>
+
+              {section.entries.map((entry) => (
+                <Link
+                  key={entry.id}
+                  href={`/admin/cv/${entry.id}`}
+                  target="_blank"
+                  className="grid items-baseline gap-3 border-b border-rule py-1.5 text-[13px] hover:text-mute [grid-template-columns:52px_minmax(0,1fr)_auto]"
+                >
+                  <span className="font-mono text-[11px] tracking-[0.12em] text-mute-3">
+                    {entry.year}
+                  </span>
+                  <span className="min-w-0">{entry.title.tr}</span>
+                  <span className="adm-note">{KIND_LABEL[entry.kind]}</span>
+                </Link>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

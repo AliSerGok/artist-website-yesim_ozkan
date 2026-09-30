@@ -66,9 +66,25 @@
   }
 }
 
+/*
+ * The measure the whole site is set to, and the padding that centres it: the
+ * room beside the column grows with the window, and on one too narrow to hold
+ * the column it falls back to the plain edge margin. Asking for the gutter is
+ * all it takes to sit in the column — there is no wrapper to nest inside, so
+ * a hairline drawn by the same element still runs to the edges of the window.
+ */
+:root {
+  --w-shell: 1240px;
+  --pad-shell: max(clamp(20px, 4vw, 56px), calc((100% - var(--w-shell)) / 2));
+
+  /* The panel is set narrower than the site, and centres the same way. */
+  --w-panel: 1100px;
+  --pad-panel: max(clamp(20px, 4vw, 40px), calc((100% - var(--w-panel)) / 2));
+}
+
 /* Horizontal page padding used by every section of the site. */
 @utility gutter {
-  padding-inline: clamp(20px, 4vw, 56px);
+  padding-inline: var(--pad-shell);
 }
 
 @layer components {
@@ -358,7 +374,8 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 24px;
-    padding: 24px clamp(20px, 4vw, 56px) 16px;
+    padding: 24px 0 16px;
+    padding-inline: var(--pad-shell);
   }
 
   .hdr-right {
@@ -436,7 +453,6 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
-    max-width: 1180px;
     align-items: start;
     margin-bottom: clamp(38px, 5vw, 74px);
   }
@@ -460,6 +476,12 @@
     margin-top: clamp(46px, 6.5vw, 96px);
   }
 
+  /* The participation list opens a chapter of its own, like a heading. */
+  .ab-flow > * + .ab-cv {
+    margin-top: clamp(46px, 6.5vw, 96px);
+  }
+
+  /* Last, so a heading keeps close whatever it introduces, the list too. */
   .ab-flow > .ab-heading + * {
     margin-top: clamp(12px, 1.6vw, 20px);
   }
@@ -667,9 +689,8 @@
 
 @layer components {
   .adm-shell {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 clamp(20px, 4vw, 40px) 90px;
+    padding: 0 0 90px;
+    padding-inline: var(--pad-panel);
   }
 
   .adm-bar {
@@ -681,7 +702,8 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 16px;
-    padding: 20px clamp(20px, 4vw, 40px) 14px;
+    padding: 20px 0 14px;
+    padding-inline: var(--pad-panel);
     background: rgba(253, 253, 252, 0.94);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--color-rule);

@@ -110,8 +110,17 @@ function useGridMetrics() {
     if (!element) return;
 
     const measure = () => {
-      const width = element.clientWidth;
-      if (!width) return;
+      /*
+       * The column the grid sits in, without the gutter: that padding is what
+       * centres the page and grows with the window, so clientWidth on its own
+       * would hand the columns room that is not theirs.
+       */
+      const style = getComputedStyle(element);
+      const width =
+        element.clientWidth -
+        parseFloat(style.paddingLeft) -
+        parseFloat(style.paddingRight);
+      if (!width || width < 0) return;
       const gap = Math.min(56, Math.max(26, width * 0.034));
       const fits = Math.floor((width + gap) / (MIN_COLUMN_WIDTH + gap));
       const count = Math.max(1, Math.min(MAX_COLUMNS, fits));

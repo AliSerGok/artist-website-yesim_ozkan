@@ -1,4 +1,4 @@
-import type { Lang } from "./i18n";
+import type { Lang, Localized } from "./i18n";
 import type { Medium } from "./types";
 
 interface Dictionary {
@@ -16,6 +16,7 @@ interface Dictionary {
   worksTitle: string;
   exhibitionsTitle: string;
   seriesBadge: string;
+  /** What a newly placed participation list is called until it is renamed. */
   cvTitle: string;
   fullList: string;
   visit: string;
@@ -122,6 +123,14 @@ export const DICTIONARY: Record<Lang, Dictionary> = {
     noWorks: "No works in this medium yet.",
   },
 };
+
+/**
+ * The heading a participation list starts life with. The block carries its
+ * own title from then on, so this is a starting point and nothing else.
+ */
+export function defaultCvTitle(): Localized {
+  return { tr: DICTIONARY.tr.cvTitle, en: DICTIONARY.en.cvTitle };
+}
 
 export function dict(lang: Lang) {
   return DICTIONARY[lang];
