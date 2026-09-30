@@ -24,6 +24,8 @@ interface Dictionary {
   menuLabel: string;
   backToWorks: string;
   backToSeries: string;
+  /** What a picture with no name of its own calls its own button. */
+  enlarge: string;
   /** Viewer. */
   previous: string;
   next: string;
@@ -66,6 +68,7 @@ export const DICTIONARY: Record<Lang, Dictionary> = {
     menuLabel: "menü",
     backToWorks: "← tüm işler",
     backToSeries: "← seriye dön",
+    enlarge: "görseli büyüt",
     previous: "önceki",
     next: "sonraki",
     close: "kapat (esc)",
@@ -105,6 +108,7 @@ export const DICTIONARY: Record<Lang, Dictionary> = {
     menuLabel: "menu",
     backToWorks: "← all works",
     backToSeries: "← back to series",
+    enlarge: "enlarge image",
     previous: "previous",
     next: "next",
     close: "close (esc)",

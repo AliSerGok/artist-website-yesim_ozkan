@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { TitleLine } from "@/components/title-line";
 import { dict } from "@/lib/dictionary";
 import type { Lang } from "@/lib/i18n";
 import { mediaUrl } from "@/lib/media";
@@ -288,7 +289,7 @@ export function Lightbox({
       className="fixed inset-0 z-90 flex animate-fade-up cursor-zoom-out flex-col bg-bg"
       role="dialog"
       aria-modal="true"
-      aria-label={work.title}
+      aria-label={work.title || t.enlarge}
     >
       <div
         className="lb-img"
@@ -359,13 +360,16 @@ export function Lightbox({
       >
         <div className="lb-info">
           <div className="lb-title">
-            <div className="font-serif text-[19px] leading-[1.25]">
-              {work.title}
-              <span className="text-mute-2 italic">, {work.year}</span>
-            </div>
-            <div className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2">
-              {work.caption}
-            </div>
+            <TitleLine
+              title={work.title}
+              aside={work.year}
+              className="font-serif text-[19px] leading-[1.25]"
+            />
+            {work.caption && (
+              <div className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2">
+                {work.caption}
+              </div>
+            )}
           </div>
 
           {noteShown && (

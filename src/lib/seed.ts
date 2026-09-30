@@ -844,5 +844,6 @@ export const SEED_HOME: HomeContent = {
   items: ["w14", "w11", "w1", "w6", "w13", "w12"].map((workId) => ({
     type: "work",
     workId,
+    bare: false,
   })),
 };

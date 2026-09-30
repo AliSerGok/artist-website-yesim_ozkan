@@ -276,9 +276,22 @@ function WorkFields({
         </label>
       </div>
 
+      <label className="flex items-center gap-2.5">
+        <input
+          type="checkbox"
+          name={`h${index}_bare`}
+          defaultChecked={item.bare}
+          className="h-4 w-4 accent-[#14140f]"
+        />
+        <span className="text-[13px]">Üzerine hiçbir yazı gelmesin</span>
+      </label>
+
       <p className="adm-note">
         İşin adı, yılı ve tekniği slaytın üzerine kendiliğinden yazılır; slayt
-        işin kendi sayfasına götürür.
+        işin kendi sayfasına götürür. Yukarıdaki kutuyu işaretlersen yazı da,
+        altındaki koyu geçiş de kalkar — slayt yalnızca görsel olur, tıklanınca
+        yine işin sayfasına gider ve iş kendi sayfasında adıyla durmaya devam
+        eder.
         {item.workId === ""
           ? " Henüz iş seçilmedi; bu slayt sitede görünmez, yani ondan sonraki slaytlar bir sıra kayar."
           : ""}
@@ -303,12 +316,14 @@ function ImageFields({
 
   return (
     /*
-     * Folded away until it is asked for. A closed <details> still hands its
-     * fields to the form, so nothing typed is lost by shutting it, and the
-     * form is rebuilt after a save that changed anything — which is what puts
-     * every slide back to just its picture and its name.
+     * Folded away until it is asked for — except when no picture has been
+     * uploaded yet, as there is nothing to fold away: a slide just turned
+     * into a görsel opens straight onto the upload. A closed <details> still
+     * hands its fields to the form, so nothing typed is lost by shutting it,
+     * and the form is rebuilt after a save that changed anything — which is
+     * what puts every filled slide back to just its picture and its name.
      */
-    <details className="adm-fold">
+    <details className="adm-fold" open={!item.imageKey}>
       <summary className="adm-fold-head">
         {item.imageKey ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -418,9 +433,11 @@ function ImageFields({
       </label>
 
         <p className="adm-note">
-          Başlık ve alt satır görselin üzerine, tasarımdaki koyu geçişin içine
-          yazılır; ikisini de boş bırakabilirsin. Bağlantı yazarsan slayt
-          tıklanabilir olur. Görseli yüklenmemiş slayt sitede görünmez.
+          Başlık, italik kuyruğu ve alt satır görselin üzerine, tasarımdaki
+          koyu geçişin içine yazılır; hepsini boş bırakırsan yazı da geçiş de
+          hiç çıkmaz, görsel boydan boya tek başına durur. Yalnız birini
+          yazarsan aralarındaki virgül kendiliğinden düşer. Bağlantı yazarsan
+          slayt tıklanabilir olur. Görseli yüklenmemiş slayt sitede görünmez.
         </p>
       </div>
     </details>

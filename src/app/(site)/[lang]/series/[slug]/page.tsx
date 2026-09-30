@@ -33,11 +33,20 @@ export async function generateMetadata({
 
 export default async function SeriesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string; slug: string }>;
+  /**
+   * `?work=` names a work to open straight away. The home page sends a series
+   * member here that way, so that the page it is looked at over — and the one
+   * Back comes down to — is its series.
+   */
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { lang, slug } = await params;
+  const [{ lang, slug }, query] = await Promise.all([params, searchParams]);
   if (!isLang(lang)) notFound();
+
+  const openWork = typeof query.work === "string" ? query.work : null;
 
   const series = await getSeriesBySlug(slug);
   if (!series) notFound();
@@ -76,6 +85,7 @@ export default async function SeriesPage({
       <WorkGallery
         lang={lang}
         works={works.map((work) => toGalleryWork(work, lang))}
+        openWork={openWork}
       />
     </main>
   );

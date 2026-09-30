@@ -296,7 +296,7 @@ function toHomeItem(item: HomeItem): HomeItem | null {
   }
 
   if (item?.type === "work") {
-    return { type: "work", workId: item.workId ?? "" };
+    return { type: "work", workId: item.workId ?? "", bare: !!item.bare };
   }
 
   if (item?.type === "image") {
@@ -335,7 +335,18 @@ export async function getHome(): Promise<HomeContent> {
 
 /** A slide together with whatever it takes to draw it. */
 export type HomeEntry =
-  | { type: "work"; work: Work }
+  | {
+      type: "work";
+      work: Work;
+      /**
+       * The series the work belongs to, when it belongs to one that is still
+       * published. The home page needs the slug, not the id: a slide leading
+       * into a series opens the series page under the viewer.
+       */
+      seriesSlug: string | null;
+      /** The panel asked for the picture alone, with nothing written on it. */
+      bare: boolean;
+    }
   | { type: "image"; item: HomeImageItem };
 
 /**
@@ -361,7 +372,15 @@ function byTwos<T>(items: T[]): T[][] {
 }
 
 export async function getHomeScreens(): Promise<HomeScreen[]> {
-  const [home, works] = await Promise.all([getHome(), getWorks()]);
+  const [home, works, series] = await Promise.all([
+    getHome(),
+    getWorks(),
+    getSeriesList(),
+  ]);
+
+  /* A work whose series has been unpublished stands on its own again. */
+  const seriesSlug = (work: Work) =>
+    series.find((item) => item.id === work.seriesId)?.slug ?? null;
 
   const drawable = (item: HomeItem): HomeEntry | null => {
     if (item.type === "image") {
@@ -371,7 +390,9 @@ export async function getHomeScreens(): Promise<HomeScreen[]> {
     if (item.type !== "work") return null;
 
     const work = works.find((candidate) => candidate.id === item.workId);
-    return work ? { type: "work", work } : null;
+    return work
+      ? { type: "work", work, seriesSlug: seriesSlug(work), bare: item.bare }
+      : null;
   };
 
   /*
@@ -391,9 +412,12 @@ export async function getHomeScreens(): Promise<HomeScreen[]> {
 
   // Nothing arranged yet: the first works stand in, two to a screen.
   return byTwos(
-    works
-      .slice(0, HOME_FALLBACK)
-      .map((work) => ({ type: "work" as const, work })),
+    works.slice(0, HOME_FALLBACK).map((work) => ({
+      type: "work" as const,
+      work,
+      seriesSlug: seriesSlug(work),
+      bare: false,
+    })),
   );
 }
 

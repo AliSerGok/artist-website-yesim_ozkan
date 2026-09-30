@@ -3,7 +3,7 @@ import type { GallerySeries, GalleryWork } from "@/components/work-gallery";
 
 import type { HomeEntry } from "./content";
 import type { Lang } from "./i18n";
-import type { Series, Work } from "./types";
+import type { HomeImageItem, Series, Work } from "./types";
 
 const ratio = (work: { width: number; height: number }) =>
   Number((work.width / work.height).toFixed(3));
@@ -45,20 +45,44 @@ export function toGallerySeries(
 }
 
 /**
+ * A picture put on the home page that is filed as a work nowhere else. It has
+ * no page to go to, so the viewer shows it on the home page and nothing more:
+ * the empty slug is what tells the viewer to leave the address alone.
+ */
+function toHomeImage(item: HomeImageItem, lang: Lang): GalleryWork {
+  return {
+    id: item.imageKey ?? "",
+    slug: "",
+    title: item.title[lang],
+    year: item.aside[lang],
+    caption: item.caption[lang],
+    note: "",
+    slot: "",
+    ratio: item.ratio || 1,
+    imageKey: item.imageKey,
+  };
+}
+
+/**
  * The home page shows the picture at full bleed with a line of text over it,
  * so a slide carries no note — whether it stands for a work or for a picture
  * of its own.
  */
 export function toHomeSlide(entry: HomeEntry, lang: Lang): HomeSlide {
   if (entry.type === "work") {
-    const { work } = entry;
+    const { work, seriesSlug, bare } = entry;
     return {
+      // Kept even on a bare slide: it is what the picture and its link are
+      // called, which is not the same as what is written across it.
       title: work.title[lang],
       aside: work.year,
       caption: work.caption[lang],
+      bare,
       slot: work.slot,
       imageKey: work.imageKey,
-      href: `/${lang}/works/${work.slug}`,
+      target: seriesSlug
+        ? { kind: "series", slug: work.slug, seriesSlug }
+        : { kind: "work", slug: work.slug },
     };
   }
 
@@ -67,8 +91,12 @@ export function toHomeSlide(entry: HomeEntry, lang: Lang): HomeSlide {
     title: item.title[lang],
     aside: item.aside[lang],
     caption: item.caption[lang],
+    // Left unwritten by leaving all three of them blank.
+    bare: false,
     slot: "",
     imageKey: item.imageKey,
-    href: item.href || null,
+    target: item.href
+      ? { kind: "link", href: item.href }
+      : { kind: "image", work: toHomeImage(item, lang) },
   };
 }

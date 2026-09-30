@@ -836,7 +836,7 @@ export async function saveContactAction(form: FormData) {
 
 function emptyHomeItem(type: HomeItemType): HomeItem {
   return type === "work"
-    ? { type: "work", workId: "" }
+    ? { type: "work", workId: "", bare: false }
     : {
         type: "image",
         imageKey: null,
@@ -863,7 +863,11 @@ function readHomeItems(form: FormData): HomeItem[] {
     }
 
     if (type === "work") {
-      items.push({ type: "work", workId: text(form, at("workId")) });
+      items.push({
+        type: "work",
+        workId: text(form, at("workId")),
+        bare: flag(form, at("bare")),
+      });
       continue;
     }
 

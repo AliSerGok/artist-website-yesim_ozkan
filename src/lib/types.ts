@@ -192,6 +192,11 @@ export type HomeItemType = (typeof HOME_ITEM_TYPES)[number];
 export interface HomeWorkItem {
   type: "work";
   workId: string;
+  /**
+   * Leaves the slide as only its picture: the work's name, year and technique
+   * are not written over it. The slide still leads to the work.
+   */
+  bare: boolean;
 }
 
 /**
@@ -203,6 +208,7 @@ export interface HomeImageItem {
   imageKey: string | null;
   /** Width over height, measured when the picture is uploaded. */
   ratio: number;
+  /** Left blank together with the two below, nothing is written over it. */
   title: Localized;
   /** The italic tail after the title: a year, a place, or nothing. */
   aside: Localized;

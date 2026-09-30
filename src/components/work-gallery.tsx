@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { ImageFrame } from "@/components/image-frame";
 import { Lightbox, type ViewerWork } from "@/components/lightbox";
+import { TitleLine } from "@/components/title-line";
 import { dict } from "@/lib/dictionary";
 import type { Lang } from "@/lib/i18n";
+import { seriesHref, workHref, workInPath } from "@/lib/routes";
 
 export type GalleryWork = ViewerWork;
 
@@ -25,6 +34,13 @@ export interface GallerySeries {
 type GridEntry =
   | { kind: "series"; item: GallerySeries }
   | { kind: "work"; item: GalleryWork; index: number };
+
+/**
+ * The viewer asked for in the address has to be up in the same paint as the
+ * grid, or the grid shows for a frame before it is covered. On the server
+ * there is no paint to be ahead of, so the effect waits for the client.
+ */
+const useArrival = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /** Matches `columns: 3 260px` from the design: 3 columns, 260px minimum. */
 const MAX_COLUMNS = 3;
@@ -127,12 +143,18 @@ export function WorkGallery({
   works,
   series = [],
   counterTotal,
+  openWork = null,
 }: {
   lang: Lang;
   works: GalleryWork[];
   series?: GallerySeries[];
   /** Renders the "07 / 13" rule under the grid when given. */
   counterTotal?: number;
+  /**
+   * A work to open the moment the page arrives, named by the `?work=` the
+   * home page sends a series member here with.
+   */
+  openWork?: string | null;
 }) {
   const t = dict(lang);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -149,7 +171,7 @@ export function WorkGallery({
     (index: number) => {
       const work = works[index];
       if (!work) return;
-      window.history.pushState(null, "", `/${lang}/works/${work.slug}`);
+      window.history.pushState(null, "", workHref(lang, work.slug));
       setOpenIndex(index);
     },
     [works, lang],
@@ -160,7 +182,7 @@ export function WorkGallery({
       const work = works[index];
       if (!work) return;
       // Replace, so one Back press leaves the viewer rather than walking it.
-      window.history.replaceState(null, "", `/${lang}/works/${work.slug}`);
+      window.history.replaceState(null, "", workHref(lang, work.slug));
       setOpenIndex(index);
     },
     [works, lang],
@@ -173,8 +195,7 @@ export function WorkGallery({
   /** Back and forward move in and out of the viewer. */
   useEffect(() => {
     const onPopState = () => {
-      const match = /^\/(?:tr|en)\/works\/(.+)$/.exec(window.location.pathname);
-      const slug = match?.[1];
+      const slug = workInPath(window.location.pathname);
       const index = slug ? works.findIndex((work) => work.slug === slug) : -1;
       setOpenIndex(index >= 0 ? index : null);
     };
@@ -182,6 +203,31 @@ export function WorkGallery({
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, [works]);
+
+  /**
+   * Arriving with a work named in the address: the query is dropped first, so
+   * the entry left behind is this page plain, and the work is pushed on top
+   * of it. Back then uncovers the page under the viewer, and the press after
+   * that leaves for wherever the reader came from.
+   *
+   * The query in the address is the request, and dropping it is what answers
+   * it — the prop cannot be, because it is baked into the payload the entry
+   * keeps and would ask again every time the entry is walked back onto.
+   */
+  useArrival(() => {
+    if (!openWork) return;
+    if (new URLSearchParams(window.location.search).get("work") !== openWork) {
+      return;
+    }
+
+    window.history.replaceState(null, "", window.location.pathname);
+
+    const index = works.findIndex((work) => work.slug === openWork);
+    if (index < 0) return;
+
+    window.history.pushState(null, "", workHref(lang, openWork));
+    setOpenIndex(index);
+  }, [openWork, works, lang]);
 
   const items = useMemo<GridEntry[]>(
     () => [
@@ -263,7 +309,7 @@ function WorkTile({
       {/* A real link, so the work can be shared, opened in a new tab and
           crawled; a plain click opens the viewer instead of navigating. */}
       <a
-        href={`/${lang}/works/${work.slug}`}
+        href={workHref(lang, work.slug)}
         className="block cursor-zoom-in"
         onClick={(event) => {
           if (event.metaKey || event.ctrlKey || event.shiftKey) return;
@@ -279,13 +325,16 @@ function WorkTile({
           zoom
         />
         <figcaption className="mt-[14px]">
-          <div className="font-serif text-[17px] leading-[1.3]">
-            {work.title}
-            <span className="text-mute-2 italic">, {work.year}</span>
-          </div>
-          <div className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2">
-            {work.caption}
-          </div>
+          <TitleLine
+            title={work.title}
+            aside={work.year}
+            className="font-serif text-[17px] leading-[1.3]"
+          />
+          {work.caption && (
+            <div className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2">
+              {work.caption}
+            </div>
+          )}
         </figcaption>
       </a>
     </figure>
@@ -303,7 +352,7 @@ function SeriesCard({
 }) {
   return (
     <figure className="m-0 mb-[clamp(34px,4vw,66px)]">
-      <Link href={`/${lang}/series/${series.slug}`} className="block">
+      <Link href={seriesHref(lang, series.slug)} className="block">
         {/* Two offset sheets behind the cover read as a stack of works. */}
         <div className="lift relative">
           <div className="absolute -top-[7px] right-[-7px] bottom-[7px] left-[7px] bg-[#efeee9]" />
@@ -321,13 +370,16 @@ function SeriesCard({
           <div className="mb-[7px] text-[9.5px] tracking-[0.2em] uppercase">
             {badge}
           </div>
-          <div className="font-serif text-[19px] leading-[1.25]">
-            {series.title}
-            <span className="text-mute-2 italic">, {series.years}</span>
-          </div>
-          <div className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2">
-            {series.meta}
-          </div>
+          <TitleLine
+            title={series.title}
+            aside={series.years}
+            className="font-serif text-[19px] leading-[1.25]"
+          />
+          {series.meta && (
+            <div className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2">
+              {series.meta}
+            </div>
+          )}
         </figcaption>
       </Link>
     </figure>
