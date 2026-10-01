@@ -9,7 +9,6 @@ import { ConfirmButton } from "@/components/admin/confirm-button";
 import {
   FieldCard,
   FieldPreview,
-  FOLD_GROUP,
   LIVE_TEXT,
 } from "@/components/admin/field-card";
 import { ImageField } from "@/components/admin/image-field";
@@ -84,6 +83,7 @@ export default async function EditExhibition({
                     required
                     data-live="line"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -92,6 +92,9 @@ export default async function EditExhibition({
                     name="titleEn"
                     className="adm-input"
                     defaultValue={exhibition?.title.en ?? ""}
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -125,6 +128,7 @@ export default async function EditExhibition({
                     placeholder="Galeri Nev, İstanbul"
                     data-live="line"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -134,6 +138,9 @@ export default async function EditExhibition({
                     className="adm-input"
                     defaultValue={exhibition?.venue.en ?? ""}
                     placeholder="Galeri Nev, Istanbul"
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -167,6 +174,7 @@ export default async function EditExhibition({
                     placeholder="Kişisel sergi"
                     data-live="line"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -176,6 +184,9 @@ export default async function EditExhibition({
                     className="adm-input"
                     defaultValue={exhibition?.kind.en ?? ""}
                     placeholder="Solo exhibition"
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -209,6 +220,7 @@ export default async function EditExhibition({
                     defaultValue={exhibition?.note.tr ?? ""}
                     data-live="text"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -217,6 +229,9 @@ export default async function EditExhibition({
                     name="noteEn"
                     className="adm-textarea"
                     defaultValue={exhibition?.note.en ?? ""}
+                    data-live="text"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -229,16 +244,10 @@ export default async function EditExhibition({
           </FieldCard>
         </LiveEdit>
 
-        <details className="adm-fold adm-card" name={FOLD_GROUP}>
-          <summary>
-            <span className="adm-btn shrink-0">
-              <span data-fold="shut">Düzenle</span>
-              <span data-fold="open">Kapat</span>
-            </span>
-            <span className="adm-note min-w-0 flex-1 truncate">
-              Yıl, sergi sayfası bağlantısı ve yayın durumu
-            </span>
-          </summary>
+        <div className="adm-card">
+          <div className="adm-card-head">
+            <span className="label">Yıl, bağlantı ve yayın</span>
+          </div>
 
           <div className="mt-5 grid gap-5 md:grid-cols-[120px_minmax(0,1fr)_auto]">
             <label className="block">
@@ -270,7 +279,7 @@ export default async function EditExhibition({
               <span className="text-[13px]">Sitede yayında</span>
             </label>
           </div>
-        </details>
+        </div>
 
         <div className="adm-card">
           <ImageField

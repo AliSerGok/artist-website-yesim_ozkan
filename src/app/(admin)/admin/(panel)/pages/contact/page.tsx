@@ -10,6 +10,7 @@ import { SaveButton } from "@/components/admin/save-button";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { TypeMenu } from "@/components/admin/type-menu";
 import { getContact } from "@/lib/content";
+import { styleAttrs } from "@/lib/type-style";
 import { revision } from "@/lib/revision";
 import { MAX_CONTACT_ROWS } from "@/lib/types";
 
@@ -55,6 +56,7 @@ export default async function EditContact() {
                     defaultValue={contact.lead.tr}
                     data-live="line"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -63,6 +65,9 @@ export default async function EditContact() {
                     name="leadEn"
                     className="adm-input"
                     defaultValue={contact.lead.en}
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -96,6 +101,7 @@ export default async function EditContact() {
                     defaultValue={contact.note.tr}
                     data-live="text"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -104,6 +110,9 @@ export default async function EditContact() {
                     name="noteEn"
                     className="adm-textarea"
                     defaultValue={contact.note.en}
+                    data-live="text"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -120,79 +129,108 @@ export default async function EditContact() {
           <input type="hidden" name="rowCount" value={contact.rows.length} />
           <span className="adm-label">Satırlar</span>
 
-          <div className="flex flex-col gap-4">
-            {contact.rows.map((row, index) => {
-              // An empty row is one just added; it goes without being asked.
-              const filled = Boolean(row.label.tr || row.value);
+          <LiveEdit>
+            <div className="flex flex-col gap-4">
+              {contact.rows.map((row, index) => {
+                // An empty row is one just added; it goes without being asked.
+                const filled = Boolean(row.label.tr || row.value);
 
-              return (
-                <div key={index} className="adm-card">
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <span className="label">{index + 1}. satır</span>
-                    <SubmitButton
-                      name="intent"
-                      value={`delete:${index}`}
-                      className="adm-btn adm-btn-danger"
-                      busyLabel="Siliniyor…"
-                      confirm={
-                        filled
-                          ? `"${row.label.tr || row.value}" satırı silinsin mi? Bu geri alınamaz.`
-                          : undefined
-                      }
+                return (
+                  <div key={index} className="adm-card" data-card>
+                    <div className="adm-card-head mb-3">
+                      <span className="label">{index + 1}. satır</span>
+                      <span className="adm-lang">TR</span>
+                      <SubmitButton
+                        name="intent"
+                        value={`delete:${index}`}
+                        className="adm-btn adm-btn-danger ml-auto"
+                        busyLabel="Siliniyor…"
+                        confirm={
+                          filled
+                            ? `"${row.label.tr || row.value}" satırı silinsin mi? Bu geri alınamaz.`
+                            : undefined
+                        }
+                      >
+                        Sil
+                      </SubmitButton>
+                    </div>
+
+                    {/* The row as the contact page sets it: a label on the
+                      left, the value on the right in its chosen face. */}
+                    <div
+                      className="adm-preview mb-4 flex items-baseline justify-between gap-5"
+                      data-preview
                     >
-                      Sil
-                    </SubmitButton>
-                  </div>
+                      <span className="label adm-row-label">
+                        {row.label.tr}
+                      </span>
+                      <span
+                        className="adm-live-text font-serif text-[19px] leading-[1.2]"
+                        {...styleAttrs(row.style)}
+                      >
+                        {row.value}
+                      </span>
+                    </div>
 
-                  <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.2fr)]">
-                    <label className="block">
-                      <span className="adm-label">Etiket (TR)</span>
-                      <input
-                        name={`rowLabelTr${index}`}
-                        className="adm-input"
-                        defaultValue={row.label.tr}
-                        placeholder="E-posta"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="adm-label">Etiket (EN)</span>
-                      <input
-                        name={`rowLabelEn${index}`}
-                        className="adm-input"
-                        defaultValue={row.label.en}
-                        placeholder="Email"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="adm-label">Görünen değer</span>
-                      <input
-                        name={`rowValue${index}`}
-                        className="adm-input"
-                        defaultValue={row.value}
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="adm-label">Bağlantı</span>
-                      <input
-                        name={`rowHref${index}`}
-                        className="adm-input"
-                        defaultValue={row.href}
-                        placeholder="mailto:… / https://…"
-                      />
-                    </label>
-                  </div>
+                    <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.2fr)]">
+                      <label className="block">
+                        <span className="adm-label">Etiket (TR)</span>
+                        <input
+                          name={`rowLabelTr${index}`}
+                          className="adm-input"
+                          defaultValue={row.label.tr}
+                          placeholder="E-posta"
+                          data-live="line"
+                          data-live-target=".adm-row-label"
+                          data-live-lang="tr"
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="adm-label">Etiket (EN)</span>
+                        <input
+                          name={`rowLabelEn${index}`}
+                          className="adm-input"
+                          defaultValue={row.label.en}
+                          placeholder="Email"
+                          data-live="line"
+                          data-live-target=".adm-row-label"
+                          data-live-lang="en"
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="adm-label">Görünen değer</span>
+                        <input
+                          name={`rowValue${index}`}
+                          className="adm-input"
+                          defaultValue={row.value}
+                          data-live="line"
+                          data-live-target={LIVE_TEXT}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="adm-label">Bağlantı</span>
+                        <input
+                          name={`rowHref${index}`}
+                          className="adm-input"
+                          defaultValue={row.href}
+                          placeholder="mailto:… / https://…"
+                        />
+                      </label>
+                    </div>
 
-                  <div className="mt-4">
-                    <TypeMenu
-                      name={`rowStyle${index}`}
-                      style={row.style}
-                      label="Görünen değerin yazı tipi"
-                    />
+                    <div className="mt-4">
+                      <TypeMenu
+                        name={`rowStyle${index}`}
+                        style={row.style}
+                        target={LIVE_TEXT}
+                        label="Görünen değerin yazı tipi"
+                      />
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </LiveEdit>
 
           {contact.rows.length === 0 && (
             <p className="adm-note">Henüz satır yok.</p>

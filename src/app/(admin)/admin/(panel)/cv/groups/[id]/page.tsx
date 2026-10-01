@@ -77,6 +77,7 @@ export default async function EditCvGroup({
                     required
                     data-live="line"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -86,6 +87,9 @@ export default async function EditCvGroup({
                     className="adm-input"
                     defaultValue={group?.title.en ?? ""}
                     placeholder="Competitions and awards"
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
                 <label className="flex items-center gap-2.5 self-end pb-2.5">

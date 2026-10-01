@@ -80,20 +80,36 @@ export function LiveEdit({ children }: { children: React.ReactNode }) {
 
       const value = valueOf(field);
 
+      /*
+       * A preview shows one language at a time. Typing into the English of
+       * a pair swings it over to English and says so on the card, so what
+       * is being typed is always what is being looked at; the next save
+       * brings the card back to the Turkish the site opens with.
+       */
+      const lang = field.dataset.liveLang;
+      if (lang) {
+        const badge = field.closest("[data-card]")?.querySelector(".adm-lang");
+        if (badge) badge.textContent = lang.toUpperCase();
+      }
+
       if (kind === "line") {
         target.textContent = value;
         return;
       }
 
-      if (kind === "text") {
+      // One line each, the way a künye column is read back.
+      if (kind === "lines" || kind === "text") {
+        const parts = kind === "lines" ? value.split("\n") : value.split(BREAK);
+
         target.replaceChildren(
-          ...value
-            .split(BREAK)
-            .map((paragraph) => paragraph.trim())
+          ...parts
+            .map((part) => part.trim())
             .filter(Boolean)
-            .map((paragraph) => {
-              const line = document.createElement("p");
-              line.textContent = paragraph;
+            .map((part) => {
+              const line = document.createElement(
+                kind === "lines" ? "div" : "p",
+              );
+              line.textContent = part;
               return line;
             }),
         );

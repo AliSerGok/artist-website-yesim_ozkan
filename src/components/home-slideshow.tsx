@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { Lightbox } from "@/components/lightbox";
-import { TitleLine } from "@/components/title-line";
+import { HomeCaption } from "@/components/home-caption";
 import type { GalleryWork } from "@/components/work-gallery";
 import { dict } from "@/lib/dictionary";
-import { styleAttrs, type StyleMap } from "@/lib/type-style";
+import type { StyleMap } from "@/lib/type-style";
 import type { Lang } from "@/lib/i18n";
 import { mediaUrl } from "@/lib/media";
 import { seriesHref, workHref, workInPath } from "@/lib/routes";
@@ -292,24 +292,14 @@ function Pane({
       </Opener>
 
       {written && (
-        <figcaption className="home-cap">
-          <TitleLine
-            title={slide.title}
-            aside={slide.aside}
-            className="font-serif text-[clamp(19px,2vw,26px)] leading-[1.2] text-bg"
-            asideClassName="opacity-80"
-            style={slide.styles.title}
-          />
-          {slide.caption && (
-            <div
-              className="mt-[5px] text-[11px] tracking-[0.06em] text-[rgba(253,253,252,0.82)]"
-              {...styleAttrs(slide.styles.caption)}
-            >
-              {slide.caption}
-            </div>
-          )}
-        </figcaption>
+        <HomeCaption
+          title={slide.title}
+          aside={slide.aside}
+          caption={slide.caption}
+          styles={slide.styles}
+        />
       )}
+
     </figure>
   );
 }

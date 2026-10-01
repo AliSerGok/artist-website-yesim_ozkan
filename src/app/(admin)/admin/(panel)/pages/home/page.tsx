@@ -1,10 +1,12 @@
 import { saveHomeAction } from "@/app/(admin)/admin/actions";
 import { ActionForm } from "@/components/admin/action-form";
+import { LiveEdit } from "@/components/admin/live-edit";
 import { ImageField } from "@/components/admin/image-field";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { SaveButton } from "@/components/admin/save-button";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { TypeMenu } from "@/components/admin/type-menu";
+import { HomeCaption } from "@/components/home-caption";
 import { getAllWorks, getHome } from "@/lib/content";
 import { mediaUrl } from "@/lib/media";
 import { revision } from "@/lib/revision";
@@ -64,45 +66,47 @@ export default async function EditHome() {
       >
         <input type="hidden" name="itemCount" value={home.items.length} />
 
-        <SortableList
-          className="flex flex-col gap-8"
-          intent="screens"
-          rows={screens.map((screen, screenIndex) => ({
-            id: String(screenIndex),
-            content: (
-              <section className="flex flex-col gap-2.5">
-                <div className="flex items-center gap-3">
-                  <DragHandle
-                    id={String(screenIndex)}
-                    label="Ekranı sürükleyerek taşı"
-                  />
-                  <span className="label">{screenIndex + 1}. ekran</span>
-                  <span className="h-px flex-1 bg-rule" />
-                  <SubmitButton
-                    name="intent"
-                    value={`delete:screen:${screenIndex}`}
-                    className="adm-btn adm-btn-danger"
-                    busyLabel="Siliniyor…"
-                  >
-                    Ekranı sil
-                  </SubmitButton>
-                </div>
-
-                <div className="grid items-start gap-4 lg:grid-cols-2">
-                  {screen.map(({ item, index }) => (
-                    <Slide
-                      key={index}
-                      item={item}
-                      index={index}
-                      total={home.items.length}
-                      works={works}
+        <LiveEdit>
+          <SortableList
+            className="flex flex-col gap-8"
+            intent="screens"
+            rows={screens.map((screen, screenIndex) => ({
+              id: String(screenIndex),
+              content: (
+                <section className="flex flex-col gap-2.5">
+                  <div className="flex items-center gap-3">
+                    <DragHandle
+                      id={String(screenIndex)}
+                      label="Ekranı sürükleyerek taşı"
                     />
-                  ))}
-                </div>
-              </section>
-            ),
-          }))}
-        />
+                    <span className="label">{screenIndex + 1}. ekran</span>
+                    <span className="h-px flex-1 bg-rule" />
+                    <SubmitButton
+                      name="intent"
+                      value={`delete:screen:${screenIndex}`}
+                      className="adm-btn adm-btn-danger"
+                      busyLabel="Siliniyor…"
+                    >
+                      Ekranı sil
+                    </SubmitButton>
+                  </div>
+
+                  <div className="grid items-start gap-4 lg:grid-cols-2">
+                    {screen.map(({ item, index }) => (
+                      <Slide
+                        key={index}
+                        item={item}
+                        index={index}
+                        total={home.items.length}
+                        works={works}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ),
+            }))}
+          />
+        </LiveEdit>
 
         {home.items.length === 0 && (
           <p className="adm-note">
@@ -143,14 +147,15 @@ function Slide({
   return (
     // A container, so the fields inside answer to the width of this half
     // rather than to the width of the window.
-    <div className="adm-card @container">
+    <div className="adm-card @container" data-card>
       <input type="hidden" name={`h${index}_type`} value={item.type} />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="adm-card-head mb-4">
         <span className="label">
           {index % 2 === 0 ? "Sol" : "Sağ"} · {TYPE_LABEL[item.type]}
         </span>
-        <div className="flex items-center gap-1.5">
+        {item.type === "image" && <span className="adm-lang">TR</span>}
+        <div className="ml-auto flex items-center gap-1.5">
           <SubmitButton
             name="intent"
             value={`move:${index}:up`}
@@ -324,136 +329,181 @@ function ImageFields({
      * and the form is rebuilt after a save that changed anything — which is
      * what puts every filled slide back to just its picture and its name.
      */
-    <details className="adm-fold" open={!item.imageKey}>
-      <summary className="adm-fold-head">
-        {item.imageKey ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={mediaUrl(item.imageKey, "grid")}
-            alt=""
-            className="max-h-[54px] max-w-[84px] border border-rule object-contain"
-          />
-        ) : (
-          <span className="block h-[54px] w-[54px] border border-dashed border-rule" />
-        )}
-
-        <span className="min-w-0 flex-1 truncate text-[13.5px]">
-          {named || <span className="text-mute-2">Başlıksız görsel</span>}
-        </span>
-
-        <span className="adm-btn shrink-0">
-          <span data-fold="shut">Düzenle</span>
-          <span data-fold="open">Kapat</span>
-        </span>
-      </summary>
-
-      <div className="mt-5 flex flex-col gap-5">
-        <ImageField
-          // Remounts when a reorder puts a different picture in this slot, so
-          // the preview and the hidden key never lag behind.
-          key={item.imageKey ?? "empty"}
-          name={at("imageKey")}
-          ratioName={at("ratio")}
-          ratio={item.ratio}
-          prefix="pages/home"
-          imageKey={item.imageKey}
-          label="Görsel"
-          previewHeight={150}
-          hint="Ana sayfa görseli ekranı boydan boya kaplar, yatay ve geniş olanlar daha iyi durur. JPEG veya PNG yükle; tarayıcı web boyutuna küçültüp WebP’ye çevirir."
+    <>
+      {/* The slide as the home page writes it, so what is typed is seen the
+          way it will be read: light type over the picture. */}
+      <div
+        className="adm-slide mb-4"
+        data-preview
+        style={
+          item.imageKey
+            ? { backgroundImage: `url(${mediaUrl(item.imageKey, "grid")})` }
+            : undefined
+        }
+      >
+        <HomeCaption
+          title={item.title.tr}
+          aside={item.aside.tr}
+          caption={item.caption.tr}
+          styles={item.styles}
+          className="adm-slide-cap"
+          editing
         />
-
-        <div className="grid gap-4 @lg:grid-cols-2">
-          <label className="block">
-            <span className="adm-label">Başlık (Türkçe)</span>
-            <input
-              name={at("titleTr")}
-              className="adm-input"
-              defaultValue={item.title.tr}
-              placeholder="Uzun Sabah"
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Başlık (İngilizce)</span>
-            <input
-              name={at("titleEn")}
-              className="adm-input"
-              defaultValue={item.title.en}
-              placeholder="The Long Morning"
-            />
-          </label>
-
-          <label className="block">
-            <span className="adm-label">Başlıktan sonra, italik (Türkçe)</span>
-            <input
-              name={at("asideTr")}
-              className="adm-input"
-              defaultValue={item.aside.tr}
-              placeholder="2026"
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">
-              Başlıktan sonra, italik (İngilizce)
-            </span>
-            <input
-              name={at("asideEn")}
-              className="adm-input"
-              defaultValue={item.aside.en}
-              placeholder="2026"
-            />
-          </label>
-
-          <label className="block">
-            <span className="adm-label">Alt satır (Türkçe)</span>
-            <input
-              name={at("captionTr")}
-              className="adm-input"
-              defaultValue={item.caption.tr}
-              placeholder="Galeri Nev, İstanbul"
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Alt satır (İngilizce)</span>
-            <input
-              name={at("captionEn")}
-              className="adm-input"
-              defaultValue={item.caption.en}
-              placeholder="Galeri Nev, Istanbul"
-            />
-          </label>
-        </div>
-
-        <div className="grid gap-5 @lg:grid-cols-2">
-          <TypeMenu
-            name={at("styleTitle")}
-            style={item.styles.title}
-            label="Başlığın yazı tipi"
-          />
-          <TypeMenu
-            name={at("styleCaption")}
-            style={item.styles.caption}
-            label="Alt satırın yazı tipi"
-          />
-        </div>
-
-        <label className="block">
-          <span className="adm-label">Bağlantı (isteğe bağlı)</span>
-          <input
-            name={at("href")}
-            className="adm-input"
-            defaultValue={item.href}
-            placeholder="/tr/exhibitions · /tr/works/uzun-sabah · https://…"
-          />
-        </label>
-
-        <p className="adm-note">
-          Başlık, italik kuyruğu ve alt satır görselin üzerine, tasarımdaki koyu
-          geçişin içine yazılır; hepsini boş bırakırsan yazı da geçiş de hiç
-          çıkmaz, görsel boydan boya tek başına durur. Yalnız birini yazarsan
-          aralarındaki virgül kendiliğinden düşer. Bağlantı yazarsan slayt
-          tıklanabilir olur. Görseli yüklenmemiş slayt sitede görünmez.
-        </p>
       </div>
-    </details>
+
+      <details className="adm-fold" open={!item.imageKey}>
+        <summary className="adm-fold-head">
+          {item.imageKey ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={mediaUrl(item.imageKey, "grid")}
+              alt=""
+              className="max-h-[54px] max-w-[84px] border border-rule object-contain"
+            />
+          ) : (
+            <span className="block h-[54px] w-[54px] border border-dashed border-rule" />
+          )}
+
+          <span className="min-w-0 flex-1 truncate text-[13.5px]">
+            {named || <span className="text-mute-2">Başlıksız görsel</span>}
+          </span>
+
+          <span className="adm-btn shrink-0">
+            <span data-fold="shut">Düzenle</span>
+            <span data-fold="open">Kapat</span>
+          </span>
+        </summary>
+
+        <div className="mt-5 flex flex-col gap-5">
+          <ImageField
+            // Remounts when a reorder puts a different picture in this slot, so
+            // the preview and the hidden key never lag behind.
+            key={item.imageKey ?? "empty"}
+            name={at("imageKey")}
+            ratioName={at("ratio")}
+            ratio={item.ratio}
+            prefix="pages/home"
+            imageKey={item.imageKey}
+            label="Görsel"
+            previewHeight={150}
+            hint="Ana sayfa görseli ekranı boydan boya kaplar, yatay ve geniş olanlar daha iyi durur. JPEG veya PNG yükle; tarayıcı web boyutuna küçültüp WebP’ye çevirir."
+          />
+
+          <div className="grid gap-4 @lg:grid-cols-2">
+            <label className="block">
+              <span className="adm-label">Başlık (Türkçe)</span>
+              <input
+                name={at("titleTr")}
+                className="adm-input"
+                data-live="line"
+                data-live-target=".tl-name"
+                defaultValue={item.title.tr}
+                placeholder="Uzun Sabah"
+                data-live-lang="tr"
+              />
+            </label>
+            <label className="block">
+              <span className="adm-label">Başlık (İngilizce)</span>
+              <input
+                name={at("titleEn")}
+                className="adm-input"
+                defaultValue={item.title.en}
+                placeholder="The Long Morning"
+                data-live="line"
+                data-live-target=".tl-name"
+                data-live-lang="en"
+              />
+            </label>
+
+            <label className="block">
+              <span className="adm-label">
+                Başlıktan sonra, italik (Türkçe)
+              </span>
+              <input
+                name={at("asideTr")}
+                className="adm-input"
+                data-live="line"
+                data-live-target=".tl-aside"
+                defaultValue={item.aside.tr}
+                placeholder="2026"
+                data-live-lang="tr"
+              />
+            </label>
+            <label className="block">
+              <span className="adm-label">
+                Başlıktan sonra, italik (İngilizce)
+              </span>
+              <input
+                name={at("asideEn")}
+                className="adm-input"
+                defaultValue={item.aside.en}
+                placeholder="2026"
+                data-live="line"
+                data-live-target=".tl-aside"
+                data-live-lang="en"
+              />
+            </label>
+
+            <label className="block">
+              <span className="adm-label">Alt satır (Türkçe)</span>
+              <input
+                name={at("captionTr")}
+                className="adm-input"
+                data-live="line"
+                data-live-target=".home-cap-line"
+                defaultValue={item.caption.tr}
+                placeholder="Galeri Nev, İstanbul"
+                data-live-lang="tr"
+              />
+            </label>
+            <label className="block">
+              <span className="adm-label">Alt satır (İngilizce)</span>
+              <input
+                name={at("captionEn")}
+                className="adm-input"
+                defaultValue={item.caption.en}
+                placeholder="Galeri Nev, Istanbul"
+                data-live="line"
+                data-live-target=".home-cap-line"
+                data-live-lang="en"
+              />
+            </label>
+          </div>
+
+          <div className="grid gap-5 @lg:grid-cols-2">
+            <TypeMenu
+              name={at("styleTitle")}
+              style={item.styles.title}
+              target=".home-cap-title"
+              label="Başlığın yazı tipi"
+            />
+            <TypeMenu
+              name={at("styleCaption")}
+              style={item.styles.caption}
+              target=".home-cap-line"
+              label="Alt satırın yazı tipi"
+            />
+          </div>
+
+          <label className="block">
+            <span className="adm-label">Bağlantı (isteğe bağlı)</span>
+            <input
+              name={at("href")}
+              className="adm-input"
+              defaultValue={item.href}
+              placeholder="/tr/exhibitions · /tr/works/uzun-sabah · https://…"
+            />
+          </label>
+
+          <p className="adm-note">
+            Başlık, italik kuyruğu ve alt satır görselin üzerine, tasarımdaki
+            koyu geçişin içine yazılır; hepsini boş bırakırsan yazı da geçiş de
+            hiç çıkmaz, görsel boydan boya tek başına durur. Yalnız birini
+            yazarsan aralarındaki virgül kendiliğinden düşer. Bağlantı yazarsan
+            slayt tıklanabilir olur. Görseli yüklenmemiş slayt sitede görünmez.
+          </p>
+        </div>
+      </details>
+    </>
   );
 }

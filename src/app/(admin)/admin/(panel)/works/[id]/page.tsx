@@ -6,7 +6,6 @@ import { ConfirmButton } from "@/components/admin/confirm-button";
 import {
   FieldCard,
   FieldPreview,
-  FOLD_GROUP,
   LIVE_TEXT,
 } from "@/components/admin/field-card";
 import { ImageField } from "@/components/admin/image-field";
@@ -81,6 +80,7 @@ export default async function EditWork({
                     required
                     data-live="line"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -90,6 +90,9 @@ export default async function EditWork({
                     className="adm-input"
                     defaultValue={work?.title.en ?? ""}
                     placeholder="Boş bırakılırsa Türkçesi kullanılır"
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -123,6 +126,7 @@ export default async function EditWork({
                     placeholder="Ketende yağlıboya, 120 × 90 cm"
                     data-live="line"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -132,6 +136,9 @@ export default async function EditWork({
                     className="adm-input"
                     defaultValue={work?.caption.en ?? ""}
                     placeholder="Oil on linen, 120 × 90 cm"
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -166,6 +173,7 @@ export default async function EditWork({
                     placeholder="Büyütülmüş görünümde eserin altında çıkan metin."
                     data-live="text"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -174,6 +182,9 @@ export default async function EditWork({
                     name="noteEn"
                     className="adm-textarea"
                     defaultValue={work?.note.en ?? ""}
+                    data-live="text"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -203,16 +214,11 @@ export default async function EditWork({
           />
         </div>
 
-        <details className="adm-fold adm-card" name={FOLD_GROUP}>
-          <summary>
-            <span className="adm-btn shrink-0">
-              <span data-fold="shut">Düzenle</span>
-              <span data-fold="open">Kapat</span>
-            </span>
-            <span className="adm-note min-w-0 flex-1 truncate">
-              Yıl, teknik, seri ve yayın durumu
-            </span>
-          </summary>
+        {/* Not a card to open: four small settings, always in sight. */}
+        <div className="adm-card">
+          <div className="adm-card-head">
+            <span className="label">Yıl, teknik, seri ve yayın</span>
+          </div>
 
           <div className="mt-5 grid gap-5 md:grid-cols-4">
             <label className="block">
@@ -264,17 +270,11 @@ export default async function EditWork({
               <span className="text-[13px]">Sitede yayında</span>
             </label>
           </div>
-        </details>
+        </div>
 
-        <details className="adm-fold adm-card" name={FOLD_GROUP}>
-          <summary>
-            <span className="adm-btn shrink-0">
-              <span data-fold="shut">Düzenle</span>
-              <span data-fold="open">Kapat</span>
-            </span>
-            <span className="adm-note min-w-0 flex-1 truncate">
-              Görsel yokken kullanılacak ayarlar
-            </span>
+        <details className="adm-card">
+          <summary className="cursor-pointer text-[13px]">
+            Görsel yokken kullanılacak ayarlar
           </summary>
           <div className="mt-5 grid gap-5 md:grid-cols-3">
             <label className="block">

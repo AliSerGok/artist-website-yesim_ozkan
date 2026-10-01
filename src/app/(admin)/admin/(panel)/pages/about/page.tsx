@@ -261,7 +261,7 @@ export default async function EditAbout() {
           <div>
             <span className="adm-label">Sayfa blokları</span>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-7">
               {about.blocks.map((block, index) => (
                 <BlockCard
                   key={index}
@@ -319,10 +319,13 @@ function HeadCard({ about }: { about: AboutContent }) {
 
   return (
     <div className="adm-card flex flex-col gap-4" data-card>
-      <span className="label">Sayfa başı</span>
+      <div className="adm-card-head">
+        <span className="label">Sayfa başı</span>
+        <span className="adm-lang">TR</span>
+      </div>
 
       <div className="adm-preview" data-preview>
-        <AboutHead about={about} lang="tr" />
+        <AboutHead about={about} lang="tr" editing />
       </div>
 
       <details
@@ -342,6 +345,7 @@ function HeadCard({ about }: { about: AboutContent }) {
                 defaultValue={about.lead.tr}
                 data-live="line"
                 data-live-target=".ab-lead"
+                data-live-lang="tr"
               />
             </label>
             <label className="block">
@@ -350,6 +354,9 @@ function HeadCard({ about }: { about: AboutContent }) {
                 name="leadEn"
                 className="adm-input"
                 defaultValue={about.lead.en}
+                data-live="line"
+                data-live-target=".ab-lead"
+                data-live-lang="en"
               />
             </label>
           </div>
@@ -361,12 +368,17 @@ function HeadCard({ about }: { about: AboutContent }) {
             label="Giriş cümlesinin yazı tipi"
           />
 
-          <div className="border border-rule p-4">
+          <div className="adm-box">
+            <div className="adm-card-head mb-4">
+              <span className="label">Portre</span>
+            </div>
+
+            {/* The box says what it is; the field need not say it again. */}
             <ImageField
               name="portraitKey"
               prefix="pages/about"
               imageKey={about.portraitKey}
-              label="Portre"
+              label=""
               ratio={0.84}
             />
             <div className="mt-5 grid gap-5 md:grid-cols-2">
@@ -376,6 +388,9 @@ function HeadCard({ about }: { about: AboutContent }) {
                   name="portraitSlotTr"
                   className="adm-input"
                   defaultValue={about.portraitSlot.tr}
+                  data-live="line"
+                  data-live-target=".slot span"
+                  data-live-lang="tr"
                 />
               </label>
               <label className="block">
@@ -386,6 +401,9 @@ function HeadCard({ about }: { about: AboutContent }) {
                   name="portraitSlotEn"
                   className="adm-input"
                   defaultValue={about.portraitSlot.en}
+                  data-live="line"
+                  data-live-target=".slot span"
+                  data-live-lang="en"
                 />
               </label>
             </div>
@@ -396,10 +414,10 @@ function HeadCard({ about }: { about: AboutContent }) {
 
             <div className="flex flex-col gap-4">
               {about.facts.map((fact, index) => (
-                <div key={index} className="border border-rule p-4">
-                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div key={index} className="adm-box">
+                  <div className="adm-card-head mb-4">
                     <span className="label">{index + 1}. sütun</span>
-                    <div className="flex items-center gap-1.5">
+                    <div className="ml-auto flex items-center gap-1.5">
                       <MoveButtons
                         intent="fact-move"
                         index={index}
@@ -424,6 +442,9 @@ function HeadCard({ about }: { about: AboutContent }) {
                         className="adm-input"
                         defaultValue={fact.label.tr}
                         placeholder="Eğitim"
+                        data-live="line"
+                        data-live-target={`[data-fact="${index}"] .label`}
+                        data-live-lang="tr"
                       />
                     </label>
                     <label className="block">
@@ -433,6 +454,9 @@ function HeadCard({ about }: { about: AboutContent }) {
                         className="adm-input"
                         defaultValue={fact.label.en}
                         placeholder="Education"
+                        data-live="line"
+                        data-live-target={`[data-fact="${index}"] .label`}
+                        data-live-lang="en"
                       />
                     </label>
                     <label className="block">
@@ -444,6 +468,9 @@ function HeadCard({ about }: { about: AboutContent }) {
                           .map((line) => line.tr)
                           .join("\n")}
                         placeholder="Her satıra bir şey yaz."
+                        data-live="lines"
+                        data-live-target={`[data-fact="${index}"] .ab-fact-lines`}
+                        data-live-lang="tr"
                       />
                     </label>
                     <label className="block">
@@ -454,6 +481,9 @@ function HeadCard({ about }: { about: AboutContent }) {
                         defaultValue={fact.lines
                           .map((line) => line.en)
                           .join("\n")}
+                        data-live="lines"
+                        data-live-target={`[data-fact="${index}"] .ab-fact-lines`}
+                        data-live-lang="en"
                       />
                     </label>
                   </div>
@@ -462,7 +492,7 @@ function HeadCard({ about }: { about: AboutContent }) {
                     <TypeMenu
                       name={`factStyle${index}`}
                       style={fact.style}
-                      target={`[data-fact="${index}"]`}
+                      target={`[data-fact="${index}"] .ab-fact-lines`}
                       label="Satırların yazı tipi"
                     />
                   </div>
@@ -504,12 +534,13 @@ function BlockCard({
     <div className="adm-card flex flex-col gap-4" data-card>
       <input type="hidden" name={`b${index}_type`} value={block.type} />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="adm-card-head">
         <span className="label">
           {index + 1}. blok · {BLOCK_LABEL[block.type]}
           {block.type === "row" && ` · ${block.cells.length} alan`}
         </span>
-        <div className="flex items-center gap-1.5">
+        <span className="adm-lang">TR</span>
+        <div className="ml-auto flex items-center gap-1.5">
           <MoveButtons intent="move" index={index} count={count} />
           <SubmitButton
             name="intent"
@@ -525,7 +556,7 @@ function BlockCard({
       {/* Live editing writes straight onto this, so it is always the real
           thing -- an empty block fills in as the words are typed. */}
       <div className="adm-preview" data-preview>
-        <AboutBlockView block={block} lang="tr" cv={cv} />
+        <AboutBlockView block={block} lang="tr" cv={cv} editing />
       </div>
 
       <details
@@ -565,6 +596,9 @@ function BlockFields({
               className="adm-input"
               defaultValue={block.title.tr}
               placeholder="Tüm katılımlar"
+              data-live="line"
+              data-live-target=".ab-cv-title"
+              data-live-lang="tr"
             />
           </label>
           <label className="block">
@@ -574,6 +608,9 @@ function BlockFields({
               className="adm-input"
               defaultValue={block.title.en}
               placeholder="Curriculum vitae"
+              data-live="line"
+              data-live-target=".ab-cv-title"
+              data-live-lang="en"
             />
           </label>
         </div>
@@ -610,6 +647,7 @@ function BlockFields({
               placeholder="Atölye"
               data-live="line"
               data-live-target=".ab-title"
+              data-live-lang="tr"
             />
           </label>
           <label className="block">
@@ -619,6 +657,9 @@ function BlockFields({
               className="adm-input"
               defaultValue={block.text.en}
               placeholder="The studio"
+              data-live="line"
+              data-live-target=".ab-title"
+              data-live-lang="en"
             />
           </label>
         </div>
@@ -649,6 +690,7 @@ function BlockFields({
               defaultValue={block.quote.tr}
               data-live="line"
               data-live-target=".ab-quote"
+              data-live-lang="tr"
             />
           </label>
           <label className="block">
@@ -657,6 +699,9 @@ function BlockFields({
               name={at("quoteEn")}
               className="adm-textarea min-h-[90px]"
               defaultValue={block.quote.en}
+              data-live="line"
+              data-live-target=".ab-quote"
+              data-live-lang="en"
             />
           </label>
         </div>
@@ -670,6 +715,7 @@ function BlockFields({
               placeholder="Argonotlar söyleşisi, 2025"
               data-live="line"
               data-live-target=".ab-cite"
+              data-live-lang="tr"
             />
           </label>
           <label className="block">
@@ -678,6 +724,9 @@ function BlockFields({
               name={at("byEn")}
               className="adm-input"
               defaultValue={block.by.en}
+              data-live="line"
+              data-live-target=".ab-cite"
+              data-live-lang="en"
             />
           </label>
         </div>
@@ -760,12 +809,12 @@ function CvPreview({ sections }: { sections: CvSection[] }) {
   );
 
   return (
-    <div className="border border-rule p-4">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <div className="adm-box">
+      <div className="adm-card-head mb-3">
         <span className="label">
           Sitede görünecek satırlar{count > 0 && ` · ${count}`}
         </span>
-        <div className="flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-1.5">
           <Link href="/admin/cv/new" className="adm-btn" target="_blank">
             Satır ekle
           </Link>
@@ -847,14 +896,14 @@ function CellFields({
   const part = `.strip > :nth-child(${position + 1})`;
 
   return (
-    <div className="border border-rule p-4">
+    <div className="adm-box">
       <input type="hidden" name={on("kind")} value={cell.kind} />
 
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="adm-card-head mb-3">
         <span className="label">
           {position + 1}. alan · {CELL_LABEL[cell.kind]}
         </span>
-        <div className="flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-1.5">
           <MoveButtons
             intent={`cell-move:${block}`}
             index={position}
@@ -887,6 +936,7 @@ function CellFields({
               placeholder="Paragrafları boş satırla ayır."
               data-live="text"
               data-live-target={part}
+              data-live-lang="tr"
             />
           </label>
           <label className="block">
@@ -895,6 +945,9 @@ function CellFields({
               name={on("textEn")}
               className="adm-textarea"
               defaultValue={cell.paragraphs.map((p) => p.en).join("\n\n")}
+              data-live="text"
+              data-live-target={part}
+              data-live-lang="en"
             />
           </label>
         </div>
@@ -909,7 +962,8 @@ function CellFields({
             ratio={cell.ratio}
             prefix="pages/about"
             imageKey={cell.imageKey}
-            label="Görsel"
+            // The box head already says this field is a picture.
+            label=""
             previewHeight={150}
           />
           <label className="block">
@@ -918,6 +972,9 @@ function CellFields({
               name={on("capTr")}
               className="adm-input"
               defaultValue={cell.caption.tr}
+              data-live="line"
+              data-live-target={`${part} figcaption`}
+              data-live-lang="tr"
             />
           </label>
           <label className="block">
@@ -926,6 +983,9 @@ function CellFields({
               name={on("capEn")}
               className="adm-input"
               defaultValue={cell.caption.en}
+              data-live="line"
+              data-live-target={`${part} figcaption`}
+              data-live-lang="en"
             />
           </label>
         </div>

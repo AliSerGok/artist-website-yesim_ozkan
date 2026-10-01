@@ -10,9 +10,9 @@ import { FONTS, type Font, type TextStyle } from "@/lib/type-style";
  */
 
 const FONT_LABEL: Record<Font, string> = {
-  default: "Sayfanın kendi yüzü",
-  serif: "Site başlık yüzü (Fraunces)",
-  sans: "Site metin yüzü (Helvetica)",
+  default: "Sayfanın yüzü",
+  serif: "Site başlık",
+  sans: "Site metin",
   calibri: "Calibri",
   times: "Times New Roman",
   georgia: "Georgia",
@@ -37,7 +37,7 @@ export function TypeMenu({
 }) {
   return (
     <div className="flex flex-wrap items-end gap-2.5 border-t border-rule pt-3">
-      <label className="block min-w-[min(100%,210px)] flex-1">
+      <label className="block w-[min(100%,190px)]">
         <span className="adm-label">{label}</span>
         <select
           name={`${name}Font`}

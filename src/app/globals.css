@@ -584,6 +584,22 @@
     align-self: end;
   }
 
+  /*
+   * A name and its italic tail: the comma belongs to the pair, so it is
+   * drawn only when both halves have something in them. Either half may be
+   * rewritten as it is typed, and the comma follows on its own.
+   */
+  .tl-name:not(:empty) + .tl-aside:not(:empty)::before {
+    content: ", ";
+  }
+
+  /* The lines of a künye column, which the panel rewrites as they are typed. */
+  .ab-fact-lines > div {
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--color-ink-soft);
+  }
+
   /* Prose, and the four sizes it can be set at. */
   .ab-text p {
     margin: 0 0 18px;
@@ -976,9 +992,50 @@
   }
 
   .adm-card {
-    border: 1px solid var(--color-rule);
+    border: 1px solid var(--color-rule-2);
     background: #fff;
     padding: 18px 20px;
+  }
+
+  /*
+   * The top of a card, tinted and ruled off, so a page of them reads as
+   * separate things rather than as one long form. It cancels the card's own
+   * padding to run edge to edge.
+   */
+  .adm-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: -18px -20px 0;
+    padding: 10px 20px;
+    background: var(--color-panel);
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  /*
+   * A box inside a card -- a künye column, a field of a strip, the list a
+   * block will show -- with the same tinted head, at its own padding.
+   */
+  .adm-box {
+    border: 1px solid var(--color-rule-2);
+    background: #fff;
+    padding: 16px;
+  }
+
+  .adm-box > .adm-card-head {
+    margin: -16px -16px 0;
+    padding: 9px 16px;
+  }
+
+  /* Which language the card is showing, which typing can swing over. */
+  .adm-lang {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
+    color: var(--color-mute-3);
+    border: 1px solid var(--color-rule-2);
+    padding: 1px 5px;
   }
 
   .adm-label {
@@ -1182,6 +1239,28 @@
     width: 14px;
     height: 14px;
     accent-color: #14140f;
+  }
+
+  /*
+   * A home slide the way the home page writes it: the line sits over the
+   * picture, so the panel shows it over the picture too.
+   */
+  .adm-slide {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: 140px;
+    background: #26261f center / cover no-repeat;
+  }
+
+  .adm-slide-cap {
+    width: 100%;
+    padding: 46px 16px 14px;
+    background: linear-gradient(
+      to top,
+      rgba(12, 12, 9, 0.72),
+      rgba(12, 12, 9, 0)
+    );
   }
 
   /* Paragraphs inside a card's preview, spaced like the page spaces them. */

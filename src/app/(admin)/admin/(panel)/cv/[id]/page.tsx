@@ -6,7 +6,6 @@ import { ConfirmButton } from "@/components/admin/confirm-button";
 import {
   FieldCard,
   FieldPreview,
-  FOLD_GROUP,
   LIVE_TEXT,
 } from "@/components/admin/field-card";
 import { LiveEdit } from "@/components/admin/live-edit";
@@ -51,7 +50,7 @@ export default async function EditCv({
         <LiveEdit>
           <FieldCard
             label="Satır"
-            hint="Türkçesi, İngilizcesi ve yazı tipi"
+            hint="Satırın kendisi, yazı tipi, başlığı, yılı ve türü"
             open={isNew}
             preview={
               <FieldPreview
@@ -73,6 +72,7 @@ export default async function EditCv({
                     required
                     data-live="line"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -82,98 +82,87 @@ export default async function EditCv({
                     className="adm-input"
                     defaultValue={entry?.title.en ?? ""}
                     placeholder="The Long Morning — Galeri Nev, Istanbul"
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
               <TypeMenu name="styleTitle" style={style} target={LIVE_TEXT} />
+
+              <div className="grid gap-5 border-t border-rule pt-4 md:grid-cols-[minmax(0,1fr)_110px_150px_auto]">
+                <label className="block">
+                  <span className="adm-label">Başlık</span>
+                  <select
+                    name="groupId"
+                    className="adm-select"
+                    defaultValue={groupId}
+                  >
+                    <option value="">— başlıksız</option>
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.title.tr}
+                        {group.published ? "" : " (gizli)"}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="adm-label">Yıl</span>
+                  <input
+                    name="year"
+                    className="adm-input"
+                    defaultValue={entry?.year ?? ""}
+                    placeholder="2026"
+                    required
+                  />
+                </label>
+                <label className="block">
+                  <span className="adm-label">Tür</span>
+                  <select
+                    name="kind"
+                    className="adm-select"
+                    defaultValue={entry?.kind ?? ""}
+                  >
+                    <option value="">— etiket yok</option>
+                    <option value="solo">Kişisel</option>
+                    <option value="group">Grup</option>
+                  </select>
+                </label>
+                <label className="flex items-center gap-2.5 self-end pb-2.5">
+                  <input
+                    type="checkbox"
+                    name="published"
+                    defaultChecked={entry?.published ?? true}
+                    className="h-4 w-4 accent-[#14140f]"
+                  />
+                  <span className="text-[13px]">Yayında</span>
+                </label>
+              </div>
+
+              <label className="block">
+                <span className="adm-label">Bağlantı</span>
+                <input
+                  name="url"
+                  className="adm-input"
+                  defaultValue={entry?.url ?? ""}
+                  placeholder="https://… (boşsa düz metin görünür)"
+                />
+              </label>
+
+              {groups.length === 0 && (
+                <p className="adm-note max-w-[62ch]">
+                  Henüz hiç başlık yok.{" "}
+                  <Link href="/admin/cv/groups/new" className="underline">
+                    Yeni başlık
+                  </Link>{" "}
+                  açarsan satırları Sergiler, Yarışmalar gibi bölümlere
+                  ayırabilirsin.
+                </p>
+              )}
             </div>
           </FieldCard>
         </LiveEdit>
-
-        <details className="adm-fold adm-card" name={FOLD_GROUP} open={isNew}>
-          <summary>
-            <span className="adm-btn shrink-0">
-              <span data-fold="shut">Düzenle</span>
-              <span data-fold="open">Kapat</span>
-            </span>
-            <span className="adm-note min-w-0 flex-1 truncate">
-              Başlık, yıl, tür, bağlantı ve yayın durumu
-            </span>
-          </summary>
-
-          <div className="mt-5 flex flex-col gap-5">
-            <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_110px_150px_auto]">
-              <label className="block">
-                <span className="adm-label">Başlık</span>
-                <select
-                  name="groupId"
-                  className="adm-select"
-                  defaultValue={groupId}
-                >
-                  <option value="">— başlıksız</option>
-                  {groups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.title.tr}
-                      {group.published ? "" : " (gizli)"}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
-                <span className="adm-label">Yıl</span>
-                <input
-                  name="year"
-                  className="adm-input"
-                  defaultValue={entry?.year ?? ""}
-                  placeholder="2026"
-                  required
-                />
-              </label>
-              <label className="block">
-                <span className="adm-label">Tür</span>
-                <select
-                  name="kind"
-                  className="adm-select"
-                  defaultValue={entry?.kind ?? ""}
-                >
-                  <option value="">— etiket yok</option>
-                  <option value="solo">Kişisel</option>
-                  <option value="group">Grup</option>
-                </select>
-              </label>
-              <label className="flex items-center gap-2.5 self-end pb-2.5">
-                <input
-                  type="checkbox"
-                  name="published"
-                  defaultChecked={entry?.published ?? true}
-                  className="h-4 w-4 accent-[#14140f]"
-                />
-                <span className="text-[13px]">Yayında</span>
-              </label>
-            </div>
-
-            {groups.length === 0 && (
-              <p className="adm-note max-w-[62ch]">
-                Henüz hiç başlık yok.{" "}
-                <Link href="/admin/cv/groups/new" className="underline">
-                  Yeni başlık
-                </Link>{" "}
-                açarsan satırları Sergiler, Yarışmalar gibi bölümlere
-                ayırabilirsin.
-              </p>
-            )}
-
-            <label className="block">
-              <span className="adm-label">Bağlantı</span>
-              <input
-                name="url"
-                className="adm-input"
-                defaultValue={entry?.url ?? ""}
-                placeholder="https://… (boşsa düz metin görünür)"
-              />
-            </label>
-          </div>
-        </details>
 
         <div className="flex items-center gap-3">
           <SaveButton />

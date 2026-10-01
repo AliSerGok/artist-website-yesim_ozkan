@@ -32,9 +32,12 @@ export function FieldCard({
 }) {
   return (
     <div className="adm-card flex flex-col gap-3.5" data-card>
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="adm-card-head">
         <span className="label">{label}</span>
-        {tools && <div className="flex items-center gap-1.5">{tools}</div>}
+        <span className="adm-lang">TR</span>
+        {tools && (
+          <div className="ml-auto flex items-center gap-1.5">{tools}</div>
+        )}
       </div>
 
       <div className="adm-preview" data-preview>

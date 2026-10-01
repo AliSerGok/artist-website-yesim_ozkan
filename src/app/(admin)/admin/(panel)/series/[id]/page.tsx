@@ -12,7 +12,6 @@ import { ConfirmButton } from "@/components/admin/confirm-button";
 import {
   FieldCard,
   FieldPreview,
-  FOLD_GROUP,
   LIVE_TEXT,
 } from "@/components/admin/field-card";
 import { LiveEdit } from "@/components/admin/live-edit";
@@ -87,6 +86,7 @@ export default async function EditSeries({
                     required
                     data-live="line"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -96,6 +96,9 @@ export default async function EditSeries({
                     className="adm-input"
                     defaultValue={series?.title.en ?? ""}
                     placeholder="Boş bırakılırsa Türkçesi kullanılır"
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -129,6 +132,7 @@ export default async function EditSeries({
                     placeholder="4 iş, serigrafi"
                     data-live="line"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -138,6 +142,9 @@ export default async function EditSeries({
                     className="adm-input"
                     defaultValue={series?.meta.en ?? ""}
                     placeholder="4 works, screenprint"
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -171,6 +178,7 @@ export default async function EditSeries({
                     defaultValue={series?.note.tr ?? ""}
                     data-live="text"
                     data-live-target={LIVE_TEXT}
+                    data-live-lang="tr"
                   />
                 </label>
                 <label className="block">
@@ -179,6 +187,9 @@ export default async function EditSeries({
                     name="noteEn"
                     className="adm-textarea"
                     defaultValue={series?.note.en ?? ""}
+                    data-live="text"
+                    data-live-target={LIVE_TEXT}
+                    data-live-lang="en"
                   />
                 </label>
               </div>
@@ -191,16 +202,12 @@ export default async function EditSeries({
           </FieldCard>
         </LiveEdit>
 
-        <details className="adm-fold adm-card" name={FOLD_GROUP}>
-          <summary>
-            <span className="adm-btn shrink-0">
-              <span data-fold="shut">Düzenle</span>
-              <span data-fold="open">Kapat</span>
+        <div className="adm-card">
+          <div className="adm-card-head">
+            <span className="label">
+              Yıl aralığı, teknik, kapak işi ve yayın
             </span>
-            <span className="adm-note min-w-0 flex-1 truncate">
-              Yıl aralığı, teknik, kapak işi ve yayın durumu
-            </span>
-          </summary>
+          </div>
 
           <div className="mt-5 grid gap-5 md:grid-cols-4">
             <label className="block">
@@ -252,7 +259,7 @@ export default async function EditSeries({
               <span className="text-[13px]">Sitede yayında</span>
             </label>
           </div>
-        </details>
+        </div>
 
         <div className="flex items-center gap-3">
           <SaveButton />

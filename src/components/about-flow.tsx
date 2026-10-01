@@ -23,7 +23,19 @@ const EXTRA_AIR: Partial<Record<AboutBlock["type"], string>> = {
   cv: " ab-cv",
 };
 
-function Cell({ cell, lang }: { cell: RowCell; lang: Lang }) {
+function Cell({
+  cell,
+  lang,
+  editing,
+}: {
+  cell: RowCell;
+  lang: Lang;
+  /**
+   * In the panel every part of a block is kept on the page even while it is
+   * still empty, so what is typed has somewhere to land as it is typed.
+   */
+  editing?: boolean;
+}) {
   if (cell.kind === "text") {
     return (
       <div
@@ -54,7 +66,7 @@ function Cell({ cell, lang }: { cell: RowCell; lang: Lang }) {
         ratio={cell.ratio}
         alt={cell.caption[lang]}
       />
-      {cell.caption[lang] && (
+      {(cell.caption[lang] || editing) && (
         <figcaption className="ab-caption">{cell.caption[lang]}</figcaption>
       )}
     </figure>
@@ -67,17 +79,19 @@ function CvList({
   style,
   sections,
   lang,
+  editing,
 }: {
   title: string;
   style: TextStyle;
   sections: CvSection[];
   lang: Lang;
+  editing?: boolean;
 }) {
   const t = dict(lang);
 
   return (
     <>
-      {title && (
+      {(title || editing) && (
         <div className="mb-[22px] flex items-baseline gap-4">
           <h2
             className="ab-cv-title m-0 font-serif text-[clamp(22px,2.4vw,30px)] leading-[1.1] font-normal"
@@ -144,10 +158,12 @@ function Block({
   block,
   lang,
   cv,
+  editing,
 }: {
   block: AboutBlock;
   lang: Lang;
   cv: CvSection[];
+  editing?: boolean;
 }) {
   if (block.type === "cv") {
     return (
@@ -156,6 +172,7 @@ function Block({
         style={block.style}
         sections={cv}
         lang={lang}
+        editing={editing}
       />
     );
   }
@@ -193,7 +210,7 @@ function Block({
       style={{ "--cols": block.cells.length } as React.CSSProperties}
     >
       {block.cells.map((cell, index) => (
-        <Cell key={index} cell={cell} lang={lang} />
+        <Cell key={index} cell={cell} lang={lang} editing={editing} />
       ))}
     </div>
   );
@@ -204,10 +221,12 @@ export function AboutBlockView({
   block,
   lang,
   cv,
+  editing,
 }: {
   block: AboutBlock;
   lang: Lang;
   cv: CvSection[];
+  editing?: boolean;
 }) {
   const spread =
     block.type === "heading" || block.type === "quote"
@@ -219,7 +238,7 @@ export function AboutBlockView({
       className={`ab-block w-full min-w-0${EXTRA_AIR[block.type] ?? ""}`}
       {...spread}
     >
-      <Block block={block} lang={lang} cv={cv} />
+      <Block block={block} lang={lang} cv={cv} editing={editing} />
     </section>
   );
 }
@@ -232,9 +251,11 @@ export const hasContent = (fact: AboutFact, lang: Lang) =>
 export function AboutHead({
   about,
   lang,
+  editing,
 }: {
   about: AboutContent;
   lang: Lang;
+  editing?: boolean;
 }) {
   return (
     <div className="ab-head">
@@ -254,23 +275,19 @@ export function AboutHead({
           {about.lead[lang]}
         </h1>
 
-        {about.facts.some((fact) => hasContent(fact, lang)) && (
+        {(editing || about.facts.some((fact) => hasContent(fact, lang))) && (
           <div className="grid gap-[22px] border-t border-rule pt-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))]">
             {about.facts.map((fact, index) =>
               // A column with nothing in it is one the artist has not filled
               // in yet; its number is kept so the panel can point at it.
-              hasContent(fact, lang) ? (
+              hasContent(fact, lang) || editing ? (
                 <div key={index} data-fact={index}>
                   <div className="label mb-[9px]">{fact.label[lang]}</div>
-                  {fact.lines.map((line, position) => (
-                    <div
-                      key={position}
-                      className="text-[12.5px] leading-[1.65] text-ink-soft"
-                      {...styleAttrs(fact.style)}
-                    >
-                      {line[lang]}
-                    </div>
-                  ))}
+                  <div className="ab-fact-lines" {...styleAttrs(fact.style)}>
+                    {fact.lines.map((line, position) => (
+                      <div key={position}>{line[lang]}</div>
+                    ))}
+                  </div>
                 </div>
               ) : null,
             )}
