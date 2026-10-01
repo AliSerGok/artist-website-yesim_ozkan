@@ -13,7 +13,7 @@ import {
 } from "@/components/admin/field-card";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
-import { TypeMenu } from "@/components/admin/type-menu";
+import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getAllCvEntries, getCvGroupById } from "@/lib/content";
 import { PLAIN } from "@/lib/type-style";
 
@@ -78,6 +78,7 @@ export default async function EditCvGroup({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleTitle", group?.style ?? PLAIN)}
                   />
                 </label>
                 <label className="block">
@@ -90,6 +91,7 @@ export default async function EditCvGroup({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleTitle", group?.style ?? PLAIN)}
                   />
                 </label>
                 <label className="flex items-center gap-2.5 self-end pb-2.5">

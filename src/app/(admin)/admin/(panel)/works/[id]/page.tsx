@@ -11,7 +11,7 @@ import {
 import { ImageField } from "@/components/admin/image-field";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
-import { TypeMenu } from "@/components/admin/type-menu";
+import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getAllSeries, getWorkById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { PLAIN } from "@/lib/type-style";
@@ -81,6 +81,7 @@ export default async function EditWork({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleTitle", styles.title)}
                   />
                 </label>
                 <label className="block">
@@ -93,6 +94,7 @@ export default async function EditWork({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleTitle", styles.title)}
                   />
                 </label>
               </div>
@@ -127,6 +129,7 @@ export default async function EditWork({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleCaption", styles.caption)}
                   />
                 </label>
                 <label className="block">
@@ -139,6 +142,7 @@ export default async function EditWork({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleCaption", styles.caption)}
                   />
                 </label>
               </div>
@@ -174,6 +178,7 @@ export default async function EditWork({
                     data-live="text"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleNote", styles.note)}
                   />
                 </label>
                 <label className="block">
@@ -185,6 +190,7 @@ export default async function EditWork({
                     data-live="text"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleNote", styles.note)}
                   />
                 </label>
               </div>

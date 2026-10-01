@@ -1028,6 +1028,27 @@
     padding: 9px 16px;
   }
 
+  /*
+   * Kaydet, standing in the empty column left of the panel so a long page
+   * can be saved from wherever it is being read. There is only room for it
+   * on a window wide enough to leave that column empty; on anything
+   * narrower the page's own button at the foot is the only one.
+   */
+  .adm-rail {
+    display: none;
+    position: fixed;
+    top: 128px;
+    left: max(14px, calc((100vw - var(--w-panel)) / 2 - 132px));
+    z-index: 25;
+    width: 116px;
+  }
+
+  @media (min-width: 1380px) {
+    .adm-rail {
+      display: block;
+    }
+  }
+
   /* Which language the card is showing, which typing can swing over. */
   .adm-lang {
     font-family: var(--font-mono);

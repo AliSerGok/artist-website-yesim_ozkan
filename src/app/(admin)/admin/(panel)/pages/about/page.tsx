@@ -4,7 +4,7 @@ import { saveAboutAction } from "@/app/(admin)/admin/actions";
 import { AboutBlockView, AboutHead } from "@/components/about-flow";
 import { ActionForm } from "@/components/admin/action-form";
 import { LiveEdit } from "@/components/admin/live-edit";
-import { TypeMenu } from "@/components/admin/type-menu";
+import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { ImageField } from "@/components/admin/image-field";
 import { SaveButton } from "@/components/admin/save-button";
 import { SubmitButton } from "@/components/admin/submit-button";
@@ -346,6 +346,7 @@ function HeadCard({ about }: { about: AboutContent }) {
                 data-live="line"
                 data-live-target=".ab-lead"
                 data-live-lang="tr"
+                {...dress("leadStyle", about.leadStyle)}
               />
             </label>
             <label className="block">
@@ -357,6 +358,7 @@ function HeadCard({ about }: { about: AboutContent }) {
                 data-live="line"
                 data-live-target=".ab-lead"
                 data-live-lang="en"
+                {...dress("leadStyle", about.leadStyle)}
               />
             </label>
           </div>
@@ -471,6 +473,7 @@ function HeadCard({ about }: { about: AboutContent }) {
                         data-live="lines"
                         data-live-target={`[data-fact="${index}"] .ab-fact-lines`}
                         data-live-lang="tr"
+                        {...dress(`factStyle${index}`, fact.style)}
                       />
                     </label>
                     <label className="block">
@@ -484,6 +487,7 @@ function HeadCard({ about }: { about: AboutContent }) {
                         data-live="lines"
                         data-live-target={`[data-fact="${index}"] .ab-fact-lines`}
                         data-live-lang="en"
+                        {...dress(`factStyle${index}`, fact.style)}
                       />
                     </label>
                   </div>
@@ -599,6 +603,7 @@ function BlockFields({
               data-live="line"
               data-live-target=".ab-cv-title"
               data-live-lang="tr"
+              {...dress(at("style"), block.style)}
             />
           </label>
           <label className="block">
@@ -611,6 +616,7 @@ function BlockFields({
               data-live="line"
               data-live-target=".ab-cv-title"
               data-live-lang="en"
+              {...dress(at("style"), block.style)}
             />
           </label>
         </div>
@@ -648,6 +654,7 @@ function BlockFields({
               data-live="line"
               data-live-target=".ab-title"
               data-live-lang="tr"
+              {...dress(at("style"), block.style)}
             />
           </label>
           <label className="block">
@@ -660,6 +667,7 @@ function BlockFields({
               data-live="line"
               data-live-target=".ab-title"
               data-live-lang="en"
+              {...dress(at("style"), block.style)}
             />
           </label>
         </div>
@@ -691,6 +699,7 @@ function BlockFields({
               data-live="line"
               data-live-target=".ab-quote"
               data-live-lang="tr"
+              {...dress(at("style"), block.style)}
             />
           </label>
           <label className="block">
@@ -702,6 +711,7 @@ function BlockFields({
               data-live="line"
               data-live-target=".ab-quote"
               data-live-lang="en"
+              {...dress(at("style"), block.style)}
             />
           </label>
         </div>
@@ -937,6 +947,7 @@ function CellFields({
               data-live="text"
               data-live-target={part}
               data-live-lang="tr"
+              {...dress(on("style"), cell.style)}
             />
           </label>
           <label className="block">
@@ -948,6 +959,7 @@ function CellFields({
               data-live="text"
               data-live-target={part}
               data-live-lang="en"
+              {...dress(on("style"), cell.style)}
             />
           </label>
         </div>
@@ -975,6 +987,7 @@ function CellFields({
               data-live="line"
               data-live-target={`${part} figcaption`}
               data-live-lang="tr"
+              {...dress(on("style"), cell.style)}
             />
           </label>
           <label className="block">
@@ -986,6 +999,7 @@ function CellFields({
               data-live="line"
               data-live-target={`${part} figcaption`}
               data-live-lang="en"
+              {...dress(on("style"), cell.style)}
             />
           </label>
         </div>

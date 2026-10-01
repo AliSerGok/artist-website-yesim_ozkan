@@ -14,7 +14,7 @@ import {
 import { ImageField } from "@/components/admin/image-field";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
-import { TypeMenu } from "@/components/admin/type-menu";
+import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getExhibitionById } from "@/lib/content";
 import { PLAIN } from "@/lib/type-style";
 
@@ -84,6 +84,7 @@ export default async function EditExhibition({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleTitle", styles.title)}
                   />
                 </label>
                 <label className="block">
@@ -95,6 +96,7 @@ export default async function EditExhibition({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleTitle", styles.title)}
                   />
                 </label>
               </div>
@@ -129,6 +131,7 @@ export default async function EditExhibition({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleVenue", styles.venue)}
                   />
                 </label>
                 <label className="block">
@@ -141,6 +144,7 @@ export default async function EditExhibition({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleVenue", styles.venue)}
                   />
                 </label>
               </div>
@@ -175,6 +179,7 @@ export default async function EditExhibition({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleKind", styles.kind)}
                   />
                 </label>
                 <label className="block">
@@ -187,6 +192,7 @@ export default async function EditExhibition({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleKind", styles.kind)}
                   />
                 </label>
               </div>
@@ -221,6 +227,7 @@ export default async function EditExhibition({
                     data-live="text"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleNote", styles.note)}
                   />
                 </label>
                 <label className="block">
@@ -232,6 +239,7 @@ export default async function EditExhibition({
                     data-live="text"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleNote", styles.note)}
                   />
                 </label>
               </div>

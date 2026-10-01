@@ -28,6 +28,7 @@ export function SubmitButton({
   disabled = false,
   title,
   "aria-label": ariaLabel,
+  "data-save": isSave,
 }: {
   children: React.ReactNode;
   /** Shown while the action runs, when the label has room for it. */
@@ -44,6 +45,8 @@ export function SubmitButton({
   disabled?: boolean;
   title?: string;
   "aria-label"?: string;
+  /** Marks the one button a page saves with; see save-rail.tsx. */
+  "data-save"?: boolean;
 }) {
   const { pending, data } = useFormStatus();
   const mine = name ? data?.get(name) === value : true;
@@ -83,6 +86,7 @@ export function SubmitButton({
         aria-busy={busy}
         aria-label={ariaLabel}
         title={title}
+        data-save={isSave ? "true" : undefined}
         onClick={(event) => {
           if (!confirm || approved.current) return;
           event.preventDefault();

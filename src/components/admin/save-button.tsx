@@ -84,6 +84,8 @@ export function SaveButton({
         busyLabel={busyLabel}
         disabled={!dirty}
         title={dirty ? undefined : idleTitle}
+        // What components/admin/save-rail.tsx looks for and presses.
+        data-save
       >
         {children}
       </SubmitButton>

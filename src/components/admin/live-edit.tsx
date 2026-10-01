@@ -120,8 +120,21 @@ export function LiveEdit({ children }: { children: React.ReactNode }) {
       if (!attribute) return;
 
       // Nothing chosen writes nothing, the way an unstyled page is written.
-      if (!value || value === "default") target.removeAttribute(attribute);
-      else target.setAttribute(attribute, value);
+      const write = (node: Element) => {
+        if (!value || value === "default") node.removeAttribute(attribute);
+        else node.setAttribute(attribute, value);
+      };
+
+      write(target);
+
+      /*
+       * A face is worn by the boxes it is typed into as well, so the words
+       * are written in the face they will be read in.
+       */
+      const fields = field.getAttribute("data-live-fields");
+      if (fields) {
+        field.closest("[data-card]")?.querySelectorAll(fields).forEach(write);
+      }
     };
 
     const onClick = (event: MouseEvent) => {

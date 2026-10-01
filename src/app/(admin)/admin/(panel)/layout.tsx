@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { signOutAction } from "@/app/(admin)/admin/auth-actions";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { SaveRail } from "@/components/admin/save-rail";
 import { getAdminIdentity } from "@/lib/auth";
 
 export default async function PanelLayout({
@@ -32,6 +33,7 @@ export default async function PanelLayout({
         </div>
       </div>
       <main className="adm-shell pt-[clamp(26px,4vw,44px)]">{children}</main>
+      <SaveRail />
     </>
   );
 }

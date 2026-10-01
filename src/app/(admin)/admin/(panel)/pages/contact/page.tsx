@@ -8,7 +8,7 @@ import {
 import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
 import { SubmitButton } from "@/components/admin/submit-button";
-import { TypeMenu } from "@/components/admin/type-menu";
+import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getContact } from "@/lib/content";
 import { styleAttrs } from "@/lib/type-style";
 import { revision } from "@/lib/revision";
@@ -57,6 +57,7 @@ export default async function EditContact() {
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleLead", contact.styles.lead)}
                   />
                 </label>
                 <label className="block">
@@ -68,6 +69,7 @@ export default async function EditContact() {
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleLead", contact.styles.lead)}
                   />
                 </label>
               </div>
@@ -102,6 +104,7 @@ export default async function EditContact() {
                     data-live="text"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleNote", contact.styles.note)}
                   />
                 </label>
                 <label className="block">
@@ -113,6 +116,7 @@ export default async function EditContact() {
                     data-live="text"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleNote", contact.styles.note)}
                   />
                 </label>
               </div>
@@ -205,6 +209,7 @@ export default async function EditContact() {
                           defaultValue={row.value}
                           data-live="line"
                           data-live-target={LIVE_TEXT}
+                          {...dress(`rowStyle${index}`, row.style)}
                         />
                       </label>
                       <label className="block">

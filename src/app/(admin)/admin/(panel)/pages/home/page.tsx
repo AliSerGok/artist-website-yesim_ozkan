@@ -5,7 +5,7 @@ import { ImageField } from "@/components/admin/image-field";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { SaveButton } from "@/components/admin/save-button";
 import { SubmitButton } from "@/components/admin/submit-button";
-import { TypeMenu } from "@/components/admin/type-menu";
+import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { HomeCaption } from "@/components/home-caption";
 import { getAllWorks, getHome } from "@/lib/content";
 import { mediaUrl } from "@/lib/media";
@@ -400,6 +400,7 @@ function ImageFields({
                 defaultValue={item.title.tr}
                 placeholder="Uzun Sabah"
                 data-live-lang="tr"
+                {...dress(at("styleTitle"), item.styles.title)}
               />
             </label>
             <label className="block">
@@ -412,6 +413,7 @@ function ImageFields({
                 data-live="line"
                 data-live-target=".tl-name"
                 data-live-lang="en"
+                {...dress(at("styleTitle"), item.styles.title)}
               />
             </label>
 
@@ -427,6 +429,7 @@ function ImageFields({
                 defaultValue={item.aside.tr}
                 placeholder="2026"
                 data-live-lang="tr"
+                {...dress(at("styleTitle"), item.styles.title)}
               />
             </label>
             <label className="block">
@@ -441,6 +444,7 @@ function ImageFields({
                 data-live="line"
                 data-live-target=".tl-aside"
                 data-live-lang="en"
+                {...dress(at("styleTitle"), item.styles.title)}
               />
             </label>
 
@@ -454,6 +458,7 @@ function ImageFields({
                 defaultValue={item.caption.tr}
                 placeholder="Galeri Nev, İstanbul"
                 data-live-lang="tr"
+                {...dress(at("styleCaption"), item.styles.caption)}
               />
             </label>
             <label className="block">
@@ -466,6 +471,7 @@ function ImageFields({
                 data-live="line"
                 data-live-target=".home-cap-line"
                 data-live-lang="en"
+                {...dress(at("styleCaption"), item.styles.caption)}
               />
             </label>
           </div>

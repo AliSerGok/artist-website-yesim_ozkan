@@ -10,7 +10,7 @@ import {
 } from "@/components/admin/field-card";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
-import { TypeMenu } from "@/components/admin/type-menu";
+import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getAllCvGroups, getCvEntryById } from "@/lib/content";
 import { PLAIN } from "@/lib/type-style";
 
@@ -73,6 +73,7 @@ export default async function EditCv({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleTitle", style)}
                   />
                 </label>
                 <label className="block">
@@ -85,6 +86,7 @@ export default async function EditCv({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleTitle", style)}
                   />
                 </label>
               </div>

@@ -1,4 +1,4 @@
-import { FONTS, type Font, type TextStyle } from "@/lib/type-style";
+import { FONTS, styleAttrs, type Font, type TextStyle } from "@/lib/type-style";
 
 /**
  * The face one written field is set in: the two the site is drawn with, and
@@ -21,6 +21,16 @@ const FONT_LABEL: Record<Font, string> = {
   trebuchet: "Trebuchet MS",
   mono: "Daktilo",
 };
+
+/**
+ * What a written field wears while it is being typed: the face chosen for
+ * it, so the box the words are typed into looks like the page they land on.
+ * The name ties the field to its menu; the panel writes the same attributes
+ * onto both as the menu is used.
+ */
+export function dress(name: string, style: TextStyle) {
+  return { "data-dress": name, ...styleAttrs(style) };
+}
 
 export function TypeMenu({
   name,
@@ -45,6 +55,7 @@ export function TypeMenu({
           defaultValue={style.font}
           data-live="font"
           data-live-target={target}
+          data-live-fields={`[data-dress="${name}"]`}
         >
           {FONTS.map((font) => (
             <option key={font} value={font}>
@@ -61,6 +72,7 @@ export function TypeMenu({
           defaultChecked={style.bold}
           data-live="bold"
           data-live-target={target}
+          data-live-fields={`[data-dress="${name}"]`}
         />
         <span className="font-semibold">Kalın</span>
       </label>
@@ -72,6 +84,7 @@ export function TypeMenu({
           defaultChecked={style.italic}
           data-live="italic"
           data-live-target={target}
+          data-live-fields={`[data-dress="${name}"]`}
         />
         <span className="italic">İtalik</span>
       </label>

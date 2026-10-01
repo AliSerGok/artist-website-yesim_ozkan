@@ -17,7 +17,7 @@ import {
 import { LiveEdit } from "@/components/admin/live-edit";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { SaveButton } from "@/components/admin/save-button";
-import { TypeMenu } from "@/components/admin/type-menu";
+import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getAllWorks, getSeriesById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { mediaUrl } from "@/lib/media";
@@ -87,6 +87,7 @@ export default async function EditSeries({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleTitle", styles.title)}
                   />
                 </label>
                 <label className="block">
@@ -99,6 +100,7 @@ export default async function EditSeries({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleTitle", styles.title)}
                   />
                 </label>
               </div>
@@ -133,6 +135,7 @@ export default async function EditSeries({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleMeta", styles.meta)}
                   />
                 </label>
                 <label className="block">
@@ -145,6 +148,7 @@ export default async function EditSeries({
                     data-live="line"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleMeta", styles.meta)}
                   />
                 </label>
               </div>
@@ -179,6 +183,7 @@ export default async function EditSeries({
                     data-live="text"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="tr"
+                    {...dress("styleNote", styles.note)}
                   />
                 </label>
                 <label className="block">
@@ -190,6 +195,7 @@ export default async function EditSeries({
                     data-live="text"
                     data-live-target={LIVE_TEXT}
                     data-live-lang="en"
+                    {...dress("styleNote", styles.note)}
                   />
                 </label>
               </div>
