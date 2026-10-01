@@ -8,6 +8,7 @@ import { Lightbox } from "@/components/lightbox";
 import { TitleLine } from "@/components/title-line";
 import type { GalleryWork } from "@/components/work-gallery";
 import { dict } from "@/lib/dictionary";
+import { styleAttrs, type StyleMap } from "@/lib/type-style";
 import type { Lang } from "@/lib/i18n";
 import { mediaUrl } from "@/lib/media";
 import { seriesHref, workHref, workInPath } from "@/lib/routes";
@@ -31,6 +32,8 @@ export type HomeTarget =
   | { kind: "link"; href: string };
 
 export interface HomeSlide {
+  /** The faces chosen for the name and for the line under it. */
+  styles: StyleMap<"title" | "caption">;
   /** Also what the picture is called, even when nothing is written over it. */
   title: string;
   /** Italic tail after the title: the year of a work, or whatever was typed. */
@@ -295,9 +298,13 @@ function Pane({
             aside={slide.aside}
             className="font-serif text-[clamp(19px,2vw,26px)] leading-[1.2] text-bg"
             asideClassName="opacity-80"
+            style={slide.styles.title}
           />
           {slide.caption && (
-            <div className="mt-[5px] text-[11px] tracking-[0.06em] text-[rgba(253,253,252,0.82)]">
+            <div
+              className="mt-[5px] text-[11px] tracking-[0.06em] text-[rgba(253,253,252,0.82)]"
+              {...styleAttrs(slide.styles.caption)}
+            >
               {slide.caption}
             </div>
           )}

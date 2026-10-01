@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
 import { defaultCvTitle } from "@/lib/dictionary";
+import { FONTS, PLAIN, type Font, type TextStyle } from "@/lib/type-style";
 import { finish, stay } from "@/lib/flash";
 import type { Localized } from "@/lib/i18n";
 import {
@@ -89,6 +90,36 @@ const nullable = (form: FormData, key: string) => text(form, key) || null;
 const repeated = (form: FormData, key: string) =>
   form.getAll(key).map((value) => String(value));
 
+/**
+ * The face chosen for one field. The panel posts three fields per face --
+ * the menu and its two switches -- all named after the field they dress.
+ */
+const style = (form: FormData, key: string): TextStyle => {
+  const font = text(form, `${key}Font`);
+
+  return {
+    font: (FONTS as readonly string[]).includes(font)
+      ? (font as Font)
+      : "default",
+    bold: flag(form, `${key}Bold`),
+    italic: flag(form, `${key}Italic`),
+  };
+};
+
+/**
+ * The faces of a whole row, as the JSON its styles column holds. Each one is
+ * posted under the field it dresses: "title" is read from styleTitle*.
+ */
+const styles = (form: FormData, roles: readonly string[]) =>
+  JSON.stringify(
+    Object.fromEntries(
+      roles.map((role) => [
+        role,
+        style(form, `style${role[0].toUpperCase()}${role.slice(1)}`),
+      ]),
+    ),
+  );
+
 const localized = (form: FormData, key: string) => ({
   tr: text(form, `${key}Tr`),
   en: text(form, `${key}En`) || text(form, `${key}Tr`),
@@ -138,6 +169,7 @@ export async function saveWorkAction(form: FormData) {
           : number(form, "height", 4),
         slot: text(form, "slot"),
         published: flag(form, "published"),
+        styles: styles(form, ["title", "caption", "note"]),
       });
 
       await deleteImages(orphaned([previous?.imageKey ?? null], [imageKey]));
@@ -206,6 +238,7 @@ export async function saveSeriesAction(form: FormData) {
         noteEn: text(form, "noteEn"),
         coverWorkId: nullable(form, "coverWorkId"),
         published: flag(form, "published"),
+        styles: styles(form, ["title", "meta", "note"]),
       });
     },
     id ? `/admin/series/${id}` : "/admin/series/new",
@@ -294,6 +327,7 @@ export async function addSeriesWorksAction(form: FormData) {
           height: measured ? Math.round(height) : 4,
           slot: "",
           published: true,
+          styles: "{}",
         });
       }
 
@@ -339,6 +373,7 @@ export async function saveExhibitionAction(form: FormData) {
         url: text(form, "url"),
         imageKey,
         published: flag(form, "published"),
+        styles: styles(form, ["title", "venue", "kind", "note"]),
       });
 
       await deleteImages(orphaned([previous?.imageKey ?? null], [imageKey]));
@@ -410,6 +445,7 @@ export async function saveCvAction(form: FormData) {
           : "",
         url: text(form, "url"),
         published: flag(form, "published"),
+        styles: styles(form, ["title"]),
       });
     },
     id ? `/admin/cv/${id}` : "/admin/cv/new",
@@ -461,6 +497,7 @@ export async function saveCvGroupAction(form: FormData) {
         titleTr: text(form, "titleTr"),
         titleEn: text(form, "titleEn") || text(form, "titleTr"),
         published: flag(form, "published"),
+        styles: styles(form, ["title"]),
       });
     },
     id ? `/admin/cv/groups/${id}` : "/admin/cv/groups/new",
@@ -529,13 +566,21 @@ const blank = (): Localized => ({ tr: "", en: "" });
 
 function emptyCell(kind: CellType): RowCell {
   return kind === "image"
-    ? { kind, imageKey: null, ratio: 1.5, caption: blank(), align: FLUSH }
+    ? {
+        kind,
+        imageKey: null,
+        ratio: 1.5,
+        caption: blank(),
+        align: FLUSH,
+        style: PLAIN,
+      }
     : {
         kind: "text",
         paragraphs: [blank()],
         align: FLUSH,
         width: DEFAULT_WIDTH.text,
         size: DEFAULT_SIZE,
+        style: PLAIN,
       };
 }
 
@@ -571,6 +616,7 @@ function emptyBlock(type: BlockType): AboutBlock {
       width: DEFAULT_WIDTH.heading,
       align: "start",
       size: DEFAULT_SIZE,
+      style: PLAIN,
     };
   }
 
@@ -582,10 +628,11 @@ function emptyBlock(type: BlockType): AboutBlock {
       width: DEFAULT_WIDTH.quote,
       align: "start",
       size: DEFAULT_SIZE,
+      style: PLAIN,
     };
   }
 
-  if (type === "cv") return { type, title: defaultCvTitle() };
+  if (type === "cv") return { type, title: defaultCvTitle(), style: PLAIN };
 
   return { type: "row", cells: [emptyCell("text")] };
 }
@@ -598,6 +645,7 @@ function readFacts(form: FormData): AboutFact[] {
   for (let index = 0; index < count; index += 1) {
     facts.push({
       label: localized(form, `factLabel${index}`),
+      style: style(form, `factStyle${index}`),
       lines: pairUp(
         lines(text(form, `factLines${index}Tr`)),
         lines(text(form, `factLines${index}En`)),
@@ -625,6 +673,7 @@ function readBlocks(form: FormData): AboutBlock[] {
         width: width(form, at("width"), DEFAULT_WIDTH.heading),
         align: alignment(form, at("align")),
         size: size(form, at("size")),
+        style: style(form, at("style")),
       });
       continue;
     }
@@ -637,12 +686,17 @@ function readBlocks(form: FormData): AboutBlock[] {
         width: width(form, at("width"), DEFAULT_WIDTH.quote),
         align: alignment(form, at("align")),
         size: size(form, at("size")),
+        style: style(form, at("style")),
       });
       continue;
     }
 
     if (type === "cv") {
-      blocks.push({ type: "cv", title: localized(form, at("cvTitle")) });
+      blocks.push({
+        type: "cv",
+        title: localized(form, at("cvTitle")),
+        style: style(form, at("style")),
+      });
       continue;
     }
 
@@ -667,6 +721,7 @@ function readBlocks(form: FormData): AboutBlock[] {
           ratio: Number(form.get(on("ratio"))) || 1.5,
           caption: localized(form, on("cap")),
           align,
+          style: style(form, on("style")),
         });
         continue;
       }
@@ -680,6 +735,7 @@ function readBlocks(form: FormData): AboutBlock[] {
         align,
         width: width(form, on("width"), DEFAULT_WIDTH.text),
         size: size(form, on("size")),
+        style: style(form, on("style")),
       });
     }
 
@@ -760,7 +816,7 @@ function applyIntent(
   }
 
   if (command === "fact-add") {
-    facts.push({ label: blank(), lines: [] });
+    facts.push({ label: blank(), lines: [], style: PLAIN });
     return;
   }
 
@@ -820,6 +876,7 @@ export async function saveAboutAction(form: FormData) {
 
     const about: AboutContent = {
       lead: localized(form, "lead"),
+      leadStyle: style(form, "leadStyle"),
       facts,
       blocks,
       portraitSlot: localized(form, "portraitSlot"),
@@ -854,6 +911,7 @@ function readContactRows(form: FormData): ContactRow[] {
       value: text(form, `rowValue${index}`),
       // "#" is the panel's way of saying a row points nowhere yet.
       href: text(form, `rowHref${index}`) || "#",
+      style: style(form, `rowStyle${index}`),
     });
   }
 
@@ -868,7 +926,7 @@ function applyContactIntent(intent: string, rows: ContactRow[]): void {
   const [command, ...rest] = intent.split(":");
 
   if (command === "add" && rows.length < MAX_CONTACT_ROWS) {
-    rows.push({ label: blank(), value: "", href: "" });
+    rows.push({ label: blank(), value: "", href: "", style: PLAIN });
     return;
   }
 
@@ -898,6 +956,10 @@ export async function saveContactAction(form: FormData) {
       lead: localized(form, "lead"),
       note: localized(form, "note"),
       rows,
+      styles: {
+        lead: style(form, "styleLead"),
+        note: style(form, "styleNote"),
+      },
     };
 
     await savePageContent("contact", contact);
@@ -917,6 +979,7 @@ function emptyHomeItem(type: HomeItemType): HomeItem {
         aside: blank(),
         caption: blank(),
         href: "",
+        styles: { title: PLAIN, caption: PLAIN },
       };
 }
 
@@ -952,6 +1015,10 @@ function readHomeItems(form: FormData): HomeItem[] {
         aside: localized(form, at("aside")),
         caption: localized(form, at("caption")),
         href: text(form, at("href")),
+        styles: {
+          title: style(form, at("styleTitle")),
+          caption: style(form, at("styleCaption")),
+        },
       });
     }
   }

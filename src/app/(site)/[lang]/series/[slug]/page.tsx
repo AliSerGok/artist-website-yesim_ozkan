@@ -6,6 +6,7 @@ import { WorkGallery } from "@/components/work-gallery";
 import { toGalleryWork } from "@/lib/cards";
 import { getSeriesBySlug, getWorksInSeries } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
+import { styleAttrs } from "@/lib/type-style";
 import { isLang } from "@/lib/i18n";
 
 export async function generateMetadata({
@@ -69,14 +70,20 @@ export default async function SeriesPage({
             <div className="mb-3 text-[9.5px] tracking-[0.2em] text-mute-3 uppercase">
               {t.seriesBadge} · {works.length}
             </div>
-            <h1 className="page-title">
+            <h1 className="page-title" {...styleAttrs(series.styles.title)}>
               {series.title[lang]}
             </h1>
-            <div className="mt-2.5 text-[12px] tracking-[0.08em] text-mute-2">
+            <div
+              className="mt-2.5 text-[12px] tracking-[0.08em] text-mute-2"
+              {...styleAttrs(series.styles.meta)}
+            >
               {series.years} — {series.meta[lang]}
             </div>
           </div>
-          <p className="m-0 max-w-[46ch] text-[14.5px] leading-[1.78] text-ink-soft text-pretty">
+          <p
+            className="m-0 max-w-[46ch] text-[14.5px] leading-[1.78] text-ink-soft text-pretty"
+            {...styleAttrs(series.styles.note)}
+          >
             {series.note[lang]}
           </p>
         </div>

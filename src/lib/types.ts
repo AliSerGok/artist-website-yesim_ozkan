@@ -1,4 +1,5 @@
 import type { Localized } from "./i18n";
+import type { StyleMap, TextStyle } from "./type-style";
 
 /** Technique a work or a series is filed under. */
 export const MEDIUMS = ["paintings", "prints", "paper"] as const;
@@ -26,6 +27,8 @@ export interface Work {
   slot: string;
   imageKey: string | null;
   published: boolean;
+  /** The face each of its written fields is set in. */
+  styles: StyleMap<"title" | "caption" | "note">;
 }
 
 export interface Series {
@@ -42,6 +45,7 @@ export interface Series {
   /** Id of the work whose image fronts the series card. */
   coverWorkId: string | null;
   published: boolean;
+  styles: StyleMap<"title" | "meta" | "note">;
 }
 
 /** The handful of shows given the full editorial treatment. */
@@ -56,6 +60,7 @@ export interface Exhibition {
   url: string;
   imageKey: string | null;
   published: boolean;
+  styles: StyleMap<"title" | "venue" | "kind" | "note">;
 }
 
 export const CV_KINDS = ["solo", "group"] as const;
@@ -69,6 +74,7 @@ export interface CvGroup {
   order: number;
   title: Localized;
   published: boolean;
+  style: TextStyle;
 }
 
 /** One line of the complete participation list on the about page. */
@@ -84,12 +90,14 @@ export interface CvEntry {
   kind: CvKind | "";
   url: string;
   published: boolean;
+  style: TextStyle;
 }
 
 export interface AboutFact {
   label: Localized;
   /** One entry per line, typed as a small text area in the panel. */
   lines: Localized[];
+  style: TextStyle;
 }
 
 export const CELL_TYPES = ["text", "image"] as const;
@@ -146,6 +154,7 @@ export interface TextCell {
   /** Across the column it was given; the alignment places what is left. */
   width: Width;
   size: Size;
+  style: TextStyle;
 }
 
 export interface ImageCell {
@@ -155,6 +164,8 @@ export interface ImageCell {
   ratio: number;
   caption: Localized;
   align: CellAlign;
+  /** The face of the caption; the picture has no words of its own. */
+  style: TextStyle;
 }
 
 export type RowCell = TextCell | ImageCell;
@@ -180,6 +191,7 @@ export interface HeadingBlock {
   /** Both the side of the page it keeps and the way the words are set. */
   align: Alignment;
   size: Size;
+  style: TextStyle;
 }
 
 export interface QuoteBlock {
@@ -189,6 +201,8 @@ export interface QuoteBlock {
   width: Width;
   align: Alignment;
   size: Size;
+  /** The quote itself; the source line keeps the panel's small caps. */
+  style: TextStyle;
 }
 
 /**
@@ -200,6 +214,7 @@ export interface CvBlock {
   type: "cv";
   /** The heading over the list; left empty the list runs without one. */
   title: Localized;
+  style: TextStyle;
 }
 
 export const BLOCK_TYPES = ["row", "heading", "quote", "cv"] as const;
@@ -211,6 +226,7 @@ export type AboutBlock = RowBlock | HeadingBlock | QuoteBlock | CvBlock;
 
 export interface AboutContent {
   lead: Localized;
+  leadStyle: TextStyle;
   facts: AboutFact[];
   blocks: AboutBlock[];
   portraitSlot: Localized;
@@ -228,6 +244,7 @@ export interface ContactRow {
   label: Localized;
   value: string;
   href: string;
+  style: TextStyle;
 }
 
 /** The contact page lists at most this many ways to reach her. */
@@ -237,6 +254,7 @@ export interface ContactContent {
   lead: Localized;
   note: Localized;
   rows: ContactRow[];
+  styles: StyleMap<"lead" | "note">;
 }
 
 export const HOME_ITEM_TYPES = ["work", "image"] as const;
@@ -271,6 +289,8 @@ export interface HomeImageItem {
   caption: Localized;
   /** Where the slide leads; left empty it leads nowhere. */
   href: string;
+  /** The name with its italic tail, and the small line under them. */
+  styles: StyleMap<"title" | "caption">;
 }
 
 /**

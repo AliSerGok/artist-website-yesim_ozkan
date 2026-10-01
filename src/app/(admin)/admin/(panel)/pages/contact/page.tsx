@@ -1,7 +1,14 @@
 import { saveContactAction } from "@/app/(admin)/admin/actions";
 import { ActionForm } from "@/components/admin/action-form";
+import {
+  FieldCard,
+  FieldPreview,
+  LIVE_TEXT,
+} from "@/components/admin/field-card";
+import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
 import { SubmitButton } from "@/components/admin/submit-button";
+import { TypeMenu } from "@/components/admin/type-menu";
 import { getContact } from "@/lib/content";
 import { revision } from "@/lib/revision";
 import { MAX_CONTACT_ROWS } from "@/lib/types";
@@ -15,49 +22,99 @@ export default async function EditContact() {
   return (
     <>
       <h1 className="adm-h1">İletişim</h1>
+      <p className="adm-note mt-3 max-w-[64ch]">
+        Her kart sitede göründüğü gibi duruyor; yazmak için “Düzenle”ye bas.
+        Aynı anda tek kart açık kalır, yazı tipini de aynı kartta seçersin.
+      </p>
 
       <ActionForm
         action={saveContactAction}
         formKey={revision(contact)}
-        className="mt-8 flex flex-col gap-6"
+        className="mt-8 flex flex-col gap-5"
       >
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="block">
-            <span className="adm-label">Giriş cümlesi (Türkçe)</span>
-            <input
-              name="leadTr"
-              className="adm-input"
-              defaultValue={contact.lead.tr}
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Giriş cümlesi (İngilizce)</span>
-            <input
-              name="leadEn"
-              className="adm-input"
-              defaultValue={contact.lead.en}
-            />
-          </label>
-        </div>
+        <LiveEdit>
+          <FieldCard
+            label="Giriş cümlesi"
+            hint="Sayfanın açılış cümlesi ve yazı tipi"
+            preview={
+              <FieldPreview
+                kind="title"
+                value={contact.lead.tr}
+                style={contact.styles.lead}
+                empty="Giriş cümlesi yazılmadı."
+              />
+            }
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="adm-label">Giriş cümlesi (Türkçe)</span>
+                  <input
+                    name="leadTr"
+                    className="adm-input"
+                    defaultValue={contact.lead.tr}
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                  />
+                </label>
+                <label className="block">
+                  <span className="adm-label">Giriş cümlesi (İngilizce)</span>
+                  <input
+                    name="leadEn"
+                    className="adm-input"
+                    defaultValue={contact.lead.en}
+                  />
+                </label>
+              </div>
+              <TypeMenu
+                name="styleLead"
+                style={contact.styles.lead}
+                target={LIVE_TEXT}
+              />
+            </div>
+          </FieldCard>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="block">
-            <span className="adm-label">Not (Türkçe)</span>
-            <textarea
-              name="noteTr"
-              className="adm-textarea"
-              defaultValue={contact.note.tr}
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Not (İngilizce)</span>
-            <textarea
-              name="noteEn"
-              className="adm-textarea"
-              defaultValue={contact.note.en}
-            />
-          </label>
-        </div>
+          <FieldCard
+            label="Not"
+            hint="Giriş cümlesinin altındaki metin ve yazı tipi"
+            preview={
+              <FieldPreview
+                kind="prose"
+                value={contact.note.tr}
+                style={contact.styles.note}
+                empty="Not yazılmadı."
+              />
+            }
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="adm-label">Not (Türkçe)</span>
+                  <textarea
+                    name="noteTr"
+                    className="adm-textarea"
+                    defaultValue={contact.note.tr}
+                    data-live="text"
+                    data-live-target={LIVE_TEXT}
+                  />
+                </label>
+                <label className="block">
+                  <span className="adm-label">Not (İngilizce)</span>
+                  <textarea
+                    name="noteEn"
+                    className="adm-textarea"
+                    defaultValue={contact.note.en}
+                  />
+                </label>
+              </div>
+              <TypeMenu
+                name="styleNote"
+                style={contact.styles.note}
+                target={LIVE_TEXT}
+              />
+            </div>
+          </FieldCard>
+        </LiveEdit>
 
         <div>
           <input type="hidden" name="rowCount" value={contact.rows.length} />
@@ -124,6 +181,14 @@ export default async function EditContact() {
                       />
                     </label>
                   </div>
+
+                  <div className="mt-4">
+                    <TypeMenu
+                      name={`rowStyle${index}`}
+                      style={row.style}
+                      label="Görünen değerin yazı tipi"
+                    />
+                  </div>
                 </div>
               );
             })}
@@ -134,7 +199,12 @@ export default async function EditContact() {
           )}
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <SubmitButton name="intent" value="add" className="adm-btn" disabled={full}>
+            <SubmitButton
+              name="intent"
+              value="add"
+              className="adm-btn"
+              disabled={full}
+            >
               Satır ekle
             </SubmitButton>
             <span className="adm-note">

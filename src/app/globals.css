@@ -1155,6 +1155,44 @@
     display: inline;
   }
 
+  /* A small on/off chip: bold and italic stand beside the face menu. */
+  .adm-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--color-rule-2);
+    background: #fff;
+    padding: 8px 11px;
+    font-size: 12.5px;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .adm-switch:hover {
+    border-color: var(--color-mute-3);
+  }
+
+  .adm-switch:has(:checked) {
+    border-color: var(--color-ink);
+    background: var(--color-panel);
+  }
+
+  .adm-switch input {
+    width: 14px;
+    height: 14px;
+    accent-color: #14140f;
+  }
+
+  /* Paragraphs inside a card's preview, spaced like the page spaces them. */
+  .adm-prose p {
+    margin: 0 0 12px;
+  }
+
+  .adm-prose p:last-child {
+    margin-bottom: 0;
+  }
+
   /*
    * A card shows the artist what the page will do with the block, so the
    * preview stands on the site's own ground rather than the panel's card.
@@ -1669,4 +1707,58 @@
   .nav-spark[data-pending] { animation: none; }
   .adm-btn:active:not(:disabled) { transform: none; }
   .adm-sortable { transition: none; }
+}
+
+/*
+ * The face a piece of written text is set in, chosen in the panel and
+ * written onto the markup as data attributes -- see lib/type-style.ts.
+ *
+ * Deliberately outside every layer: unlayered rules beat layered ones, so a
+ * face chosen for one line wins over the utility class that sets the face of
+ * everything around it. Text nobody has restyled carries no attribute at all
+ * and is left exactly as the page sets it.
+ */
+
+[data-font="serif"] {
+  font-family: var(--font-serif);
+}
+
+[data-font="sans"] {
+  font-family: var(--font-sans);
+}
+
+[data-font="calibri"] {
+  font-family: Calibri, Carlito, Candara, "Segoe UI", sans-serif;
+}
+
+[data-font="times"] {
+  font-family: "Times New Roman", Times, serif;
+}
+
+[data-font="georgia"] {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+[data-font="palatino"] {
+  font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+}
+
+[data-font="verdana"] {
+  font-family: Verdana, Geneva, sans-serif;
+}
+
+[data-font="trebuchet"] {
+  font-family: "Trebuchet MS", "Lucida Grande", Tahoma, sans-serif;
+}
+
+[data-font="mono"] {
+  font-family: var(--font-mono);
+}
+
+[data-bold="true"] {
+  font-weight: 600;
+}
+
+[data-italic="true"] {
+  font-style: italic;
 }

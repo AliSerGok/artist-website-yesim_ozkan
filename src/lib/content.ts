@@ -11,6 +11,7 @@ import {
   SEED_SERIES,
   SEED_WORKS,
 } from "./seed";
+import { PLAIN, toStyle, toStyleMap } from "./type-style";
 import { DEFAULT_SIZE, DEFAULT_WIDTH, FLUSH } from "./types";
 import type {
   AboutBlock,
@@ -34,12 +35,26 @@ import type {
   Work,
 } from "./types";
 
+/** The faces stored beside a row, or none when the column has never been set. */
+function rowStyles<Role extends string>(
+  value: string | null | undefined,
+  roles: readonly Role[],
+) {
+  try {
+    return toStyleMap(value ? JSON.parse(value) : {}, roles);
+  } catch {
+    return toStyleMap({}, roles);
+  }
+}
+
 /**
  * Single place the pages read content from. Falls back to the seed data
  * when no D1 binding is present, so `next dev` works before setup.
  */
 
 interface WorkRow {
+  /** A JSON object of faces, keyed by field; see lib/type-style.ts. */
+  styles: string;
   id: string;
   slug: string;
   medium: string;
@@ -60,6 +75,8 @@ interface WorkRow {
 }
 
 interface SeriesRow {
+  /** A JSON object of faces, keyed by field; see lib/type-style.ts. */
+  styles: string;
   id: string;
   slug: string;
   medium: string;
@@ -76,6 +93,8 @@ interface SeriesRow {
 }
 
 interface ExhibitionRow {
+  /** A JSON object of faces, keyed by field; see lib/type-style.ts. */
+  styles: string;
   id: string;
   year: string;
   sort_order: number;
@@ -93,6 +112,8 @@ interface ExhibitionRow {
 }
 
 interface CvRow {
+  /** A JSON object of faces, keyed by field; see lib/type-style.ts. */
+  styles: string;
   id: string;
   group_id: string | null;
   year: string;
@@ -105,6 +126,8 @@ interface CvRow {
 }
 
 interface CvGroupRow {
+  /** A JSON object of faces, keyed by field; see lib/type-style.ts. */
+  styles: string;
   id: string;
   sort_order: number;
   title_tr: string;
@@ -128,6 +151,7 @@ function toWork(row: WorkRow): Work {
     slot: row.slot,
     imageKey: row.image_key,
     published: row.published === 1,
+    styles: rowStyles(row.styles, ["title", "caption", "note"] as const),
   };
 }
 
@@ -143,6 +167,7 @@ function toSeries(row: SeriesRow): Series {
     note: { tr: row.note_tr, en: row.note_en },
     coverWorkId: row.cover_work_id,
     published: row.published === 1,
+    styles: rowStyles(row.styles, ["title", "meta", "note"] as const),
   };
 }
 
@@ -158,6 +183,7 @@ function toExhibition(row: ExhibitionRow): Exhibition {
     url: row.url,
     imageKey: row.image_key,
     published: row.published === 1,
+    styles: rowStyles(row.styles, ["title", "venue", "kind", "note"] as const),
   };
 }
 
@@ -171,6 +197,7 @@ function toCvEntry(row: CvRow): CvEntry {
     kind: row.kind as CvEntry["kind"],
     url: row.url,
     published: row.published === 1,
+    style: rowStyles(row.styles, ["title"] as const).title,
   };
 }
 
@@ -180,6 +207,7 @@ function toCvGroup(row: CvGroupRow): CvGroup {
     order: row.sort_order,
     title: { tr: row.title_tr, en: row.title_en },
     published: row.published === 1,
+    style: rowStyles(row.styles, ["title"] as const).title,
   };
 }
 
@@ -312,6 +340,7 @@ function toHomeItem(item: HomeItem): HomeItem | null {
       aside: item.aside ?? blank(),
       caption: item.caption ?? blank(),
       href: item.href ?? "",
+      styles: toStyleMap(item.styles, ["title", "caption"] as const),
     };
   }
 
@@ -431,6 +460,7 @@ export async function getHomeScreens(): Promise<HomeScreen[]> {
  * translated on the way out rather than migrated in place.
  */
 interface LegacyFact {
+  style?: unknown;
   label?: Localized;
   a?: Localized;
   b?: Localized;
@@ -438,9 +468,10 @@ interface LegacyFact {
 }
 
 type LegacyCell =
-  | (Omit<TextCell, "align" | "width" | "size"> &
-      Partial<Pick<TextCell, "align" | "width" | "size">>)
-  | (Omit<ImageCell, "align"> & Partial<Pick<ImageCell, "align">>);
+  | (Omit<TextCell, "align" | "width" | "size" | "style"> &
+      Partial<Pick<TextCell, "align" | "width" | "size" | "style">>)
+  | (Omit<ImageCell, "align" | "style"> &
+      Partial<Pick<ImageCell, "align" | "style">>);
 
 interface LegacyBlock {
   type?: string;
@@ -451,6 +482,7 @@ interface LegacyBlock {
   width?: Width;
   align?: Alignment;
   size?: Size;
+  style?: unknown;
   quote?: Localized;
   by?: Localized;
   imageKey?: string | null;
@@ -475,11 +507,13 @@ const toCell = (cell: LegacyCell): RowCell =>
         align: cell.align ?? FLUSH,
         width: cell.width ?? DEFAULT_WIDTH.text,
         size: cell.size ?? DEFAULT_SIZE,
+        style: toStyle(cell.style),
       }
-    : { ...cell, align: cell.align ?? FLUSH };
+    : { ...cell, align: cell.align ?? FLUSH, style: toStyle(cell.style) };
 
 function toFact(fact: LegacyFact): AboutFact {
   return {
+    style: toStyle(fact.style),
     label: fact.label ?? blank(),
     // The two fixed lines became a list the artist can extend.
     lines:
@@ -499,6 +533,7 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
       width: block.width ?? DEFAULT_WIDTH.heading,
       align: block.align ?? "start",
       size: block.size ?? DEFAULT_SIZE,
+      style: toStyle(block.style),
     };
   }
 
@@ -512,11 +547,16 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
       width: block.width ?? DEFAULT_WIDTH.quote,
       align: block.align ?? "start",
       size: block.size ?? DEFAULT_SIZE,
+      style: toStyle(block.style),
     };
   }
 
   if (block.type === "cv") {
-    return { type: "cv", title: block.title ?? defaultCvTitle() };
+    return {
+      type: "cv",
+      title: block.title ?? defaultCvTitle(),
+      style: toStyle(block.style),
+    };
   }
 
   if (block.type === "text") {
@@ -529,6 +569,7 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
           align: FLUSH,
           width: DEFAULT_WIDTH.text,
           size: DEFAULT_SIZE,
+          style: PLAIN,
         },
       ],
     };
@@ -544,6 +585,7 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
           ratio: block.ratio ?? 1.5,
           caption: block.caption ?? blank(),
           align: FLUSH,
+          style: PLAIN,
         },
       ],
     };
@@ -560,6 +602,7 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
           // A pair shared one caption; it belongs to the picture it described.
           caption: block.caption ?? blank(),
           align: FLUSH,
+          style: PLAIN,
         },
         {
           kind: "image",
@@ -567,6 +610,7 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
           ratio: block.ratioB ?? 0.8,
           caption: blank(),
           align: FLUSH,
+          style: PLAIN,
         },
       ],
     };
@@ -594,7 +638,7 @@ function placeCvBlock(blocks: AboutBlock[], saved: boolean): AboutBlock[] {
 
   if (found || saved) return kept;
 
-  return [...kept, { type: "cv", title: defaultCvTitle() }];
+  return [...kept, { type: "cv", title: defaultCvTitle(), style: PLAIN }];
 }
 
 export async function getAbout(): Promise<AboutContent> {
@@ -602,6 +646,7 @@ export async function getAbout(): Promise<AboutContent> {
 
   return {
     ...about,
+    leadStyle: toStyle(about.leadStyle),
     facts: Array.isArray(about.facts)
       ? (about.facts as LegacyFact[]).map(toFact)
       : SEED_ABOUT.facts,
@@ -721,7 +766,16 @@ export async function getCvGroupById(id: string): Promise<CvGroup | null> {
 }
 
 export async function getContact(): Promise<ContactContent> {
-  return getPage("contact", SEED_CONTACT);
+  const contact = await getPage<ContactContent>("contact", SEED_CONTACT);
+
+  return {
+    ...contact,
+    styles: toStyleMap(contact.styles, ["lead", "note"] as const),
+    rows: (Array.isArray(contact.rows) ? contact.rows : []).map((row) => ({
+      ...row,
+      style: toStyle(row.style),
+    })),
+  };
 }
 
 /* ---------------------------------------------------------------- admin */

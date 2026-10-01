@@ -6,8 +6,16 @@ import {
   saveCvGroupAction,
 } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import {
+  FieldCard,
+  FieldPreview,
+  LIVE_TEXT,
+} from "@/components/admin/field-card";
+import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
+import { TypeMenu } from "@/components/admin/type-menu";
 import { getAllCvEntries, getCvGroupById } from "@/lib/content";
+import { PLAIN } from "@/lib/type-style";
 
 export const dynamic = "force-dynamic";
 
@@ -41,39 +49,63 @@ export default async function EditCvGroup({
         yanındaki tutamaçtan sürükleyerek değiştirirsin.
       </p>
 
-      <form action={saveCvGroupAction} className="mt-8 flex flex-col gap-6">
+      <form action={saveCvGroupAction} className="mt-8 flex flex-col gap-5">
         {group && <input type="hidden" name="id" value={group.id} />}
 
-        <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-          <label className="block">
-            <span className="adm-label">Başlık (Türkçe)</span>
-            <input
-              name="titleTr"
-              className="adm-input"
-              defaultValue={group?.title.tr ?? ""}
-              placeholder="Yarışmalar ve ödüller"
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Başlık (İngilizce)</span>
-            <input
-              name="titleEn"
-              className="adm-input"
-              defaultValue={group?.title.en ?? ""}
-              placeholder="Competitions and awards"
-            />
-          </label>
-          <label className="flex items-center gap-2.5 self-end pb-2.5">
-            <input
-              type="checkbox"
-              name="published"
-              defaultChecked={group?.published ?? true}
-              className="h-4 w-4 accent-[#14140f]"
-            />
-            <span className="text-[13px]">Yayında</span>
-          </label>
-        </div>
+        <LiveEdit>
+          <FieldCard
+            label="Başlık"
+            hint="Türkçesi, İngilizcesi, yazı tipi ve yayın durumu"
+            open={isNew}
+            preview={
+              <FieldPreview
+                value={group?.title.tr ?? ""}
+                style={group?.style ?? PLAIN}
+                empty="Başlık yazılmadı."
+              />
+            }
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+                <label className="block">
+                  <span className="adm-label">Başlık (Türkçe)</span>
+                  <input
+                    name="titleTr"
+                    className="adm-input"
+                    defaultValue={group?.title.tr ?? ""}
+                    placeholder="Yarışmalar ve ödüller"
+                    required
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                  />
+                </label>
+                <label className="block">
+                  <span className="adm-label">Başlık (İngilizce)</span>
+                  <input
+                    name="titleEn"
+                    className="adm-input"
+                    defaultValue={group?.title.en ?? ""}
+                    placeholder="Competitions and awards"
+                  />
+                </label>
+                <label className="flex items-center gap-2.5 self-end pb-2.5">
+                  <input
+                    type="checkbox"
+                    name="published"
+                    defaultChecked={group?.published ?? true}
+                    className="h-4 w-4 accent-[#14140f]"
+                  />
+                  <span className="text-[13px]">Yayında</span>
+                </label>
+              </div>
+              <TypeMenu
+                name="styleTitle"
+                style={group?.style ?? PLAIN}
+                target={LIVE_TEXT}
+              />
+            </div>
+          </FieldCard>
+        </LiveEdit>
 
         <div className="flex items-center gap-3">
           <SaveButton />

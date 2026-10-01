@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getContact } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { isLang } from "@/lib/i18n";
+import { styleAttrs } from "@/lib/type-style";
 
 export async function generateMetadata({
   params,
@@ -37,10 +38,16 @@ export default async function ContactPage({
     <main className="gutter flex-1 animate-fade-up pt-[clamp(36px,6vw,86px)] pb-[110px]">
       <div className="grid items-start gap-[clamp(30px,5vw,74px)] [grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))]">
         <div>
-          <h1 className="mb-[24px] font-serif text-[clamp(25px,2.9vw,37px)] leading-[1.14] font-normal text-pretty">
+          <h1
+            className="mb-[24px] font-serif text-[clamp(25px,2.9vw,37px)] leading-[1.14] font-normal text-pretty"
+            {...styleAttrs(contact.styles.lead)}
+          >
             {contact.lead[lang]}
           </h1>
-          <p className="max-w-[44ch] text-[14.5px] leading-[1.78] text-ink-soft text-pretty">
+          <p
+            className="max-w-[44ch] text-[14.5px] leading-[1.78] text-ink-soft text-pretty"
+            {...styleAttrs(contact.styles.note)}
+          >
             {contact.note[lang]}
           </p>
         </div>
@@ -55,6 +62,7 @@ export default async function ContactPage({
               <a
                 href={row.href}
                 className="font-serif text-[19px] leading-[1.2] text-right transition-colors duration-200 hover:text-mute"
+                {...styleAttrs(row.style)}
               >
                 {row.value}
               </a>

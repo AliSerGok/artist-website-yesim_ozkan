@@ -14,6 +14,7 @@ import { ImageFrame } from "@/components/image-frame";
 import { Lightbox, type ViewerWork } from "@/components/lightbox";
 import { TitleLine } from "@/components/title-line";
 import { dict } from "@/lib/dictionary";
+import { styleAttrs, type StyleMap } from "@/lib/type-style";
 import type { Lang } from "@/lib/i18n";
 import { seriesHref, workHref, workInPath } from "@/lib/routes";
 
@@ -29,6 +30,7 @@ export interface GallerySeries {
   slot: string;
   ratio: number;
   imageKey: string | null;
+  styles: StyleMap<"title" | "meta">;
 }
 
 type GridEntry =
@@ -338,9 +340,13 @@ function WorkTile({
             title={work.title}
             aside={work.year}
             className="font-serif text-[17px] leading-[1.3]"
+            style={work.styles.title}
           />
           {work.caption && (
-            <div className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2">
+            <div
+              className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2"
+              {...styleAttrs(work.styles.caption)}
+            >
               {work.caption}
             </div>
           )}
@@ -383,9 +389,13 @@ function SeriesCard({
             title={series.title}
             aside={series.years}
             className="font-serif text-[19px] leading-[1.25]"
+            style={series.styles.title}
           />
           {series.meta && (
-            <div className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2">
+            <div
+              className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2"
+              {...styleAttrs(series.styles.meta)}
+            >
               {series.meta}
             </div>
           )}

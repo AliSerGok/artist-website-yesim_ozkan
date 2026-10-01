@@ -4,6 +4,7 @@ import { ImageField } from "@/components/admin/image-field";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { SaveButton } from "@/components/admin/save-button";
 import { SubmitButton } from "@/components/admin/submit-button";
+import { TypeMenu } from "@/components/admin/type-menu";
 import { getAllWorks, getHome } from "@/lib/content";
 import { mediaUrl } from "@/lib/media";
 import { revision } from "@/lib/revision";
@@ -52,8 +53,8 @@ export default async function EditHome() {
         slayt ekranı boydan boya kaplar. Bir slayt ya sitedeki bir işi gösterir
         ya da yalnızca ana sayfa için yüklediğin bir görseli — sergiden bir
         kare, bir afiş, atölyeden bir fotoğraf. Ekranların sırasını
-        başlıklarındaki tutamaçtan sürükleyerek değiştirirsin. Ekleme, taşıma
-        ve silme düğmeleri formu da kaydeder, yani yazdıkların kaybolmaz.
+        başlıklarındaki tutamaçtan sürükleyerek değiştirirsin. Ekleme, taşıma ve
+        silme düğmeleri formu da kaydeder, yani yazdıkların kaybolmaz.
       </p>
 
       <ActionForm
@@ -337,9 +338,7 @@ function ImageFields({
         )}
 
         <span className="min-w-0 flex-1 truncate text-[13.5px]">
-          {named || (
-            <span className="text-mute-2">Başlıksız görsel</span>
-          )}
+          {named || <span className="text-mute-2">Başlıksız görsel</span>}
         </span>
 
         <span className="adm-btn shrink-0">
@@ -349,95 +348,110 @@ function ImageFields({
       </summary>
 
       <div className="mt-5 flex flex-col gap-5">
-      <ImageField
-        // Remounts when a reorder puts a different picture in this slot, so
-        // the preview and the hidden key never lag behind.
-        key={item.imageKey ?? "empty"}
-        name={at("imageKey")}
-        ratioName={at("ratio")}
-        ratio={item.ratio}
-        prefix="pages/home"
-        imageKey={item.imageKey}
-        label="Görsel"
-        previewHeight={150}
-        hint="Ana sayfa görseli ekranı boydan boya kaplar, yatay ve geniş olanlar daha iyi durur. JPEG veya PNG yükle; tarayıcı web boyutuna küçültüp WebP’ye çevirir."
-      />
-
-      <div className="grid gap-4 @lg:grid-cols-2">
-        <label className="block">
-          <span className="adm-label">Başlık (Türkçe)</span>
-          <input
-            name={at("titleTr")}
-            className="adm-input"
-            defaultValue={item.title.tr}
-            placeholder="Uzun Sabah"
-          />
-        </label>
-        <label className="block">
-          <span className="adm-label">Başlık (İngilizce)</span>
-          <input
-            name={at("titleEn")}
-            className="adm-input"
-            defaultValue={item.title.en}
-            placeholder="The Long Morning"
-          />
-        </label>
-
-        <label className="block">
-          <span className="adm-label">Başlıktan sonra, italik (Türkçe)</span>
-          <input
-            name={at("asideTr")}
-            className="adm-input"
-            defaultValue={item.aside.tr}
-            placeholder="2026"
-          />
-        </label>
-        <label className="block">
-          <span className="adm-label">Başlıktan sonra, italik (İngilizce)</span>
-          <input
-            name={at("asideEn")}
-            className="adm-input"
-            defaultValue={item.aside.en}
-            placeholder="2026"
-          />
-        </label>
-
-        <label className="block">
-          <span className="adm-label">Alt satır (Türkçe)</span>
-          <input
-            name={at("captionTr")}
-            className="adm-input"
-            defaultValue={item.caption.tr}
-            placeholder="Galeri Nev, İstanbul"
-          />
-        </label>
-        <label className="block">
-          <span className="adm-label">Alt satır (İngilizce)</span>
-          <input
-            name={at("captionEn")}
-            className="adm-input"
-            defaultValue={item.caption.en}
-            placeholder="Galeri Nev, Istanbul"
-          />
-        </label>
-      </div>
-
-      <label className="block">
-        <span className="adm-label">Bağlantı (isteğe bağlı)</span>
-        <input
-          name={at("href")}
-          className="adm-input"
-          defaultValue={item.href}
-          placeholder="/tr/exhibitions · /tr/works/uzun-sabah · https://…"
+        <ImageField
+          // Remounts when a reorder puts a different picture in this slot, so
+          // the preview and the hidden key never lag behind.
+          key={item.imageKey ?? "empty"}
+          name={at("imageKey")}
+          ratioName={at("ratio")}
+          ratio={item.ratio}
+          prefix="pages/home"
+          imageKey={item.imageKey}
+          label="Görsel"
+          previewHeight={150}
+          hint="Ana sayfa görseli ekranı boydan boya kaplar, yatay ve geniş olanlar daha iyi durur. JPEG veya PNG yükle; tarayıcı web boyutuna küçültüp WebP’ye çevirir."
         />
-      </label>
+
+        <div className="grid gap-4 @lg:grid-cols-2">
+          <label className="block">
+            <span className="adm-label">Başlık (Türkçe)</span>
+            <input
+              name={at("titleTr")}
+              className="adm-input"
+              defaultValue={item.title.tr}
+              placeholder="Uzun Sabah"
+            />
+          </label>
+          <label className="block">
+            <span className="adm-label">Başlık (İngilizce)</span>
+            <input
+              name={at("titleEn")}
+              className="adm-input"
+              defaultValue={item.title.en}
+              placeholder="The Long Morning"
+            />
+          </label>
+
+          <label className="block">
+            <span className="adm-label">Başlıktan sonra, italik (Türkçe)</span>
+            <input
+              name={at("asideTr")}
+              className="adm-input"
+              defaultValue={item.aside.tr}
+              placeholder="2026"
+            />
+          </label>
+          <label className="block">
+            <span className="adm-label">
+              Başlıktan sonra, italik (İngilizce)
+            </span>
+            <input
+              name={at("asideEn")}
+              className="adm-input"
+              defaultValue={item.aside.en}
+              placeholder="2026"
+            />
+          </label>
+
+          <label className="block">
+            <span className="adm-label">Alt satır (Türkçe)</span>
+            <input
+              name={at("captionTr")}
+              className="adm-input"
+              defaultValue={item.caption.tr}
+              placeholder="Galeri Nev, İstanbul"
+            />
+          </label>
+          <label className="block">
+            <span className="adm-label">Alt satır (İngilizce)</span>
+            <input
+              name={at("captionEn")}
+              className="adm-input"
+              defaultValue={item.caption.en}
+              placeholder="Galeri Nev, Istanbul"
+            />
+          </label>
+        </div>
+
+        <div className="grid gap-5 @lg:grid-cols-2">
+          <TypeMenu
+            name={at("styleTitle")}
+            style={item.styles.title}
+            label="Başlığın yazı tipi"
+          />
+          <TypeMenu
+            name={at("styleCaption")}
+            style={item.styles.caption}
+            label="Alt satırın yazı tipi"
+          />
+        </div>
+
+        <label className="block">
+          <span className="adm-label">Bağlantı (isteğe bağlı)</span>
+          <input
+            name={at("href")}
+            className="adm-input"
+            defaultValue={item.href}
+            placeholder="/tr/exhibitions · /tr/works/uzun-sabah · https://…"
+          />
+        </label>
 
         <p className="adm-note">
-          Başlık, italik kuyruğu ve alt satır görselin üzerine, tasarımdaki
-          koyu geçişin içine yazılır; hepsini boş bırakırsan yazı da geçiş de
-          hiç çıkmaz, görsel boydan boya tek başına durur. Yalnız birini
-          yazarsan aralarındaki virgül kendiliğinden düşer. Bağlantı yazarsan
-          slayt tıklanabilir olur. Görseli yüklenmemiş slayt sitede görünmez.
+          Başlık, italik kuyruğu ve alt satır görselin üzerine, tasarımdaki koyu
+          geçişin içine yazılır; hepsini boş bırakırsan yazı da geçiş de hiç
+          çıkmaz, görsel boydan boya tek başına durur. Yalnız birini yazarsan
+          aralarındaki virgül kendiliğinden düşer. Bağlantı yazarsan slayt
+          tıklanabilir olur. Görseli yüklenmemiş slayt sitede görünmez.
         </p>
       </div>
     </details>

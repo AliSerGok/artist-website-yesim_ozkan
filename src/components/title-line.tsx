@@ -1,3 +1,5 @@
+import { styleAttrs, type TextStyle } from "@/lib/type-style";
+
 /**
  * A name with its italic tail — the year of a work, the span of a series, a
  * place. The comma belongs to the pair rather than to the tail, so a name
@@ -10,12 +12,15 @@ export function TitleLine({
   aside,
   className,
   asideClassName = "text-mute-2",
+  style,
 }: {
   title: string;
   aside: string;
   className?: string;
   /** What the italic tail is coloured with, which differs over a picture. */
   asideClassName?: string;
+  /** The face chosen for the name; the tail goes with it. */
+  style?: TextStyle;
 }) {
   const name = title.trim();
   const tail = aside.trim();
@@ -23,7 +28,7 @@ export function TitleLine({
   if (!name && !tail) return null;
 
   return (
-    <div className={className}>
+    <div className={className} {...styleAttrs(style)}>
       {name}
       {tail && (
         <span className={`italic ${asideClassName}`}>

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 
 import { TitleLine } from "@/components/title-line";
 import { dict } from "@/lib/dictionary";
+import { styleAttrs, type StyleMap } from "@/lib/type-style";
 import type { Lang } from "@/lib/i18n";
 import { mediaUrl } from "@/lib/media";
 
@@ -18,6 +19,8 @@ export interface ViewerWork {
   slot: string;
   ratio: number;
   imageKey: string | null;
+  /** The faces chosen for its three written fields. */
+  styles: StyleMap<"title" | "caption" | "note">;
 }
 
 const ZOOM = 2.2;
@@ -346,7 +349,10 @@ export function Lightbox({
               {t.collapse}
             </button>
           </div>
-          <p className="m-0 max-w-[74ch] text-[15px] leading-[1.78] text-pretty">
+          <p
+            className="m-0 max-w-[74ch] text-[15px] leading-[1.78] text-pretty"
+            {...styleAttrs(work.styles.note)}
+          >
             {work.note}
           </p>
         </div>
@@ -364,9 +370,13 @@ export function Lightbox({
               title={work.title}
               aside={work.year}
               className="font-serif text-[19px] leading-[1.25]"
+              style={work.styles.title}
             />
             {work.caption && (
-              <div className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2">
+              <div
+                className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2"
+                {...styleAttrs(work.styles.caption)}
+              >
                 {work.caption}
               </div>
             )}
@@ -374,7 +384,11 @@ export function Lightbox({
 
           {noteShown && (
             <div className="lb-note">
-              <p ref={noteRef} className="text-pretty">
+              <p
+                ref={noteRef}
+                className="text-pretty"
+                {...styleAttrs(work.styles.note)}
+              >
                 {work.note}
               </p>
               {noteClipped && (

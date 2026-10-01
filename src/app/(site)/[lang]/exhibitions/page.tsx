@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ImageFrame } from "@/components/image-frame";
 import { getExhibitions } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
+import { styleAttrs } from "@/lib/type-style";
 import { isLang } from "@/lib/i18n";
 
 export async function generateMetadata({
@@ -62,21 +63,33 @@ export default async function ExhibitionsPage({
               <span className="font-mono text-[10px] tracking-[0.16em]">
                 {exhibition.year}
               </span>
-              <span className="text-[9.5px] tracking-[0.18em] text-mute-3 uppercase">
+              <span
+                className="text-[9.5px] tracking-[0.18em] text-mute-3 uppercase"
+                {...styleAttrs(exhibition.styles.kind)}
+              >
                 {exhibition.kind[lang]}
               </span>
             </div>
 
-            <h2 className="m-0 mb-2 font-serif text-[clamp(24px,2.8vw,34px)] leading-[1.12] font-normal">
+            <h2
+              className="m-0 mb-2 font-serif text-[clamp(24px,2.8vw,34px)] leading-[1.12] font-normal"
+              {...styleAttrs(exhibition.styles.title)}
+            >
               {exhibition.title[lang]}
             </h2>
 
-            <div className="mb-4 text-[12.5px] tracking-[0.06em] text-mute-2">
+            <div
+              className="mb-4 text-[12.5px] tracking-[0.06em] text-mute-2"
+              {...styleAttrs(exhibition.styles.venue)}
+            >
               {exhibition.venue[lang]}
             </div>
 
             {exhibition.note[lang] && (
-              <p className="m-0 mb-[18px] max-w-[46ch] text-[14px] leading-[1.75] text-ink-soft text-pretty">
+              <p
+                className="m-0 mb-[18px] max-w-[46ch] text-[14px] leading-[1.75] text-ink-soft text-pretty"
+                {...styleAttrs(exhibition.styles.note)}
+              >
                 {exhibition.note[lang]}
               </p>
             )}

@@ -6,9 +6,18 @@ import {
   saveExhibitionAction,
 } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import {
+  FieldCard,
+  FieldPreview,
+  FOLD_GROUP,
+  LIVE_TEXT,
+} from "@/components/admin/field-card";
 import { ImageField } from "@/components/admin/image-field";
+import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
+import { TypeMenu } from "@/components/admin/type-menu";
 import { getExhibitionById } from "@/lib/content";
+import { PLAIN } from "@/lib/type-style";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +30,13 @@ export default async function EditExhibition({
   const isNew = id === "new";
   const exhibition = isNew ? null : await getExhibitionById(id);
   if (!isNew && !exhibition) notFound();
+
+  const styles = exhibition?.styles ?? {
+    title: PLAIN,
+    venue: PLAIN,
+    kind: PLAIN,
+    note: PLAIN,
+  };
 
   return (
     <>
@@ -36,125 +52,225 @@ export default async function EditExhibition({
       <p className="adm-note mt-3 max-w-[60ch]">
         Buradaki sergiler, sergiler sayfasında görseli ve metniyle birlikte öne
         çıkar. Sadece listede görünmesini istediğin katılımlar için “Katılımlar”
-        bölümünü kullan.
+        bölümünü kullan. Her kart sitede göründüğü gibi duruyor; yazmak için
+        “Düzenle”ye bas, yazı tipini de aynı kartta seç.
       </p>
 
-      <form action={saveExhibitionAction} className="mt-8 flex flex-col gap-6">
-        {exhibition && (
-          <input type="hidden" name="id" value={exhibition.id} />
-        )}
+      <form action={saveExhibitionAction} className="mt-8 flex flex-col gap-5">
+        {exhibition && <input type="hidden" name="id" value={exhibition.id} />}
 
-        <div className="grid gap-5 md:grid-cols-[120px_minmax(0,1fr)_auto]">
-          <label className="block">
-            <span className="adm-label">Yıl</span>
-            <input
-              name="year"
-              className="adm-input"
-              defaultValue={exhibition?.year ?? ""}
-              placeholder="2026"
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Sergi sayfası bağlantısı</span>
-            <input
-              name="url"
-              className="adm-input"
-              defaultValue={exhibition?.url ?? ""}
-              placeholder="https://… (boşsa bağlantı görünmez)"
-            />
-          </label>
-          <label className="flex items-center gap-2.5 self-end pb-2.5">
-            <input
-              type="checkbox"
-              name="published"
-              defaultChecked={exhibition?.published ?? true}
-              className="h-4 w-4 accent-[#14140f]"
-            />
-            <span className="text-[13px]">Sitede yayında</span>
-          </label>
-        </div>
+        <LiveEdit>
+          <FieldCard
+            label="Sergi adı"
+            hint="Türkçesi, İngilizcesi ve yazı tipi"
+            open={isNew}
+            preview={
+              <FieldPreview
+                kind="title"
+                value={exhibition?.title.tr ?? ""}
+                style={styles.title}
+                empty="Sergi adı yazılmadı."
+              />
+            }
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="adm-label">Sergi adı (Türkçe)</span>
+                  <input
+                    name="titleTr"
+                    className="adm-input"
+                    defaultValue={exhibition?.title.tr ?? ""}
+                    required
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                  />
+                </label>
+                <label className="block">
+                  <span className="adm-label">Sergi adı (İngilizce)</span>
+                  <input
+                    name="titleEn"
+                    className="adm-input"
+                    defaultValue={exhibition?.title.en ?? ""}
+                  />
+                </label>
+              </div>
+              <TypeMenu
+                name="styleTitle"
+                style={styles.title}
+                target={LIVE_TEXT}
+              />
+            </div>
+          </FieldCard>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="block">
-            <span className="adm-label">Sergi adı (Türkçe)</span>
-            <input
-              name="titleTr"
-              className="adm-input"
-              defaultValue={exhibition?.title.tr ?? ""}
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Sergi adı (İngilizce)</span>
-            <input
-              name="titleEn"
-              className="adm-input"
-              defaultValue={exhibition?.title.en ?? ""}
-            />
-          </label>
-        </div>
+          <FieldCard
+            label="Mekân"
+            hint="Serginin yeri ve yazı tipi"
+            preview={
+              <FieldPreview
+                value={exhibition?.venue.tr ?? ""}
+                style={styles.venue}
+                empty="Mekân yazılmadı."
+              />
+            }
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="adm-label">Mekân (Türkçe)</span>
+                  <input
+                    name="venueTr"
+                    className="adm-input"
+                    defaultValue={exhibition?.venue.tr ?? ""}
+                    placeholder="Galeri Nev, İstanbul"
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                  />
+                </label>
+                <label className="block">
+                  <span className="adm-label">Mekân (İngilizce)</span>
+                  <input
+                    name="venueEn"
+                    className="adm-input"
+                    defaultValue={exhibition?.venue.en ?? ""}
+                    placeholder="Galeri Nev, Istanbul"
+                  />
+                </label>
+              </div>
+              <TypeMenu
+                name="styleVenue"
+                style={styles.venue}
+                target={LIVE_TEXT}
+              />
+            </div>
+          </FieldCard>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="block">
-            <span className="adm-label">Mekân (Türkçe)</span>
-            <input
-              name="venueTr"
-              className="adm-input"
-              defaultValue={exhibition?.venue.tr ?? ""}
-              placeholder="Galeri Nev, İstanbul"
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Mekân (İngilizce)</span>
-            <input
-              name="venueEn"
-              className="adm-input"
-              defaultValue={exhibition?.venue.en ?? ""}
-              placeholder="Galeri Nev, Istanbul"
-            />
-          </label>
-        </div>
+          <FieldCard
+            label="Sergi türü"
+            hint="Yılın yanındaki küçük satır ve yazı tipi"
+            preview={
+              <FieldPreview
+                value={exhibition?.kind.tr ?? ""}
+                style={styles.kind}
+                empty="Tür yazılmadı."
+              />
+            }
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="adm-label">Sergi türü (Türkçe)</span>
+                  <input
+                    name="kindTr"
+                    className="adm-input"
+                    defaultValue={exhibition?.kind.tr ?? ""}
+                    placeholder="Kişisel sergi"
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                  />
+                </label>
+                <label className="block">
+                  <span className="adm-label">Sergi türü (İngilizce)</span>
+                  <input
+                    name="kindEn"
+                    className="adm-input"
+                    defaultValue={exhibition?.kind.en ?? ""}
+                    placeholder="Solo exhibition"
+                  />
+                </label>
+              </div>
+              <TypeMenu
+                name="styleKind"
+                style={styles.kind}
+                target={LIVE_TEXT}
+              />
+            </div>
+          </FieldCard>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="block">
-            <span className="adm-label">Sergi türü (Türkçe)</span>
-            <input
-              name="kindTr"
-              className="adm-input"
-              defaultValue={exhibition?.kind.tr ?? ""}
-              placeholder="Kişisel sergi"
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Sergi türü (İngilizce)</span>
-            <input
-              name="kindEn"
-              className="adm-input"
-              defaultValue={exhibition?.kind.en ?? ""}
-              placeholder="Solo exhibition"
-            />
-          </label>
-        </div>
+          <FieldCard
+            label="Sergi metni"
+            hint="Sergiler sayfasındaki metin ve yazı tipi"
+            preview={
+              <FieldPreview
+                kind="prose"
+                value={exhibition?.note.tr ?? ""}
+                style={styles.note}
+                empty="Metin yazılmadı."
+              />
+            }
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="adm-label">Sergi metni (Türkçe)</span>
+                  <textarea
+                    name="noteTr"
+                    className="adm-textarea"
+                    defaultValue={exhibition?.note.tr ?? ""}
+                    data-live="text"
+                    data-live-target={LIVE_TEXT}
+                  />
+                </label>
+                <label className="block">
+                  <span className="adm-label">Sergi metni (İngilizce)</span>
+                  <textarea
+                    name="noteEn"
+                    className="adm-textarea"
+                    defaultValue={exhibition?.note.en ?? ""}
+                  />
+                </label>
+              </div>
+              <TypeMenu
+                name="styleNote"
+                style={styles.note}
+                target={LIVE_TEXT}
+              />
+            </div>
+          </FieldCard>
+        </LiveEdit>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="block">
-            <span className="adm-label">Sergi metni (Türkçe)</span>
-            <textarea
-              name="noteTr"
-              className="adm-textarea"
-              defaultValue={exhibition?.note.tr ?? ""}
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Sergi metni (İngilizce)</span>
-            <textarea
-              name="noteEn"
-              className="adm-textarea"
-              defaultValue={exhibition?.note.en ?? ""}
-            />
-          </label>
-        </div>
+        <details className="adm-fold adm-card" name={FOLD_GROUP}>
+          <summary>
+            <span className="adm-btn shrink-0">
+              <span data-fold="shut">Düzenle</span>
+              <span data-fold="open">Kapat</span>
+            </span>
+            <span className="adm-note min-w-0 flex-1 truncate">
+              Yıl, sergi sayfası bağlantısı ve yayın durumu
+            </span>
+          </summary>
+
+          <div className="mt-5 grid gap-5 md:grid-cols-[120px_minmax(0,1fr)_auto]">
+            <label className="block">
+              <span className="adm-label">Yıl</span>
+              <input
+                name="year"
+                className="adm-input"
+                defaultValue={exhibition?.year ?? ""}
+                placeholder="2026"
+                required
+              />
+            </label>
+            <label className="block">
+              <span className="adm-label">Sergi sayfası bağlantısı</span>
+              <input
+                name="url"
+                className="adm-input"
+                defaultValue={exhibition?.url ?? ""}
+                placeholder="https://… (boşsa bağlantı görünmez)"
+              />
+            </label>
+            <label className="flex items-center gap-2.5 self-end pb-2.5">
+              <input
+                type="checkbox"
+                name="published"
+                defaultChecked={exhibition?.published ?? true}
+                className="h-4 w-4 accent-[#14140f]"
+              />
+              <span className="text-[13px]">Sitede yayında</span>
+            </label>
+          </div>
+        </details>
 
         <div className="adm-card">
           <ImageField

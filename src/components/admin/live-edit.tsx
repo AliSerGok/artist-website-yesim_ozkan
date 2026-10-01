@@ -3,26 +3,29 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Two things the about panel needs a browser for.
+ * Two things the panel's edit pages need a browser for.
  *
  * The first is the preview: a menu changed here writes its answer straight
- * onto the picture of the block above it, so the width, the edge, the size
- * and the words themselves are seen before anything is saved. The panel
- * writes only the attributes globals.css already answers, so the preview
- * cannot drift from what the page will do with the same block.
+ * onto the picture of the field above it, so the face, the width, the edge,
+ * the size and the words themselves are seen before anything is saved. Only
+ * the attributes globals.css already answers are written, so a preview
+ * cannot drift from what the page will do with the same text.
  *
- * The second is the scroll. The cards are one exclusive accordion -- opening
- * one shuts the other -- and the one that shuts is often above the one that
- * opened, which would slide the page out from under the pointer. The row
- * that was clicked is held exactly where it was.
+ * The second is the scroll. The cards of a page are one exclusive accordion
+ * -- opening one shuts the other -- and the one that shuts is often above
+ * the one that opened, which would slide the page out from under the
+ * pointer. The row that was clicked is held exactly where it was.
  */
 
-/** Which data attribute each menu writes on the preview. */
+/** Which data attribute each control writes on the preview. */
 const ATTRIBUTE: Record<string, string> = {
   width: "data-width",
   align: "data-align",
   alignY: "data-align-y",
   size: "data-size",
+  font: "data-font",
+  bold: "data-bold",
+  italic: "data-italic",
 };
 
 /** A paragraph break, read the way a save reads it. */
@@ -31,7 +34,15 @@ const BREAK = /\n\s*\n/;
 /** The three kinds of field that can speak for a preview. */
 type Control = HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement;
 
-export function LiveAbout({ children }: { children: React.ReactNode }) {
+/** A switch says what it says by being on; everything else by its value. */
+const valueOf = (field: Control) =>
+  field instanceof HTMLInputElement && field.type === "checkbox"
+    ? field.checked
+      ? "true"
+      : ""
+    : field.value;
+
+export function LiveEdit({ children }: { children: React.ReactNode }) {
   const host = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -67,14 +78,16 @@ export function LiveAbout({ children }: { children: React.ReactNode }) {
       const target = previewFor(field);
       if (!target) return;
 
+      const value = valueOf(field);
+
       if (kind === "line") {
-        target.textContent = field.value;
+        target.textContent = value;
         return;
       }
 
       if (kind === "text") {
         target.replaceChildren(
-          ...field.value
+          ...value
             .split(BREAK)
             .map((paragraph) => paragraph.trim())
             .filter(Boolean)
@@ -88,7 +101,11 @@ export function LiveAbout({ children }: { children: React.ReactNode }) {
       }
 
       const attribute = ATTRIBUTE[kind];
-      if (attribute) target.setAttribute(attribute, field.value);
+      if (!attribute) return;
+
+      // Nothing chosen writes nothing, the way an unstyled page is written.
+      if (!value || value === "default") target.removeAttribute(attribute);
+      else target.setAttribute(attribute, value);
     };
 
     const onClick = (event: MouseEvent) => {

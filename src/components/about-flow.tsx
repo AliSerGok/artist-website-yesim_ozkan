@@ -2,12 +2,9 @@ import { ImageFrame } from "@/components/image-frame";
 import type { CvSection } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import type { Lang } from "@/lib/i18n";
-import type {
-  AboutBlock,
-  AboutContent,
-  AboutFact,
-  RowCell,
-} from "@/lib/types";
+import { styleAttrs } from "@/lib/type-style";
+import type { TextStyle } from "@/lib/type-style";
+import type { AboutBlock, AboutContent, AboutFact, RowCell } from "@/lib/types";
 
 /*
  * How the about page is set, in one place: the site renders the whole flow,
@@ -35,6 +32,7 @@ function Cell({ cell, lang }: { cell: RowCell; lang: Lang }) {
         data-size={cell.size}
         data-align={cell.align.x}
         data-align-y={cell.align.y}
+        {...styleAttrs(cell.style)}
       >
         {cell.paragraphs.map((paragraph, index) => (
           <p key={index}>{paragraph[lang]}</p>
@@ -48,6 +46,8 @@ function Cell({ cell, lang }: { cell: RowCell; lang: Lang }) {
       className="ab-figure ab-cell m-0 min-w-0"
       data-align={cell.align.x}
       data-align-y={cell.align.y}
+      // The picture has no words of its own, so the face is the caption's.
+      {...styleAttrs(cell.style)}
     >
       <ImageFrame
         imageKey={cell.imageKey}
@@ -64,10 +64,12 @@ function Cell({ cell, lang }: { cell: RowCell; lang: Lang }) {
 /** The participation list, wherever in the flow the artist has put it. */
 function CvList({
   title,
+  style,
   sections,
   lang,
 }: {
   title: string;
+  style: TextStyle;
   sections: CvSection[];
   lang: Lang;
 }) {
@@ -77,7 +79,10 @@ function CvList({
     <>
       {title && (
         <div className="mb-[22px] flex items-baseline gap-4">
-          <h2 className="m-0 font-serif text-[clamp(22px,2.4vw,30px)] leading-[1.1] font-normal">
+          <h2
+            className="ab-cv-title m-0 font-serif text-[clamp(22px,2.4vw,30px)] leading-[1.1] font-normal"
+            {...styleAttrs(style)}
+          >
             {title}
           </h2>
           <span className="h-px flex-1 bg-rule" />
@@ -90,7 +95,10 @@ function CvList({
           className="mb-[clamp(26px,3vw,44px)] last:mb-0"
         >
           {section.group && (
-            <h3 className="m-0 mb-[9px] text-[10.5px] font-normal tracking-[0.18em] text-mute uppercase">
+            <h3
+              className="m-0 mb-[9px] text-[10.5px] font-normal tracking-[0.18em] text-mute uppercase"
+              {...styleAttrs(section.group.style)}
+            >
               {section.group.title[lang]}
             </h3>
           )}
@@ -100,7 +108,10 @@ function CvList({
               <div className="font-mono text-[10.5px] tracking-[0.12em] text-mute-3">
                 {entry.year}
               </div>
-              <div className="text-[13.5px] leading-[1.55]">
+              <div
+                className="text-[13.5px] leading-[1.55]"
+                {...styleAttrs(entry.style)}
+              >
                 {entry.url && entry.url !== "#" ? (
                   <a
                     href={entry.url}
@@ -139,12 +150,23 @@ function Block({
   cv: CvSection[];
 }) {
   if (block.type === "cv") {
-    return <CvList title={block.title[lang]} sections={cv} lang={lang} />;
+    return (
+      <CvList
+        title={block.title[lang]}
+        style={block.style}
+        sections={cv}
+        lang={lang}
+      />
+    );
   }
 
   if (block.type === "heading") {
     return (
-      <h2 className="ab-title" data-size={block.size}>
+      <h2
+        className="ab-title"
+        data-size={block.size}
+        {...styleAttrs(block.style)}
+      >
         {block.text[lang]}
       </h2>
     );
@@ -153,7 +175,11 @@ function Block({
   if (block.type === "quote") {
     return (
       <blockquote className="m-0 pt-1">
-        <p className="ab-quote" data-size={block.size}>
+        <p
+          className="ab-quote"
+          data-size={block.size}
+          {...styleAttrs(block.style)}
+        >
           {block.quote[lang]}
         </p>
         <cite className="ab-cite">{block.by[lang]}</cite>
@@ -210,8 +236,6 @@ export function AboutHead({
   about: AboutContent;
   lang: Lang;
 }) {
-  const facts = about.facts.filter((fact) => hasContent(fact, lang));
-
   return (
     <div className="ab-head">
       <ImageFrame
@@ -223,25 +247,33 @@ export function AboutHead({
       />
 
       <div>
-        <h1 className="m-0 mb-[26px] max-w-[22ch] font-serif text-[clamp(25px,3vw,38px)] leading-[1.14] font-normal text-pretty">
+        <h1
+          className="ab-lead m-0 mb-[26px] max-w-[22ch] font-serif text-[clamp(25px,3vw,38px)] leading-[1.14] font-normal text-pretty"
+          {...styleAttrs(about.leadStyle)}
+        >
           {about.lead[lang]}
         </h1>
 
-        {facts.length > 0 && (
+        {about.facts.some((fact) => hasContent(fact, lang)) && (
           <div className="grid gap-[22px] border-t border-rule pt-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))]">
-            {facts.map((fact, index) => (
-              <div key={index}>
-                <div className="label mb-[9px]">{fact.label[lang]}</div>
-                {fact.lines.map((line, position) => (
-                  <div
-                    key={position}
-                    className="text-[12.5px] leading-[1.65] text-ink-soft"
-                  >
-                    {line[lang]}
-                  </div>
-                ))}
-              </div>
-            ))}
+            {about.facts.map((fact, index) =>
+              // A column with nothing in it is one the artist has not filled
+              // in yet; its number is kept so the panel can point at it.
+              hasContent(fact, lang) ? (
+                <div key={index} data-fact={index}>
+                  <div className="label mb-[9px]">{fact.label[lang]}</div>
+                  {fact.lines.map((line, position) => (
+                    <div
+                      key={position}
+                      className="text-[12.5px] leading-[1.65] text-ink-soft"
+                      {...styleAttrs(fact.style)}
+                    >
+                      {line[lang]}
+                    </div>
+                  ))}
+                </div>
+              ) : null,
+            )}
           </div>
         )}
       </div>

@@ -3,10 +3,19 @@ import { notFound } from "next/navigation";
 
 import { deleteWorkAction, saveWorkAction } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import {
+  FieldCard,
+  FieldPreview,
+  FOLD_GROUP,
+  LIVE_TEXT,
+} from "@/components/admin/field-card";
 import { ImageField } from "@/components/admin/image-field";
+import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
+import { TypeMenu } from "@/components/admin/type-menu";
 import { getAllSeries, getWorkById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
+import { PLAIN } from "@/lib/type-style";
 import { MEDIUMS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +32,11 @@ export default async function EditWork({
 
   const series = await getAllSeries();
   const label = dict("tr").medium;
+  const styles = work?.styles ?? {
+    title: PLAIN,
+    caption: PLAIN,
+    note: PLAIN,
+  };
 
   return (
     <>
@@ -33,121 +47,144 @@ export default async function EditWork({
         </Link>
       </div>
 
-      <form action={saveWorkAction} className="mt-8 flex flex-col gap-6">
+      <p className="adm-note mt-3 max-w-[64ch]">
+        Her kart sitede göründüğü gibi duruyor; yazmak için “Düzenle”ye bas.
+        Aynı anda tek kart açık kalır. Her yazının kendi yazı tipi, kalını ve
+        italiği var — seçtiğin anda kartın üstünde görürsün.
+      </p>
+
+      <form action={saveWorkAction} className="mt-8 flex flex-col gap-5">
         {work && <input type="hidden" name="id" value={work.id} />}
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="block">
-            <span className="adm-label">Başlık (Türkçe)</span>
-            <input
-              name="titleTr"
-              className="adm-input"
-              defaultValue={work?.title.tr ?? ""}
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Başlık (İngilizce)</span>
-            <input
-              name="titleEn"
-              className="adm-input"
-              defaultValue={work?.title.en ?? ""}
-              placeholder="Boş bırakılırsa Türkçesi kullanılır"
-            />
-          </label>
-        </div>
+        <LiveEdit>
+          <FieldCard
+            label="Başlık"
+            hint="Türkçesi, İngilizcesi ve yazı tipi"
+            open={isNew}
+            preview={
+              <FieldPreview
+                kind="title"
+                value={work?.title.tr ?? ""}
+                style={styles.title}
+                empty="Başlık yazılmadı."
+              />
+            }
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="adm-label">Başlık (Türkçe)</span>
+                  <input
+                    name="titleTr"
+                    className="adm-input"
+                    defaultValue={work?.title.tr ?? ""}
+                    required
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                  />
+                </label>
+                <label className="block">
+                  <span className="adm-label">Başlık (İngilizce)</span>
+                  <input
+                    name="titleEn"
+                    className="adm-input"
+                    defaultValue={work?.title.en ?? ""}
+                    placeholder="Boş bırakılırsa Türkçesi kullanılır"
+                  />
+                </label>
+              </div>
+              <TypeMenu
+                name="styleTitle"
+                style={styles.title}
+                target={LIVE_TEXT}
+              />
+            </div>
+          </FieldCard>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="block">
-            <span className="adm-label">Teknik ve ölçü (Türkçe)</span>
-            <input
-              name="captionTr"
-              className="adm-input"
-              defaultValue={work?.caption.tr ?? ""}
-              placeholder="Ketende yağlıboya, 120 × 90 cm"
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Teknik ve ölçü (İngilizce)</span>
-            <input
-              name="captionEn"
-              className="adm-input"
-              defaultValue={work?.caption.en ?? ""}
-              placeholder="Oil on linen, 120 × 90 cm"
-            />
-          </label>
-        </div>
+          <FieldCard
+            label="Teknik ve ölçü"
+            hint="Eserin altındaki künye satırı ve yazı tipi"
+            preview={
+              <FieldPreview
+                value={work?.caption.tr ?? ""}
+                style={styles.caption}
+                empty="Künye yazılmadı."
+              />
+            }
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="adm-label">Teknik ve ölçü (Türkçe)</span>
+                  <input
+                    name="captionTr"
+                    className="adm-input"
+                    defaultValue={work?.caption.tr ?? ""}
+                    placeholder="Ketende yağlıboya, 120 × 90 cm"
+                    data-live="line"
+                    data-live-target={LIVE_TEXT}
+                  />
+                </label>
+                <label className="block">
+                  <span className="adm-label">Teknik ve ölçü (İngilizce)</span>
+                  <input
+                    name="captionEn"
+                    className="adm-input"
+                    defaultValue={work?.caption.en ?? ""}
+                    placeholder="Oil on linen, 120 × 90 cm"
+                  />
+                </label>
+              </div>
+              <TypeMenu
+                name="styleCaption"
+                style={styles.caption}
+                target={LIVE_TEXT}
+              />
+            </div>
+          </FieldCard>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="block">
-            <span className="adm-label">Eser hakkında (Türkçe)</span>
-            <textarea
-              name="noteTr"
-              className="adm-textarea"
-              defaultValue={work?.note.tr ?? ""}
-              placeholder="Büyütülmüş görünümde eserin altında çıkan metin."
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Eser hakkında (İngilizce)</span>
-            <textarea
-              name="noteEn"
-              className="adm-textarea"
-              defaultValue={work?.note.en ?? ""}
-            />
-          </label>
-        </div>
-
-        <div className="grid gap-5 md:grid-cols-4">
-          <label className="block">
-            <span className="adm-label">Yıl</span>
-            <input
-              name="year"
-              className="adm-input"
-              defaultValue={work?.year ?? ""}
-              placeholder="2026"
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="adm-label">Teknik</span>
-            <select
-              name="medium"
-              className="adm-select capitalize"
-              defaultValue={work?.medium ?? "paintings"}
-            >
-              {MEDIUMS.map((medium) => (
-                <option key={medium} value={medium} className="capitalize">
-                  {label[medium]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="adm-label">Seri</span>
-            <select
-              name="seriesId"
-              className="adm-select"
-              defaultValue={work?.seriesId ?? ""}
-            >
-              <option value="">Seri yok (tek iş)</option>
-              {series.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.title.tr}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-2.5 self-end pb-2.5">
-            <input
-              type="checkbox"
-              name="published"
-              defaultChecked={work?.published ?? true}
-              className="h-4 w-4 accent-[#14140f]"
-            />
-            <span className="text-[13px]">Sitede yayında</span>
-          </label>
-        </div>
+          <FieldCard
+            label="Eser hakkında"
+            hint="Büyütülmüş görünümde çıkan metin ve yazı tipi"
+            preview={
+              <FieldPreview
+                kind="prose"
+                value={work?.note.tr ?? ""}
+                style={styles.note}
+                empty="Metin yazılmadı."
+              />
+            }
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="adm-label">Eser hakkında (Türkçe)</span>
+                  <textarea
+                    name="noteTr"
+                    className="adm-textarea"
+                    defaultValue={work?.note.tr ?? ""}
+                    placeholder="Büyütülmüş görünümde eserin altında çıkan metin."
+                    data-live="text"
+                    data-live-target={LIVE_TEXT}
+                  />
+                </label>
+                <label className="block">
+                  <span className="adm-label">Eser hakkında (İngilizce)</span>
+                  <textarea
+                    name="noteEn"
+                    className="adm-textarea"
+                    defaultValue={work?.note.en ?? ""}
+                  />
+                </label>
+              </div>
+              <TypeMenu
+                name="styleNote"
+                style={styles.note}
+                target={LIVE_TEXT}
+              />
+            </div>
+          </FieldCard>
+        </LiveEdit>
 
         <div className="adm-card">
           <ImageField
@@ -166,9 +203,78 @@ export default async function EditWork({
           />
         </div>
 
-        <details className="adm-card">
-          <summary className="cursor-pointer text-[13px]">
-            Görsel yokken kullanılacak ayarlar
+        <details className="adm-fold adm-card" name={FOLD_GROUP}>
+          <summary>
+            <span className="adm-btn shrink-0">
+              <span data-fold="shut">Düzenle</span>
+              <span data-fold="open">Kapat</span>
+            </span>
+            <span className="adm-note min-w-0 flex-1 truncate">
+              Yıl, teknik, seri ve yayın durumu
+            </span>
+          </summary>
+
+          <div className="mt-5 grid gap-5 md:grid-cols-4">
+            <label className="block">
+              <span className="adm-label">Yıl</span>
+              <input
+                name="year"
+                className="adm-input"
+                defaultValue={work?.year ?? ""}
+                placeholder="2026"
+                required
+              />
+            </label>
+            <label className="block">
+              <span className="adm-label">Teknik</span>
+              <select
+                name="medium"
+                className="adm-select capitalize"
+                defaultValue={work?.medium ?? "paintings"}
+              >
+                {MEDIUMS.map((medium) => (
+                  <option key={medium} value={medium} className="capitalize">
+                    {label[medium]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="adm-label">Seri</span>
+              <select
+                name="seriesId"
+                className="adm-select"
+                defaultValue={work?.seriesId ?? ""}
+              >
+                <option value="">Seri yok (tek iş)</option>
+                {series.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.title.tr}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex items-center gap-2.5 self-end pb-2.5">
+              <input
+                type="checkbox"
+                name="published"
+                defaultChecked={work?.published ?? true}
+                className="h-4 w-4 accent-[#14140f]"
+              />
+              <span className="text-[13px]">Sitede yayında</span>
+            </label>
+          </div>
+        </details>
+
+        <details className="adm-fold adm-card" name={FOLD_GROUP}>
+          <summary>
+            <span className="adm-btn shrink-0">
+              <span data-fold="shut">Düzenle</span>
+              <span data-fold="open">Kapat</span>
+            </span>
+            <span className="adm-note min-w-0 flex-1 truncate">
+              Görsel yokken kullanılacak ayarlar
+            </span>
           </summary>
           <div className="mt-5 grid gap-5 md:grid-cols-3">
             <label className="block">

@@ -2,6 +2,7 @@ import type { HomeSlide } from "@/components/home-slideshow";
 import type { GallerySeries, GalleryWork } from "@/components/work-gallery";
 
 import type { HomeEntry } from "./content";
+import { plainMap } from "./type-style";
 import type { Lang } from "./i18n";
 import type { HomeImageItem, Series, Work } from "./types";
 
@@ -19,6 +20,7 @@ export function toGalleryWork(work: Work, lang: Lang): GalleryWork {
     slot: work.slot,
     ratio: ratio(work),
     imageKey: work.imageKey,
+    styles: work.styles,
   };
 }
 
@@ -41,6 +43,7 @@ export function toGallerySeries(
     slot: cover?.slot ?? "",
     ratio: cover ? ratio(cover) : 0.8,
     imageKey: cover?.imageKey ?? null,
+    styles: { title: series.styles.title, meta: series.styles.meta },
   };
 }
 
@@ -60,6 +63,8 @@ function toHomeImage(item: HomeImageItem, lang: Lang): GalleryWork {
     slot: "",
     ratio: item.ratio || 1,
     imageKey: item.imageKey,
+    // A picture of its own has no note, so only two of the three are set.
+    styles: { ...plainMap(["note"] as const), ...item.styles },
   };
 }
 
@@ -77,6 +82,7 @@ export function toHomeSlide(entry: HomeEntry, lang: Lang): HomeSlide {
       title: work.title[lang],
       aside: work.year,
       caption: work.caption[lang],
+      styles: { title: work.styles.title, caption: work.styles.caption },
       bare,
       slot: work.slot,
       imageKey: work.imageKey,
@@ -91,6 +97,7 @@ export function toHomeSlide(entry: HomeEntry, lang: Lang): HomeSlide {
     title: item.title[lang],
     aside: item.aside[lang],
     caption: item.caption[lang],
+    styles: item.styles,
     // Left unwritten by leaving all three of them blank.
     bare: false,
     slot: "",

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { saveAboutAction } from "@/app/(admin)/admin/actions";
 import { AboutBlockView, AboutHead } from "@/components/about-flow";
 import { ActionForm } from "@/components/admin/action-form";
-import { LiveAbout } from "@/components/admin/live-about";
+import { LiveEdit } from "@/components/admin/live-edit";
+import { TypeMenu } from "@/components/admin/type-menu";
 import { ImageField } from "@/components/admin/image-field";
 import { SaveButton } from "@/components/admin/save-button";
 import { SubmitButton } from "@/components/admin/submit-button";
@@ -254,7 +255,7 @@ export default async function EditAbout() {
         <input type="hidden" name="blockCount" value={about.blocks.length} />
         <input type="hidden" name="factCount" value={about.facts.length} />
 
-        <LiveAbout>
+        <LiveEdit>
           <HeadCard about={about} />
 
           <div>
@@ -302,7 +303,7 @@ export default async function EditAbout() {
               )}
             </div>
           </div>
-        </LiveAbout>
+        </LiveEdit>
 
         <div>
           <SaveButton name="intent" value="save" />
@@ -339,6 +340,8 @@ function HeadCard({ about }: { about: AboutContent }) {
                 name="leadTr"
                 className="adm-input"
                 defaultValue={about.lead.tr}
+                data-live="line"
+                data-live-target=".ab-lead"
               />
             </label>
             <label className="block">
@@ -350,6 +353,13 @@ function HeadCard({ about }: { about: AboutContent }) {
               />
             </label>
           </div>
+
+          <TypeMenu
+            name="leadStyle"
+            style={about.leadStyle}
+            target=".ab-lead"
+            label="Giriş cümlesinin yazı tipi"
+          />
 
           <div className="border border-rule p-4">
             <ImageField
@@ -446,6 +456,15 @@ function HeadCard({ about }: { about: AboutContent }) {
                           .join("\n")}
                       />
                     </label>
+                  </div>
+
+                  <div className="mt-4">
+                    <TypeMenu
+                      name={`factStyle${index}`}
+                      style={fact.style}
+                      target={`[data-fact="${index}"]`}
+                      label="Satırların yazı tipi"
+                    />
                   </div>
                 </div>
               ))}
@@ -559,6 +578,13 @@ function BlockFields({
           </label>
         </div>
 
+        <TypeMenu
+          name={at("style")}
+          style={block.style}
+          target=".ab-cv-title"
+          label="Başlığın yazı tipi"
+        />
+
         <p className="adm-note">
           Başlığı boş bırakırsan liste başlıksız akar. Satırların kendisi
           “Katılımlar” bölümünde yazılıyor; bu blok listenin sayfadaki yerini ve
@@ -596,6 +622,8 @@ function BlockFields({
             />
           </label>
         </div>
+
+        <TypeMenu name={at("style")} style={block.style} target=".ab-title" />
 
         <Shape
           prefix={at("")}
@@ -653,6 +681,13 @@ function BlockFields({
             />
           </label>
         </div>
+
+        <TypeMenu
+          name={at("style")}
+          style={block.style}
+          target=".ab-quote"
+          label="Alıntının yazı tipi"
+        />
 
         <Shape
           prefix={at("")}
@@ -966,6 +1001,15 @@ function CellFields({
           </label>
         </div>
         <p className="adm-note mt-2">{alignHint(cell, count)}</p>
+      </div>
+
+      <div className="mt-4">
+        <TypeMenu
+          name={on("style")}
+          style={cell.style}
+          target={part}
+          label={cell.kind === "text" ? "Yazı tipi" : "Alt yazının yazı tipi"}
+        />
       </div>
     </div>
   );

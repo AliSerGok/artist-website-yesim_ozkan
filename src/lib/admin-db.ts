@@ -56,6 +56,8 @@ export interface WorkInput {
   height: number;
   slot: string;
   published: boolean;
+  /** The faces of its written fields, as JSON; see lib/type-style.ts. */
+  styles: string;
 }
 
 export async function saveWork(input: WorkInput): Promise<string> {
@@ -73,7 +75,7 @@ export async function saveWork(input: WorkInput): Promise<string> {
         `UPDATE works SET slug = ?, image_key = ?, medium = ?, series_id = ?, year = ?,
            title_tr = ?, title_en = ?, caption_tr = ?, caption_en = ?,
            note_tr = ?, note_en = ?, width = ?, height = ?, slot = ?,
-           published = ?, updated_at = datetime('now')
+           published = ?, styles = ?, updated_at = datetime('now')
          WHERE id = ?`,
       )
       .bind(
@@ -92,6 +94,7 @@ export async function saveWork(input: WorkInput): Promise<string> {
         input.height,
         input.slot,
         input.published ? 1 : 0,
+        input.styles,
         input.id,
       )
       .run();
@@ -107,8 +110,8 @@ export async function saveWork(input: WorkInput): Promise<string> {
     .prepare(
       `INSERT INTO works (id, slug, image_key, medium, series_id, year, sort_order,
          title_tr, title_en, caption_tr, caption_en, note_tr, note_en,
-         width, height, slot, published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         width, height, slot, published, styles)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
@@ -128,6 +131,7 @@ export async function saveWork(input: WorkInput): Promise<string> {
       input.height,
       input.slot,
       input.published ? 1 : 0,
+      input.styles,
     )
     .run();
 
@@ -183,6 +187,7 @@ export interface SeriesInput {
   noteEn: string;
   coverWorkId: string | null;
   published: boolean;
+  styles: string;
 }
 
 export async function saveSeries(input: SeriesInput): Promise<string> {
@@ -199,7 +204,8 @@ export async function saveSeries(input: SeriesInput): Promise<string> {
       .prepare(
         `UPDATE series SET slug = ?, medium = ?, years = ?, title_tr = ?,
            title_en = ?, meta_tr = ?, meta_en = ?, note_tr = ?, note_en = ?,
-           cover_work_id = ?, published = ?, updated_at = datetime('now')
+           cover_work_id = ?, published = ?, styles = ?,
+           updated_at = datetime('now')
          WHERE id = ?`,
       )
       .bind(
@@ -214,6 +220,7 @@ export async function saveSeries(input: SeriesInput): Promise<string> {
         input.noteEn,
         input.coverWorkId,
         input.published ? 1 : 0,
+        input.styles,
         input.id,
       )
       .run();
@@ -228,8 +235,9 @@ export async function saveSeries(input: SeriesInput): Promise<string> {
   await db
     .prepare(
       `INSERT INTO series (id, slug, medium, years, sort_order, title_tr,
-         title_en, meta_tr, meta_en, note_tr, note_en, cover_work_id, published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         title_en, meta_tr, meta_en, note_tr, note_en, cover_work_id,
+         published, styles)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
@@ -245,6 +253,7 @@ export async function saveSeries(input: SeriesInput): Promise<string> {
       input.noteEn,
       input.coverWorkId,
       input.published ? 1 : 0,
+      input.styles,
     )
     .run();
 
@@ -343,6 +352,7 @@ export interface ExhibitionInput {
   url: string;
   imageKey: string | null;
   published: boolean;
+  styles: string;
 }
 
 export async function saveExhibition(input: ExhibitionInput): Promise<string> {
@@ -353,7 +363,8 @@ export async function saveExhibition(input: ExhibitionInput): Promise<string> {
       .prepare(
         `UPDATE exhibitions SET year = ?, title_tr = ?, title_en = ?, venue_tr = ?,
            venue_en = ?, kind_tr = ?, kind_en = ?, note_tr = ?, note_en = ?,
-           url = ?, image_key = ?, published = ?, updated_at = datetime('now')
+           url = ?, image_key = ?, published = ?, styles = ?,
+           updated_at = datetime('now')
          WHERE id = ?`,
       )
       .bind(
@@ -369,6 +380,7 @@ export async function saveExhibition(input: ExhibitionInput): Promise<string> {
         input.url,
         input.imageKey,
         input.published ? 1 : 0,
+        input.styles,
         input.id,
       )
       .run();
@@ -384,8 +396,8 @@ export async function saveExhibition(input: ExhibitionInput): Promise<string> {
     .prepare(
       `INSERT INTO exhibitions (id, year, sort_order, title_tr, title_en,
          venue_tr, venue_en, kind_tr, kind_en, note_tr, note_en, url,
-         image_key, published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         image_key, published, styles)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
@@ -402,6 +414,7 @@ export async function saveExhibition(input: ExhibitionInput): Promise<string> {
       input.url,
       input.imageKey,
       input.published ? 1 : 0,
+      input.styles,
     )
     .run();
 
@@ -417,6 +430,7 @@ export async function deleteExhibition(id: string): Promise<void> {
 
 export interface CvGroupInput {
   id: string | null;
+  styles: string;
   titleTr: string;
   titleEn: string;
   published: boolean;
@@ -429,10 +443,16 @@ export async function saveCvGroup(input: CvGroupInput): Promise<string> {
     await db
       .prepare(
         `UPDATE cv_groups SET title_tr = ?, title_en = ?, published = ?,
-           updated_at = datetime('now')
+           styles = ?, updated_at = datetime('now')
          WHERE id = ?`,
       )
-      .bind(input.titleTr, input.titleEn, input.published ? 1 : 0, input.id)
+      .bind(
+        input.titleTr,
+        input.titleEn,
+        input.published ? 1 : 0,
+        input.styles,
+        input.id,
+      )
       .run();
     return input.id;
   }
@@ -444,8 +464,9 @@ export async function saveCvGroup(input: CvGroupInput): Promise<string> {
 
   await db
     .prepare(
-      `INSERT INTO cv_groups (id, sort_order, title_tr, title_en, published)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO cv_groups (id, sort_order, title_tr, title_en, published,
+         styles)
+       VALUES (?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
@@ -453,6 +474,7 @@ export async function saveCvGroup(input: CvGroupInput): Promise<string> {
       input.titleTr,
       input.titleEn,
       input.published ? 1 : 0,
+      input.styles,
     )
     .run();
 
@@ -479,6 +501,7 @@ export interface CvInput {
   kind: CvKind | "";
   url: string;
   published: boolean;
+  styles: string;
 }
 
 /** Lines are numbered within their heading, so a new one lands at its end. */
@@ -516,7 +539,7 @@ export async function saveCvEntry(input: CvInput): Promise<string> {
       .prepare(
         `UPDATE cv_entries SET group_id = ?, sort_order = ?, year = ?,
            title_tr = ?, title_en = ?, kind = ?, url = ?, published = ?,
-           updated_at = datetime('now')
+           styles = ?, updated_at = datetime('now')
          WHERE id = ?`,
       )
       .bind(
@@ -528,6 +551,7 @@ export async function saveCvEntry(input: CvInput): Promise<string> {
         input.kind,
         input.url,
         input.published ? 1 : 0,
+        input.styles,
         input.id,
       )
       .run();
@@ -538,8 +562,9 @@ export async function saveCvEntry(input: CvInput): Promise<string> {
 
   await db
     .prepare(
-      `INSERT INTO cv_entries (id, group_id, year, sort_order, title_tr, title_en, kind, url, published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO cv_entries (id, group_id, year, sort_order, title_tr,
+         title_en, kind, url, published, styles)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
@@ -551,6 +576,7 @@ export async function saveCvEntry(input: CvInput): Promise<string> {
       input.kind,
       input.url,
       input.published ? 1 : 0,
+      input.styles,
     )
     .run();
 

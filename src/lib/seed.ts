@@ -1,3 +1,4 @@
+import { PLAIN, plainMap } from "./type-style";
 import { DEFAULT_SIZE, DEFAULT_WIDTH, FLUSH } from "./types";
 import type {
   AboutContent,
@@ -26,7 +27,7 @@ const ESIK_CAPTION = {
   en: "Ink on paper, 30 × 24 cm",
 };
 
-export const SEED_SERIES: Series[] = [
+const SERIES_SEED: Omit<Series, "styles">[] = [
   {
     id: "s_kivrim",
     slug: "kivrim",
@@ -77,7 +78,7 @@ export const SEED_SERIES: Series[] = [
   },
 ];
 
-export const SEED_WORKS: Work[] = [
+const WORKS_SEED: Omit<Work, "styles">[] = [
   {
     id: "w14",
     slug: "uzun-sabah",
@@ -525,7 +526,7 @@ export const SEED_WORKS: Work[] = [
 ];
 
 /** The shows that get a picture and a paragraph of their own. */
-export const SEED_EXHIBITIONS: Exhibition[] = [
+const EXHIBITIONS_SEED: Omit<Exhibition, "styles">[] = [
   {
     id: "e1",
     year: "2026",
@@ -596,7 +597,7 @@ export const SEED_EXHIBITIONS: Exhibition[] = [
  * The headings the participation list is split into. The artist adds, renames
  * and reorders these from the panel; these three are only a starting point.
  */
-export const SEED_CV_GROUPS: CvGroup[] = [
+const CV_GROUPS_SEED: Omit<CvGroup, "style">[] = [
   {
     id: "cvg_exhibitions",
     order: 1,
@@ -619,7 +620,7 @@ export const SEED_CV_GROUPS: CvGroup[] = [
 
 const withinGroup: Record<string, number> = {};
 
-export const SEED_CV: CvEntry[] = [
+const CV_SEED: Omit<CvEntry, "style">[] = [
   ["cvg_exhibitions", "2026", "Uzun Sabah — Galeri Nev, İstanbul", "The Long Morning — Galeri Nev, Istanbul", "solo"],
   ["cvg_exhibitions", "2025", "Yüzeye Dair — Zilberman, İstanbul", "On Surface — Zilberman, Istanbul", "group"],
   ["cvg_exhibitions", "2025", "Kağıt Ölçeği — Bilsart, İstanbul", "Paper Scale — Bilsart, Istanbul", "group"],
@@ -651,6 +652,7 @@ export const SEED_CV: CvEntry[] = [
 }));
 
 export const SEED_ABOUT: AboutContent = {
+  leadStyle: PLAIN,
   portraitSlot: { tr: "atölye portresi", en: "studio portrait" },
   portraitKey: null,
   lead: {
@@ -659,6 +661,7 @@ export const SEED_ABOUT: AboutContent = {
   },
   facts: [
     {
+      style: PLAIN,
       label: { tr: "Eğitim", en: "Education" },
       lines: [
         { tr: "MFA Resim, Mimar Sinan", en: "MFA Painting, Mimar Sinan" },
@@ -666,6 +669,7 @@ export const SEED_ABOUT: AboutContent = {
       ],
     },
     {
+      style: PLAIN,
       label: { tr: "Konuk sanatçı", en: "Residencies" },
       lines: [
         { tr: "Hangar, Lizbon — 2024", en: "Hangar, Lisbon — 2024" },
@@ -676,6 +680,7 @@ export const SEED_ABOUT: AboutContent = {
       ],
     },
     {
+      style: PLAIN,
       label: { tr: "Basın", en: "Press" },
       lines: [
         { tr: "Argonotlar, 2025", en: "Argonotlar, 2025" },
@@ -692,6 +697,7 @@ export const SEED_ABOUT: AboutContent = {
           align: FLUSH,
           width: DEFAULT_WIDTH.text,
           size: DEFAULT_SIZE,
+          style: PLAIN,
           paragraphs: [
             {
               tr: "Resimleri çok sıradan yüzeylerin uzun süreli gözleminden doğuyor: geç ışıkta bir duvar, leğende duran su, bir perdenin kıvrımı. Ketende ince yağlıboya ve pigment katmanlarıyla çalışıyor; her geçişin izini kısmen görünür bırakıyor, böylece resim kendi yapılışının hafızasını koruyor.",
@@ -711,6 +717,7 @@ export const SEED_ABOUT: AboutContent = {
       width: DEFAULT_WIDTH.heading,
       align: "start",
       size: DEFAULT_SIZE,
+      style: PLAIN,
     },
     {
       type: "row",
@@ -718,6 +725,7 @@ export const SEED_ABOUT: AboutContent = {
         {
           kind: "image",
           align: FLUSH,
+          style: PLAIN,
           imageKey: null,
           ratio: 1.49,
           caption: {
@@ -734,6 +742,7 @@ export const SEED_ABOUT: AboutContent = {
         {
           kind: "image",
           align: FLUSH,
+          style: PLAIN,
           imageKey: null,
           ratio: 0.8,
           caption: {
@@ -744,6 +753,7 @@ export const SEED_ABOUT: AboutContent = {
         {
           kind: "image",
           align: FLUSH,
+          style: PLAIN,
           imageKey: null,
           ratio: 0.8,
           caption: {
@@ -756,6 +766,7 @@ export const SEED_ABOUT: AboutContent = {
           align: FLUSH,
           width: DEFAULT_WIDTH.text,
           size: DEFAULT_SIZE,
+          style: PLAIN,
           paragraphs: [
             {
               tr: "Atölyede aynı anda beş altı iş bekliyor. Bir keten kuruyana kadar bir başkası boyanıyor; kağıt işleri ikisinin arasında, ayakta karar verilen şeyler.",
@@ -778,6 +789,7 @@ export const SEED_ABOUT: AboutContent = {
       width: DEFAULT_WIDTH.quote,
       align: "start",
       size: DEFAULT_SIZE,
+      style: PLAIN,
     },
     {
       type: "heading",
@@ -785,6 +797,7 @@ export const SEED_ABOUT: AboutContent = {
       width: DEFAULT_WIDTH.heading,
       align: "start",
       size: DEFAULT_SIZE,
+      style: PLAIN,
     },
     {
       type: "row",
@@ -794,6 +807,7 @@ export const SEED_ABOUT: AboutContent = {
           align: FLUSH,
           width: DEFAULT_WIDTH.text,
           size: DEFAULT_SIZE,
+          style: PLAIN,
           paragraphs: [
             {
               tr: "Mimar Sinan Güzel Sanatlar Üniversitesi'nde resim okudu; İstanbul, İzmir, Berlin ve Lizbon'da sergiler açtı. İşleri Türkiye ve Avrupa'daki özel koleksiyonlarda yer alıyor.",
@@ -809,6 +823,7 @@ export const SEED_ABOUT: AboutContent = {
         {
           kind: "image",
           align: FLUSH,
+          style: PLAIN,
           imageKey: null,
           ratio: 1.77,
           caption: {
@@ -822,6 +837,7 @@ export const SEED_ABOUT: AboutContent = {
 };
 
 export const SEED_CONTACT: ContactContent = {
+  styles: plainMap(["lead", "note"] as const),
   lead: {
     tr: "Sergi, temsil ve atölye ziyaretleri için.",
     en: "For exhibitions, representation and studio visits.",
@@ -832,21 +848,25 @@ export const SEED_CONTACT: ContactContent = {
   },
   rows: [
     {
+      style: PLAIN,
       label: { tr: "E-posta", en: "Email" },
       value: "studio@yesimozkan.com",
       href: "mailto:studio@yesimozkan.com",
     },
     {
+      style: PLAIN,
       label: { tr: "Instagram", en: "Instagram" },
       value: "@yesimozkan",
       href: "https://instagram.com/yesimozkan",
     },
     {
+      style: PLAIN,
       label: { tr: "Temsil", en: "Representation" },
       value: "Galeri Nev, İstanbul",
       href: "#",
     },
     {
+      style: PLAIN,
       label: { tr: "Atölye", en: "Studio" },
       value: "Kadıköy, İstanbul",
       href: "#",
@@ -862,3 +882,36 @@ export const SEED_HOME: HomeContent = {
     bare: false,
   })),
 };
+
+/*
+ * The seed is written without faces: every line of it is set in the face the
+ * page itself chooses, which is what "default" means. Anything the artist
+ * restyles in the panel is stored on its own row from then on.
+ */
+
+export const SEED_SERIES: Series[] = SERIES_SEED.map((series) => ({
+  ...series,
+  styles: plainMap(["title", "meta", "note"] as const),
+}));
+
+export const SEED_WORKS: Work[] = WORKS_SEED.map((work) => ({
+  ...work,
+  styles: plainMap(["title", "caption", "note"] as const),
+}));
+
+export const SEED_EXHIBITIONS: Exhibition[] = EXHIBITIONS_SEED.map(
+  (exhibition) => ({
+    ...exhibition,
+    styles: plainMap(["title", "venue", "kind", "note"] as const),
+  }),
+);
+
+export const SEED_CV_GROUPS: CvGroup[] = CV_GROUPS_SEED.map((group) => ({
+  ...group,
+  style: PLAIN,
+}));
+
+export const SEED_CV: CvEntry[] = CV_SEED.map((entry) => ({
+  ...entry,
+  style: PLAIN,
+}));
