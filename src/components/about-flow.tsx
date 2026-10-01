@@ -119,7 +119,11 @@ function CvList({
 
           {section.entries.map((entry) => (
             <div key={entry.id} className="cv-row">
-              <div className="font-mono text-[10.5px] tracking-[0.12em] text-mute-3">
+              {/* A date is set the way the line it belongs to is set. */}
+              <div
+                className="font-mono text-[10.5px] tracking-[0.12em] text-mute-3"
+                {...styleAttrs(entry.style)}
+              >
                 {entry.year}
               </div>
               <div

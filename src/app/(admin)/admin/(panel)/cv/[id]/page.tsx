@@ -12,7 +12,7 @@ import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
 import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getAllCvGroups, getCvEntryById } from "@/lib/content";
-import { PLAIN } from "@/lib/type-style";
+import { PLAIN, styleAttrs } from "@/lib/type-style";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +38,9 @@ export default async function EditCv({
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="adm-h1">{isNew ? "Yeni katılım" : entry!.title.tr}</h1>
+        <h1 className="adm-h1" {...styleAttrs(style)}>
+          {isNew ? "Yeni katılım" : entry!.title.tr}
+        </h1>
         <Link href="/admin/cv" className="adm-btn">
           Listeye dön
         </Link>
@@ -117,6 +119,7 @@ export default async function EditCv({
                     defaultValue={entry?.year ?? ""}
                     placeholder="2026"
                     required
+                    {...dress("styleTitle", style)}
                   />
                 </label>
                 <label className="block">

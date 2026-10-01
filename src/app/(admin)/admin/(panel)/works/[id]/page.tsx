@@ -14,7 +14,7 @@ import { SaveButton } from "@/components/admin/save-button";
 import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getAllSeries, getWorkById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
-import { PLAIN } from "@/lib/type-style";
+import { PLAIN, styleAttrs } from "@/lib/type-style";
 import { MEDIUMS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +40,9 @@ export default async function EditWork({
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="adm-h1">{isNew ? "Yeni iş" : work!.title.tr}</h1>
+        <h1 className="adm-h1" {...styleAttrs(styles.title)}>
+          {isNew ? "Yeni iş" : work!.title.tr}
+        </h1>
         <Link href="/admin/works" className="adm-btn">
           İşlere dön
         </Link>
@@ -235,6 +237,7 @@ export default async function EditWork({
                 defaultValue={work?.year ?? ""}
                 placeholder="2026"
                 required
+                {...dress("styleTitle", styles.title)}
               />
             </label>
             <label className="block">

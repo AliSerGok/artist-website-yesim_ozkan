@@ -133,7 +133,9 @@ export function LiveEdit({ children }: { children: React.ReactNode }) {
        */
       const fields = field.getAttribute("data-live-fields");
       if (fields) {
-        field.closest("[data-card]")?.querySelectorAll(fields).forEach(write);
+        // Across the whole form, not just this card: a work's year is typed
+        // in the settings beside it and still wears the name's face.
+        field.closest("form")?.querySelectorAll(fields).forEach(write);
       }
     };
 

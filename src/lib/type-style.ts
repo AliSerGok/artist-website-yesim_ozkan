@@ -10,20 +10,44 @@
  * menu is used -- see components/admin/live-edit.tsx.
  */
 
-export const FONTS = [
-  "default",
-  "serif",
-  "sans",
-  "calibri",
-  "times",
-  "georgia",
-  "palatino",
-  "verdana",
-  "trebuchet",
-  "mono",
+/**
+ * Every face on offer, in the order and the four kinds the menu shows them
+ * in: the site's own, then the serifs, the sans faces, and the two even-width
+ * ones. A face added here reaches the menu and the save on its own -- all
+ * either reads is this list -- but it means nothing until globals.css
+ * answers its name.
+ */
+export const FONT_GROUPS = [
+  { kind: "site", fonts: ["default", "serif", "sans"] },
+  {
+    kind: "serif",
+    fonts: ["times", "georgia", "palatino", "garamond", "baskerville", "didot"],
+  },
+  {
+    kind: "sans",
+    fonts: [
+      "calibri",
+      "verdana",
+      "trebuchet",
+      "tahoma",
+      "optima",
+      "futura",
+      "gill",
+      "avenir",
+    ],
+  },
+  { kind: "mono", fonts: ["mono", "courier"] },
 ] as const;
 
-export type Font = (typeof FONTS)[number];
+/** Only how the menu sorts the faces -- nothing is stored about the kind. */
+export type FontGroup = (typeof FONT_GROUPS)[number]["kind"];
+
+export type Font = (typeof FONT_GROUPS)[number]["fonts"][number];
+
+/** The same faces, flat: what a stored choice is checked against. */
+export const FONTS: readonly Font[] = FONT_GROUPS.flatMap(
+  (group) => group.fonts,
+);
 
 export interface TextStyle {
   /** "default" leaves the text in the face the page sets it in. */

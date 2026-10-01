@@ -10,6 +10,7 @@ import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { getAllSeries, getAllWorks } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { mediaUrl } from "@/lib/media";
+import { styleAttrs } from "@/lib/type-style";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,7 @@ export default async function AdminWorks() {
                 <Link
                   href={`/admin/works/${work.id}`}
                   className="font-serif text-[18px] leading-tight hover:text-mute"
+                  {...styleAttrs(work.styles.title)}
                 >
                   {work.title.tr}
                   <span className="text-mute-2 italic">, {work.year}</span>

@@ -15,7 +15,7 @@ import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
 import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getAllCvEntries, getCvGroupById } from "@/lib/content";
-import { PLAIN } from "@/lib/type-style";
+import { PLAIN, styleAttrs } from "@/lib/type-style";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +38,9 @@ export default async function EditCvGroup({
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="adm-h1">{isNew ? "Yeni başlık" : group!.title.tr}</h1>
+        <h1 className="adm-h1" {...styleAttrs(group?.style ?? PLAIN)}>
+          {isNew ? "Yeni başlık" : group!.title.tr}
+        </h1>
         <Link href="/admin/cv" className="adm-btn">
           Listeye dön
         </Link>

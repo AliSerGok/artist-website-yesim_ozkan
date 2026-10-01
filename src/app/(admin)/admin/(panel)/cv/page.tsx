@@ -10,6 +10,7 @@ import { ActionForm } from "@/components/admin/action-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { getAllCvEntries, getAllCvGroups } from "@/lib/content";
+import { styleAttrs } from "@/lib/type-style";
 import type { CvEntry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +30,10 @@ function Row({ entry }: { entry: CvEntry }) {
     <div className="grid items-center gap-4 border-b border-rule py-2.5 [grid-template-columns:auto_56px_minmax(0,1fr)_auto]">
       <DragHandle id={entry.id} />
 
-      <div className="font-mono text-[11px] tracking-[0.12em] text-mute-3">
+      <div
+        className="font-mono text-[11px] tracking-[0.12em] text-mute-3"
+        {...styleAttrs(entry.style)}
+      >
         {entry.year}
       </div>
 
@@ -37,6 +41,7 @@ function Row({ entry }: { entry: CvEntry }) {
         <Link
           href={`/admin/cv/${entry.id}`}
           className="text-[14px] hover:text-mute"
+          {...styleAttrs(entry.style)}
         >
           {entry.title.tr}
         </Link>
@@ -142,7 +147,10 @@ export default async function AdminCv() {
                       id={group.id}
                       label="Başlığı sürükleyerek taşı"
                     />
-                    <h2 className="font-serif text-[19px] leading-none">
+                    <h2
+                      className="font-serif text-[19px] leading-none"
+                      {...styleAttrs(group.style)}
+                    >
                       {group.title.tr}
                       {!group.published && (
                         <span className="adm-note ml-2.5">gizli</span>

@@ -9,6 +9,7 @@ import { ConfirmButton } from "@/components/admin/confirm-button";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { getAllExhibitions } from "@/lib/content";
 import { mediaUrl } from "@/lib/media";
+import { styleAttrs } from "@/lib/type-style";
 
 export const dynamic = "force-dynamic";
 
@@ -54,12 +55,28 @@ export default async function AdminExhibitions() {
                 <Link
                   href={`/admin/exhibitions/${exhibition.id}`}
                   className="font-serif text-[18px] leading-tight hover:text-mute"
+                  {...styleAttrs(exhibition.styles.title)}
                 >
                   {exhibition.title.tr}
                 </Link>
                 <div className="adm-note mt-1">
-                  {exhibition.year} · {exhibition.venue.tr}
-                  {exhibition.kind.tr ? ` · ${exhibition.kind.tr}` : ""}
+                  <span {...styleAttrs(exhibition.styles.title)}>
+                    {exhibition.year}
+                  </span>{" "}
+                  ·{" "}
+                  <span {...styleAttrs(exhibition.styles.venue)}>
+                    {exhibition.venue.tr}
+                  </span>
+                  {exhibition.kind.tr ? (
+                    <>
+                      {" · "}
+                      <span {...styleAttrs(exhibition.styles.kind)}>
+                        {exhibition.kind.tr}
+                      </span>
+                    </>
+                  ) : (
+                    ""
+                  )}
                   {exhibition.published ? "" : " · taslak"}
                   {exhibition.imageKey ? "" : " · görsel yok"}
                 </div>

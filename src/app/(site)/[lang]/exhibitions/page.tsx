@@ -60,7 +60,10 @@ export default async function ExhibitionsPage({
 
           <div>
             <div className="mb-2.5 flex items-baseline gap-[14px]">
-              <span className="font-mono text-[10px] tracking-[0.16em]">
+              <span
+                className="font-mono text-[10px] tracking-[0.16em]"
+                {...styleAttrs(exhibition.styles.title)}
+              >
                 {exhibition.year}
               </span>
               <span

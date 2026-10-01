@@ -10,6 +10,7 @@ import { SaveButton } from "@/components/admin/save-button";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { getAbout, getCvSections, type CvSection } from "@/lib/content";
 import { revision } from "@/lib/revision";
+import { styleAttrs } from "@/lib/type-style";
 import {
   ALIGNMENTS,
   MAX_CELLS,
@@ -843,7 +844,10 @@ function CvPreview({ sections }: { sections: CvSection[] }) {
         <div className="flex max-h-[340px] flex-col gap-4 overflow-y-auto">
           {sections.map((section) => (
             <div key={section.group?.id ?? "unfiled"}>
-              <div className="label mb-1.5">
+              <div
+                className="label mb-1.5"
+                {...(section.group ? styleAttrs(section.group.style) : {})}
+              >
                 {section.group ? section.group.title.tr : "Başlıksız"}
               </div>
 
@@ -857,7 +861,9 @@ function CvPreview({ sections }: { sections: CvSection[] }) {
                   <span className="font-mono text-[11px] tracking-[0.12em] text-mute-3">
                     {entry.year}
                   </span>
-                  <span className="min-w-0">{entry.title.tr}</span>
+                  <span className="min-w-0" {...styleAttrs(entry.style)}>
+                    {entry.title.tr}
+                  </span>
                   <span className="adm-note">{KIND_LABEL[entry.kind]}</span>
                 </Link>
               ))}

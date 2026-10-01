@@ -16,7 +16,7 @@ import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
 import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getExhibitionById } from "@/lib/content";
-import { PLAIN } from "@/lib/type-style";
+import { PLAIN, styleAttrs } from "@/lib/type-style";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +40,7 @@ export default async function EditExhibition({
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="adm-h1">
+        <h1 className="adm-h1" {...styleAttrs(styles.title)}>
           {isNew ? "Yeni sergi" : exhibition!.title.tr}
         </h1>
         <Link href="/admin/exhibitions" className="adm-btn">
@@ -266,6 +266,7 @@ export default async function EditExhibition({
                 defaultValue={exhibition?.year ?? ""}
                 placeholder="2026"
                 required
+                {...dress("styleTitle", styles.title)}
               />
             </label>
             <label className="block">

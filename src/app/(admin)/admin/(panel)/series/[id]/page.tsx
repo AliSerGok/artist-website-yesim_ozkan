@@ -21,7 +21,7 @@ import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getAllWorks, getSeriesById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { mediaUrl } from "@/lib/media";
-import { PLAIN } from "@/lib/type-style";
+import { PLAIN, styleAttrs } from "@/lib/type-style";
 import { MEDIUMS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -46,7 +46,9 @@ export default async function EditSeries({
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="adm-h1">{isNew ? "Yeni seri" : series!.title.tr}</h1>
+        <h1 className="adm-h1" {...styleAttrs(styles.title)}>
+          {isNew ? "Yeni seri" : series!.title.tr}
+        </h1>
         <Link href="/admin/series" className="adm-btn">
           Serilere dön
         </Link>
@@ -223,6 +225,7 @@ export default async function EditSeries({
                 className="adm-input"
                 defaultValue={series?.years ?? ""}
                 placeholder="2023–2025"
+                {...dress("styleMeta", styles.meta)}
               />
             </label>
             <label className="block">
@@ -315,6 +318,7 @@ export default async function EditSeries({
                       <Link
                         href={`/admin/works/${work.id}`}
                         className="min-w-0 text-[13px] hover:text-mute"
+                        {...styleAttrs(work.styles.title)}
                       >
                         {work.title.tr}
                         <span className="text-mute-2 italic">

@@ -1,9 +1,16 @@
-import { FONTS, styleAttrs, type Font, type TextStyle } from "@/lib/type-style";
+import {
+  FONT_GROUPS,
+  styleAttrs,
+  type Font,
+  type FontGroup,
+  type TextStyle,
+} from "@/lib/type-style";
 
 /**
  * The face one written field is set in: the two the site is drawn with, and
- * seven plain ones every machine already has. Bold and italic ride along,
- * because they belong to the same choice.
+ * sixteen plain ones every machine already has, sorted into serifs, sans
+ * faces and even-width ones so a long menu stays readable. Bold and italic
+ * ride along, because they belong to the same choice.
  *
  * The three fields are named after the field they dress -- `styleTitleFont`,
  * `styleTitleBold`, `styleTitleItalic` -- which is what the save reads back.
@@ -13,13 +20,30 @@ const FONT_LABEL: Record<Font, string> = {
   default: "Sayfanın yüzü",
   serif: "Site başlık",
   sans: "Site metin",
-  calibri: "Calibri",
   times: "Times New Roman",
   georgia: "Georgia",
   palatino: "Palatino",
+  garamond: "Garamond",
+  baskerville: "Baskerville",
+  didot: "Didot",
+  calibri: "Calibri",
   verdana: "Verdana",
   trebuchet: "Trebuchet MS",
+  tahoma: "Tahoma",
+  optima: "Optima",
+  futura: "Futura",
+  gill: "Gill Sans",
+  avenir: "Avenir",
   mono: "Daktilo",
+  courier: "Courier",
+};
+
+/** The heading each kind of face is gathered under. */
+const GROUP_LABEL: Record<FontGroup, string> = {
+  site: "Sitenin yüzleri",
+  serif: "Tırnaklı",
+  sans: "Tırnaksız",
+  mono: "Eşit aralıklı",
 };
 
 /**
@@ -57,10 +81,14 @@ export function TypeMenu({
           data-live-target={target}
           data-live-fields={`[data-dress="${name}"]`}
         >
-          {FONTS.map((font) => (
-            <option key={font} value={font}>
-              {FONT_LABEL[font]}
-            </option>
+          {FONT_GROUPS.map((group) => (
+            <optgroup key={group.kind} label={GROUP_LABEL[group.kind]}>
+              {group.fonts.map((font) => (
+                <option key={font} value={font}>
+                  {FONT_LABEL[font]}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </label>

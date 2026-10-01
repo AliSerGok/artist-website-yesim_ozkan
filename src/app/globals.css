@@ -1843,6 +1843,18 @@
   font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
 }
 
+[data-font="garamond"] {
+  font-family: Garamond, "Hoefler Text", "Times New Roman", serif;
+}
+
+[data-font="baskerville"] {
+  font-family: Baskerville, "Baskerville Old Face", Georgia, serif;
+}
+
+[data-font="didot"] {
+  font-family: Didot, "Didot LT STD", "Bodoni MT", Georgia, serif;
+}
+
 [data-font="verdana"] {
   font-family: Verdana, Geneva, sans-serif;
 }
@@ -1851,8 +1863,32 @@
   font-family: "Trebuchet MS", "Lucida Grande", Tahoma, sans-serif;
 }
 
+[data-font="tahoma"] {
+  font-family: Tahoma, Geneva, Verdana, sans-serif;
+}
+
+[data-font="optima"] {
+  font-family: Optima, Candara, "Segoe UI", sans-serif;
+}
+
+[data-font="futura"] {
+  font-family: Futura, "Century Gothic", "Trebuchet MS", sans-serif;
+}
+
+[data-font="gill"] {
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
+}
+
+[data-font="avenir"] {
+  font-family: Avenir, "Avenir Next", Corbel, "Segoe UI", sans-serif;
+}
+
 [data-font="mono"] {
   font-family: var(--font-mono);
+}
+
+[data-font="courier"] {
+  font-family: "Courier New", Courier, monospace;
 }
 
 [data-bold="true"] {

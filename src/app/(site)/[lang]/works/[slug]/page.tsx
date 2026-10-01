@@ -126,6 +126,7 @@ export default async function WorkPage({
                 <Link
                   href={`/${lang}/series/${series.slug}`}
                   className="text-[12.5px] leading-[1.65] text-ink-soft underline-offset-4 hover:underline"
+                  {...styleAttrs(series.styles.title)}
                 >
                   {series.title[lang]}
                 </Link>
@@ -141,6 +142,7 @@ export default async function WorkPage({
             <Link
               href={`/${lang}/works/${previous.slug}`}
               className="text-[10px] tracking-[0.18em] text-mute-3 uppercase transition-colors duration-200 hover:text-ink"
+              {...styleAttrs(previous.styles.title)}
             >
               ← {previous.title[lang]}
             </Link>
@@ -151,6 +153,7 @@ export default async function WorkPage({
             <Link
               href={`/${lang}/works/${next.slug}`}
               className="text-[10px] tracking-[0.18em] text-mute-3 uppercase transition-colors duration-200 hover:text-ink"
+              {...styleAttrs(next.styles.title)}
             >
               {next.title[lang]} →
             </Link>
