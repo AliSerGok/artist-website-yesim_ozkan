@@ -42,6 +42,10 @@ import {
   MAX_CELLS,
   MAX_CONTACT_ROWS,
   MEDIUMS,
+  DEFAULT_SIZE,
+  DEFAULT_WIDTH,
+  SIZES,
+  WIDTHS,
   type AboutBlock,
   type AboutContent,
   type AboutFact,
@@ -57,6 +61,8 @@ import {
   type HomeItemType,
   type Medium,
   type RowCell,
+  type Size,
+  type Width,
 } from "@/lib/types";
 
 const text = (form: FormData, key: string) =>
@@ -524,7 +530,13 @@ const blank = (): Localized => ({ tr: "", en: "" });
 function emptyCell(kind: CellType): RowCell {
   return kind === "image"
     ? { kind, imageKey: null, ratio: 1.5, caption: blank(), align: FLUSH }
-    : { kind: "text", paragraphs: [blank()], align: FLUSH };
+    : {
+        kind: "text",
+        paragraphs: [blank()],
+        align: FLUSH,
+        width: DEFAULT_WIDTH.text,
+        size: DEFAULT_SIZE,
+      };
 }
 
 /** One of the three stops, or the edge it started at. */
@@ -535,10 +547,46 @@ function alignment(form: FormData, key: string): Alignment {
     : "start";
 }
 
+/** One of the four stops, or the one this kind of thing starts at. */
+function width(form: FormData, key: string, fallback: Width): Width {
+  const value = text(form, key);
+  return (WIDTHS as readonly string[]).includes(value)
+    ? (value as Width)
+    : fallback;
+}
+
+/** One of the four sizes, or the one the page was drawn at. */
+function size(form: FormData, key: string): Size {
+  const value = text(form, key);
+  return (SIZES as readonly string[]).includes(value)
+    ? (value as Size)
+    : DEFAULT_SIZE;
+}
+
 function emptyBlock(type: BlockType): AboutBlock {
-  if (type === "heading") return { type, text: blank() };
-  if (type === "quote") return { type, quote: blank(), by: blank() };
+  if (type === "heading") {
+    return {
+      type,
+      text: blank(),
+      width: DEFAULT_WIDTH.heading,
+      align: "start",
+      size: DEFAULT_SIZE,
+    };
+  }
+
+  if (type === "quote") {
+    return {
+      type,
+      quote: blank(),
+      by: blank(),
+      width: DEFAULT_WIDTH.quote,
+      align: "start",
+      size: DEFAULT_SIZE,
+    };
+  }
+
   if (type === "cv") return { type, title: defaultCvTitle() };
+
   return { type: "row", cells: [emptyCell("text")] };
 }
 
@@ -571,7 +619,13 @@ function readBlocks(form: FormData): AboutBlock[] {
     if (!(BLOCK_TYPES as readonly string[]).includes(type)) continue;
 
     if (type === "heading") {
-      blocks.push({ type: "heading", text: localized(form, at("head")) });
+      blocks.push({
+        type: "heading",
+        text: localized(form, at("head")),
+        width: width(form, at("width"), DEFAULT_WIDTH.heading),
+        align: alignment(form, at("align")),
+        size: size(form, at("size")),
+      });
       continue;
     }
 
@@ -580,6 +634,9 @@ function readBlocks(form: FormData): AboutBlock[] {
         type: "quote",
         quote: localized(form, at("quote")),
         by: localized(form, at("by")),
+        width: width(form, at("width"), DEFAULT_WIDTH.quote),
+        align: alignment(form, at("align")),
+        size: size(form, at("size")),
       });
       continue;
     }
@@ -621,6 +678,8 @@ function readBlocks(form: FormData): AboutBlock[] {
           paragraphs(text(form, on("textEn"))),
         ),
         align,
+        width: width(form, on("width"), DEFAULT_WIDTH.text),
+        size: size(form, on("size")),
       });
     }
 

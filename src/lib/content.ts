@@ -11,11 +11,12 @@ import {
   SEED_SERIES,
   SEED_WORKS,
 } from "./seed";
-import { FLUSH } from "./types";
+import { DEFAULT_SIZE, DEFAULT_WIDTH, FLUSH } from "./types";
 import type {
   AboutBlock,
   AboutContent,
   AboutFact,
+  Alignment,
   ContactContent,
   CvEntry,
   CvGroup,
@@ -27,7 +28,9 @@ import type {
   Medium,
   RowCell,
   Series,
+  Size,
   TextCell,
+  Width,
   Work,
 } from "./types";
 
@@ -435,7 +438,8 @@ interface LegacyFact {
 }
 
 type LegacyCell =
-  | (Omit<TextCell, "align"> & Partial<Pick<TextCell, "align">>)
+  | (Omit<TextCell, "align" | "width" | "size"> &
+      Partial<Pick<TextCell, "align" | "width" | "size">>)
   | (Omit<ImageCell, "align"> & Partial<Pick<ImageCell, "align">>);
 
 interface LegacyBlock {
@@ -444,6 +448,9 @@ interface LegacyBlock {
   cells?: LegacyCell[];
   text?: Localized;
   title?: Localized;
+  width?: Width;
+  align?: Alignment;
+  size?: Size;
   quote?: Localized;
   by?: Localized;
   imageKey?: string | null;
@@ -457,11 +464,19 @@ interface LegacyBlock {
 
 const blank = (): Localized => ({ tr: "", en: "" });
 
-/** A field saved before the panel could align them stays where it sat. */
-const toCell = (cell: LegacyCell): RowCell => ({
-  ...cell,
-  align: cell.align ?? FLUSH,
-});
+/**
+ * A field saved before the panel could align them stays where it sat, and
+ * one saved before it could set a measure keeps the only one there was.
+ */
+const toCell = (cell: LegacyCell): RowCell =>
+  cell.kind === "text"
+    ? {
+        ...cell,
+        align: cell.align ?? FLUSH,
+        width: cell.width ?? DEFAULT_WIDTH.text,
+        size: cell.size ?? DEFAULT_SIZE,
+      }
+    : { ...cell, align: cell.align ?? FLUSH };
 
 function toFact(fact: LegacyFact): AboutFact {
   return {
@@ -478,7 +493,13 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
   }
 
   if (block.type === "heading") {
-    return { type: "heading", text: block.text ?? blank() };
+    return {
+      type: "heading",
+      text: block.text ?? blank(),
+      width: block.width ?? DEFAULT_WIDTH.heading,
+      align: block.align ?? "start",
+      size: block.size ?? DEFAULT_SIZE,
+    };
   }
 
   if (block.type === "quote") {
@@ -486,6 +507,11 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
       type: "quote",
       quote: block.quote ?? blank(),
       by: block.by ?? blank(),
+      // Quotes were set to a narrow measure before this was a choice; the
+      // wider default is the one they are read at now.
+      width: block.width ?? DEFAULT_WIDTH.quote,
+      align: block.align ?? "start",
+      size: block.size ?? DEFAULT_SIZE,
     };
   }
 
@@ -496,7 +522,15 @@ function toBlock(block: LegacyBlock): AboutBlock | null {
   if (block.type === "text") {
     return {
       type: "row",
-      cells: [{ kind: "text", paragraphs: block.paragraphs ?? [], align: FLUSH }],
+      cells: [
+        {
+          kind: "text",
+          paragraphs: block.paragraphs ?? [],
+          align: FLUSH,
+          width: DEFAULT_WIDTH.text,
+          size: DEFAULT_SIZE,
+        },
+      ],
     };
   }
 

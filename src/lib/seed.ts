@@ -1,4 +1,4 @@
-import { FLUSH } from "./types";
+import { DEFAULT_SIZE, DEFAULT_WIDTH, FLUSH } from "./types";
 import type {
   AboutContent,
   ContactContent,
@@ -690,6 +690,8 @@ export const SEED_ABOUT: AboutContent = {
         {
           kind: "text",
           align: FLUSH,
+          width: DEFAULT_WIDTH.text,
+          size: DEFAULT_SIZE,
           paragraphs: [
             {
               tr: "Resimleri çok sıradan yüzeylerin uzun süreli gözleminden doğuyor: geç ışıkta bir duvar, leğende duran su, bir perdenin kıvrımı. Ketende ince yağlıboya ve pigment katmanlarıyla çalışıyor; her geçişin izini kısmen görünür bırakıyor, böylece resim kendi yapılışının hafızasını koruyor.",
@@ -706,6 +708,9 @@ export const SEED_ABOUT: AboutContent = {
     {
       type: "heading",
       text: { tr: "Atölye", en: "The studio" },
+      width: DEFAULT_WIDTH.heading,
+      align: "start",
+      size: DEFAULT_SIZE,
     },
     {
       type: "row",
@@ -749,6 +754,8 @@ export const SEED_ABOUT: AboutContent = {
         {
           kind: "text",
           align: FLUSH,
+          width: DEFAULT_WIDTH.text,
+          size: DEFAULT_SIZE,
           paragraphs: [
             {
               tr: "Atölyede aynı anda beş altı iş bekliyor. Bir keten kuruyana kadar bir başkası boyanıyor; kağıt işleri ikisinin arasında, ayakta karar verilen şeyler.",
@@ -768,10 +775,16 @@ export const SEED_ABOUT: AboutContent = {
         tr: "Argonotlar söyleşisi, 2025",
         en: "Interview, Argonotlar, 2025",
       },
+      width: DEFAULT_WIDTH.quote,
+      align: "start",
+      size: DEFAULT_SIZE,
     },
     {
       type: "heading",
       text: { tr: "Arka plan", en: "Background" },
+      width: DEFAULT_WIDTH.heading,
+      align: "start",
+      size: DEFAULT_SIZE,
     },
     {
       type: "row",
@@ -779,6 +792,8 @@ export const SEED_ABOUT: AboutContent = {
         {
           kind: "text",
           align: FLUSH,
+          width: DEFAULT_WIDTH.text,
+          size: DEFAULT_SIZE,
           paragraphs: [
             {
               tr: "Mimar Sinan Güzel Sanatlar Üniversitesi'nde resim okudu; İstanbul, İzmir, Berlin ve Lizbon'da sergiler açtı. İşleri Türkiye ve Avrupa'daki özel koleksiyonlarda yer alıyor.",

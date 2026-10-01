@@ -112,10 +112,40 @@ export interface CellAlign {
 /** Top left, which is where every field sat before any of this. */
 export const FLUSH: CellAlign = { x: "start", y: "start" };
 
+/**
+ * How far across the page something spreads. The four stops are named, not
+ * measured: prose keeps a reading measure, a heading or a quote is display
+ * type and goes by the eye, so each reads the same four words differently.
+ */
+export const WIDTHS = ["narrow", "medium", "wide", "full"] as const;
+
+export type Width = (typeof WIDTHS)[number];
+
+/** Where each of them starts before the panel says otherwise. */
+export const DEFAULT_WIDTH = {
+  heading: "full",
+  quote: "wide",
+  text: "wide",
+} as const satisfies Record<"heading" | "quote" | "text", Width>;
+
+/**
+ * How big the words are set. Named like the widths and for the same reason:
+ * "normal" is the size the page was drawn at, and each kind of text steps
+ * away from its own normal.
+ */
+export const SIZES = ["small", "normal", "large", "huge"] as const;
+
+export type Size = (typeof SIZES)[number];
+
+export const DEFAULT_SIZE: Size = "normal";
+
 export interface TextCell {
   kind: "text";
   paragraphs: Localized[];
   align: CellAlign;
+  /** Across the column it was given; the alignment places what is left. */
+  width: Width;
+  size: Size;
 }
 
 export interface ImageCell {
@@ -146,12 +176,19 @@ export interface RowBlock {
 export interface HeadingBlock {
   type: "heading";
   text: Localized;
+  width: Width;
+  /** Both the side of the page it keeps and the way the words are set. */
+  align: Alignment;
+  size: Size;
 }
 
 export interface QuoteBlock {
   type: "quote";
   quote: Localized;
   by: Localized;
+  width: Width;
+  align: Alignment;
+  size: Size;
 }
 
 /**
