@@ -57,9 +57,17 @@ export function LiveEdit({ children }: { children: React.ReactNode }) {
       if (!preview) return null;
 
       const part = field.getAttribute("data-live-target");
-      return part
-        ? preview.querySelector<HTMLElement>(part)
-        : (preview.firstElementChild as HTMLElement | null);
+      if (part) return preview.querySelector<HTMLElement>(part);
+
+      /*
+       * A control that names the fields it dresses has said exactly what it
+       * speaks for -- its own card's preview is one of them. Falling back to
+       * the whole preview would dress everything inside it, and a bold name
+       * would drag the line under it along.
+       */
+      if (field.getAttribute("data-live-fields")) return null;
+
+      return preview.firstElementChild as HTMLElement | null;
     };
 
     const onInput = (event: Event) => {
@@ -75,9 +83,9 @@ export function LiveEdit({ children }: { children: React.ReactNode }) {
       const kind = field.dataset.live;
       if (!kind) return;
 
+      // A face shared by a whole page has no preview of its own to speak
+      // for; it writes onto every field it dresses instead.
       const target = previewFor(field);
-      if (!target) return;
-
       const value = valueOf(field);
 
       /*
@@ -93,12 +101,12 @@ export function LiveEdit({ children }: { children: React.ReactNode }) {
       }
 
       if (kind === "line") {
-        target.textContent = value;
+        if (target) target.textContent = value;
         return;
       }
 
       // One line each, the way a künye column is read back.
-      if (kind === "lines" || kind === "text") {
+      if (target && (kind === "lines" || kind === "text")) {
         const parts = kind === "lines" ? value.split("\n") : value.split(BREAK);
 
         target.replaceChildren(
@@ -125,7 +133,7 @@ export function LiveEdit({ children }: { children: React.ReactNode }) {
         else node.setAttribute(attribute, value);
       };
 
-      write(target);
+      if (target) write(target);
 
       /*
        * A face is worn by the boxes it is typed into as well, so the words
@@ -134,7 +142,7 @@ export function LiveEdit({ children }: { children: React.ReactNode }) {
       const fields = field.getAttribute("data-live-fields");
       if (fields) {
         // Across the whole form, not just this card: a work's year is typed
-        // in the settings beside it and still wears the name's face.
+        // in the settings beside it, where the face chosen for it is too.
         field.closest("form")?.querySelectorAll(fields).forEach(write);
       }
     };

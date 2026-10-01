@@ -2,7 +2,7 @@ import type { HomeSlide } from "@/components/home-slideshow";
 import type { GallerySeries, GalleryWork } from "@/components/work-gallery";
 
 import type { HomeEntry } from "./content";
-import { plainMap } from "./type-style";
+import { ITALIC, plainMap, type StyleMap } from "./type-style";
 import type { Lang } from "./i18n";
 import type { HomeImageItem, Series, Work } from "./types";
 
@@ -43,7 +43,11 @@ export function toGallerySeries(
     slot: cover?.slot ?? "",
     ratio: cover ? ratio(cover) : 0.8,
     imageKey: cover?.imageKey ?? null,
-    styles: { title: series.styles.title, meta: series.styles.meta },
+    styles: {
+      title: series.styles.title,
+      meta: series.styles.meta,
+      years: series.styles.years,
+    },
   };
 }
 
@@ -52,7 +56,11 @@ export function toGallerySeries(
  * no page to go to, so the viewer shows it on the home page and nothing more:
  * the empty slug is what tells the viewer to leave the address alone.
  */
-function toHomeImage(item: HomeImageItem, lang: Lang): GalleryWork {
+function toHomeImage(
+  item: HomeImageItem,
+  lang: Lang,
+  styles: StyleMap<"title" | "caption">,
+): GalleryWork {
   return {
     id: item.imageKey ?? "",
     slug: "",
@@ -63,8 +71,12 @@ function toHomeImage(item: HomeImageItem, lang: Lang): GalleryWork {
     slot: "",
     ratio: item.ratio || 1,
     imageKey: item.imageKey,
-    // A picture of its own has no note, so only two of the three are set.
-    styles: { ...plainMap(["note"] as const), ...item.styles },
+    /*
+     * A picture of its own has no note, and its italic tail is written in the
+     * face every slide shares rather than one chosen for a work that is not
+     * there -- which is the slant the tail has always had.
+     */
+    styles: { ...plainMap(["note"] as const), year: ITALIC, ...styles },
   };
 }
 
@@ -73,7 +85,16 @@ function toHomeImage(item: HomeImageItem, lang: Lang): GalleryWork {
  * so a slide carries no note — whether it stands for a work or for a picture
  * of its own.
  */
-export function toHomeSlide(entry: HomeEntry, lang: Lang): HomeSlide {
+export function toHomeSlide(
+  entry: HomeEntry,
+  lang: Lang,
+  /**
+   * The home page's own face, which every slide wears. A work keeps the
+   * face chosen for it wherever else it is written; across the opening
+   * screens the names are set alike.
+   */
+  styles: StyleMap<"title" | "caption">,
+): HomeSlide {
   if (entry.type === "work") {
     const { work, seriesSlug, bare } = entry;
     return {
@@ -82,7 +103,7 @@ export function toHomeSlide(entry: HomeEntry, lang: Lang): HomeSlide {
       title: work.title[lang],
       aside: work.year,
       caption: work.caption[lang],
-      styles: { title: work.styles.title, caption: work.styles.caption },
+      styles,
       bare,
       slot: work.slot,
       imageKey: work.imageKey,
@@ -97,13 +118,13 @@ export function toHomeSlide(entry: HomeEntry, lang: Lang): HomeSlide {
     title: item.title[lang],
     aside: item.aside[lang],
     caption: item.caption[lang],
-    styles: item.styles,
+    styles,
     // Left unwritten by leaving all three of them blank.
     bare: false,
     slot: "",
     imageKey: item.imageKey,
     target: item.href
       ? { kind: "link", href: item.href }
-      : { kind: "image", work: toHomeImage(item, lang) },
+      : { kind: "image", work: toHomeImage(item, lang, styles) },
   };
 }

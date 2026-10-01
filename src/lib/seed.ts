@@ -1,5 +1,11 @@
 import { PLAIN, plainMap } from "./type-style";
-import { DEFAULT_SIZE, DEFAULT_WIDTH, FLUSH } from "./types";
+import {
+  DEFAULT_SIZE,
+  DEFAULT_WIDTH,
+  FLUSH,
+  SERIES_STYLES,
+  WORK_STYLES,
+} from "./types";
 import type {
   AboutContent,
   ContactContent,
@@ -876,6 +882,7 @@ export const SEED_CONTACT: ContactContent = {
 
 /** The slides the home page opens with until the panel says otherwise. */
 export const SEED_HOME: HomeContent = {
+  styles: plainMap(["title", "caption"] as const),
   items: ["w14", "w11", "w1", "w6", "w13", "w12"].map((workId) => ({
     type: "work",
     workId,
@@ -885,18 +892,20 @@ export const SEED_HOME: HomeContent = {
 
 /*
  * The seed is written without faces: every line of it is set in the face the
- * page itself chooses, which is what "default" means. Anything the artist
- * restyles in the panel is stored on its own row from then on.
+ * page itself chooses, which is what "default" means -- a work and a series
+ * start with the faces their fields wear by default, the slanted year among
+ * them. Anything the artist restyles in the panel is stored on its own row
+ * from then on.
  */
 
 export const SEED_SERIES: Series[] = SERIES_SEED.map((series) => ({
   ...series,
-  styles: plainMap(["title", "meta", "note"] as const),
+  styles: { ...SERIES_STYLES },
 }));
 
 export const SEED_WORKS: Work[] = WORKS_SEED.map((work) => ({
   ...work,
-  styles: plainMap(["title", "caption", "note"] as const),
+  styles: { ...WORK_STYLES },
 }));
 
 export const SEED_EXHIBITIONS: Exhibition[] = EXHIBITIONS_SEED.map(

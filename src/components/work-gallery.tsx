@@ -30,7 +30,7 @@ export interface GallerySeries {
   slot: string;
   ratio: number;
   imageKey: string | null;
-  styles: StyleMap<"title" | "meta">;
+  styles: StyleMap<"title" | "meta" | "years">;
 }
 
 type GridEntry =
@@ -341,6 +341,7 @@ function WorkTile({
             aside={work.year}
             className="font-serif text-[17px] leading-[1.3]"
             style={work.styles.title}
+            asideStyle={work.styles.year}
           />
           {work.caption && (
             <div
@@ -390,6 +391,7 @@ function SeriesCard({
             aside={series.years}
             className="font-serif text-[19px] leading-[1.25]"
             style={series.styles.title}
+            asideStyle={series.styles.years}
           />
           {series.meta && (
             <div

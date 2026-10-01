@@ -14,8 +14,8 @@ import { SaveButton } from "@/components/admin/save-button";
 import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getAllSeries, getWorkById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
-import { PLAIN, styleAttrs } from "@/lib/type-style";
-import { MEDIUMS } from "@/lib/types";
+import { styleAttrs } from "@/lib/type-style";
+import { MEDIUMS, WORK_STYLES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -31,11 +31,7 @@ export default async function EditWork({
 
   const series = await getAllSeries();
   const label = dict("tr").medium;
-  const styles = work?.styles ?? {
-    title: PLAIN,
-    caption: PLAIN,
-    note: PLAIN,
-  };
+  const styles = work?.styles ?? WORK_STYLES;
 
   return (
     <>
@@ -203,123 +199,141 @@ export default async function EditWork({
               />
             </div>
           </FieldCard>
+
+          <div className="adm-card">
+            <ImageField
+              name="imageKey"
+              /*
+               * A work that does not exist yet still needs somewhere to put its
+               * picture. The upload only ever hands back a key; writing that key
+               * onto a record is the save's job either way, so a new work simply
+               * files its image under works/new.
+               */
+              prefix={work ? `works/${work.id}` : "works/new"}
+              imageKey={work?.imageKey ?? null}
+              widthName="imageWidth"
+              heightName="imageHeight"
+              ratio={work ? work.width / work.height : 3 / 4}
+            />
+          </div>
+
+          {/* Not a card to open: four small settings, always in sight. */}
+          <div className="adm-card">
+            <div className="adm-card-head">
+              <span className="label">Yıl, teknik, seri ve yayın</span>
+            </div>
+
+            <div className="mt-5 grid gap-5 md:grid-cols-4">
+              <label className="block">
+                <span className="adm-label">Yıl</span>
+                <input
+                  name="year"
+                  className="adm-input"
+                  defaultValue={work?.year ?? ""}
+                  placeholder="2026"
+                  required
+                  {...dress("styleYear", styles.year)}
+                />
+              </label>
+              <label className="block">
+                <span className="adm-label">Teknik</span>
+                <select
+                  name="medium"
+                  className="adm-select capitalize"
+                  defaultValue={work?.medium ?? "paintings"}
+                >
+                  {MEDIUMS.map((medium) => (
+                    <option key={medium} value={medium} className="capitalize">
+                      {label[medium]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="adm-label">Seri</span>
+                <select
+                  name="seriesId"
+                  className="adm-select"
+                  defaultValue={work?.seriesId ?? ""}
+                >
+                  <option value="">Seri yok (tek iş)</option>
+                  {series.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.title.tr}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex items-center gap-2.5 self-end pb-2.5">
+                <input
+                  type="checkbox"
+                  name="published"
+                  defaultChecked={work?.published ?? true}
+                  className="h-4 w-4 accent-[#14140f]"
+                />
+                <span className="text-[13px]">Sitede yayında</span>
+              </label>
+            </div>
+
+            {/*
+              The year is written after the name wherever the work is shown, so
+              it is set on its own: the name may be in one face and the year in
+              another, slanted or upright, bold or not.
+            */}
+            <div className="mt-5">
+              <TypeMenu
+                name="styleYear"
+                style={styles.year}
+                label="Yılın yazı tipi"
+              />
+              <p className="adm-note mt-3 max-w-[62ch]">
+                Yıl, eserin adından sonra virgülle yazılır — kartta, büyütülmüş
+                görünümde ve eserin kendi sayfasında. Buradaki seçim yalnızca
+                yılı etkiler; adın yüzü kendi kartında seçilir.
+              </p>
+            </div>
+          </div>
+
+          <details className="adm-card">
+            <summary className="cursor-pointer text-[13px]">
+              Görsel yokken kullanılacak ayarlar
+            </summary>
+            <div className="mt-5 grid gap-5 md:grid-cols-3">
+              <label className="block">
+                <span className="adm-label">Yer tutucu etiketi</span>
+                <input
+                  name="slot"
+                  className="adm-input"
+                  defaultValue={work?.slot ?? ""}
+                  placeholder="painting 120×90"
+                />
+              </label>
+              <label className="block">
+                <span className="adm-label">Oran — en</span>
+                <input
+                  name="width"
+                  type="number"
+                  min={1}
+                  className="adm-input"
+                  defaultValue={work?.width ?? 3}
+                />
+              </label>
+              <label className="block">
+                <span className="adm-label">Oran — boy</span>
+                <input
+                  name="height"
+                  type="number"
+                  min={1}
+                  className="adm-input"
+                  defaultValue={work?.height ?? 4}
+                />
+              </label>
+            </div>
+            <p className="adm-note mt-3">
+              Görsel yüklendiğinde en ve boy otomatik güncellenir.
+            </p>
+          </details>
         </LiveEdit>
-
-        <div className="adm-card">
-          <ImageField
-            name="imageKey"
-            /*
-             * A work that does not exist yet still needs somewhere to put its
-             * picture. The upload only ever hands back a key; writing that key
-             * onto a record is the save's job either way, so a new work simply
-             * files its image under works/new.
-             */
-            prefix={work ? `works/${work.id}` : "works/new"}
-            imageKey={work?.imageKey ?? null}
-            widthName="imageWidth"
-            heightName="imageHeight"
-            ratio={work ? work.width / work.height : 3 / 4}
-          />
-        </div>
-
-        {/* Not a card to open: four small settings, always in sight. */}
-        <div className="adm-card">
-          <div className="adm-card-head">
-            <span className="label">Yıl, teknik, seri ve yayın</span>
-          </div>
-
-          <div className="mt-5 grid gap-5 md:grid-cols-4">
-            <label className="block">
-              <span className="adm-label">Yıl</span>
-              <input
-                name="year"
-                className="adm-input"
-                defaultValue={work?.year ?? ""}
-                placeholder="2026"
-                required
-                {...dress("styleTitle", styles.title)}
-              />
-            </label>
-            <label className="block">
-              <span className="adm-label">Teknik</span>
-              <select
-                name="medium"
-                className="adm-select capitalize"
-                defaultValue={work?.medium ?? "paintings"}
-              >
-                {MEDIUMS.map((medium) => (
-                  <option key={medium} value={medium} className="capitalize">
-                    {label[medium]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="adm-label">Seri</span>
-              <select
-                name="seriesId"
-                className="adm-select"
-                defaultValue={work?.seriesId ?? ""}
-              >
-                <option value="">Seri yok (tek iş)</option>
-                {series.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.title.tr}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex items-center gap-2.5 self-end pb-2.5">
-              <input
-                type="checkbox"
-                name="published"
-                defaultChecked={work?.published ?? true}
-                className="h-4 w-4 accent-[#14140f]"
-              />
-              <span className="text-[13px]">Sitede yayında</span>
-            </label>
-          </div>
-        </div>
-
-        <details className="adm-card">
-          <summary className="cursor-pointer text-[13px]">
-            Görsel yokken kullanılacak ayarlar
-          </summary>
-          <div className="mt-5 grid gap-5 md:grid-cols-3">
-            <label className="block">
-              <span className="adm-label">Yer tutucu etiketi</span>
-              <input
-                name="slot"
-                className="adm-input"
-                defaultValue={work?.slot ?? ""}
-                placeholder="painting 120×90"
-              />
-            </label>
-            <label className="block">
-              <span className="adm-label">Oran — en</span>
-              <input
-                name="width"
-                type="number"
-                min={1}
-                className="adm-input"
-                defaultValue={work?.width ?? 3}
-              />
-            </label>
-            <label className="block">
-              <span className="adm-label">Oran — boy</span>
-              <input
-                name="height"
-                type="number"
-                min={1}
-                className="adm-input"
-                defaultValue={work?.height ?? 4}
-              />
-            </label>
-          </div>
-          <p className="adm-note mt-3">
-            Görsel yüklendiğinde en ve boy otomatik güncellenir.
-          </p>
-        </details>
 
         <div className="flex items-center gap-3">
           <SaveButton />

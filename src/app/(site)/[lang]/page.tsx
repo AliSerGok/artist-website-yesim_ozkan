@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { HomeSlideshow } from "@/components/home-slideshow";
 import { toGalleryWork, toHomeSlide } from "@/lib/cards";
-import { getHomeScreens, getSingleWorks } from "@/lib/content";
+import { getHome, getHomeScreens, getSingleWorks } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { isLang } from "@/lib/i18n";
 
@@ -14,7 +14,8 @@ export default async function HomePage({
   const { lang } = await params;
   if (!isLang(lang)) notFound();
 
-  const [screens, singles] = await Promise.all([
+  const [home, screens, singles] = await Promise.all([
+    getHome(),
     getHomeScreens(),
     getSingleWorks(),
   ]);
@@ -25,7 +26,7 @@ export default async function HomePage({
         <HomeSlideshow
           lang={lang}
           screens={screens.map((screen) =>
-            screen.map((entry) => toHomeSlide(entry, lang)),
+            screen.map((entry) => toHomeSlide(entry, lang, home.styles)),
           )}
           singles={singles.map((work) => toGalleryWork(work, lang))}
         />

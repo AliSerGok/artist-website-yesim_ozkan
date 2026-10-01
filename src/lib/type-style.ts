@@ -59,12 +59,24 @@ export interface TextStyle {
 /** Nothing chosen: the page's own face, its own weight, upright. */
 export const PLAIN: TextStyle = { font: "default", bold: false, italic: false };
 
+/**
+ * Nothing chosen either, but slanted: the face a year wears until the panel
+ * says otherwise, which is how every year on the site was written before it
+ * could be chosen at all.
+ */
+export const ITALIC: TextStyle = { font: "default", bold: false, italic: true };
+
 const isFont = (value: unknown): value is Font =>
   typeof value === "string" && (FONTS as readonly string[]).includes(value);
 
-/** One style out of whatever was stored, which may be nothing at all. */
-export function toStyle(value: unknown): TextStyle {
-  if (!value || typeof value !== "object") return PLAIN;
+/**
+ * One style out of whatever was stored, which may be nothing at all. Nothing
+ * stored means nothing was ever chosen, so the field keeps the face the page
+ * has always given it; a style that *was* stored speaks for itself, upright
+ * and unbold included.
+ */
+export function toStyle(value: unknown, fallback: TextStyle = PLAIN): TextStyle {
+  if (!value || typeof value !== "object") return fallback;
   const raw = value as Partial<TextStyle>;
 
   return {
@@ -77,21 +89,32 @@ export function toStyle(value: unknown): TextStyle {
 /** The styles of one row or block, keyed by the field each one dresses. */
 export type StyleMap<Role extends string> = Record<Role, TextStyle>;
 
+/**
+ * The faces of one row out of whatever was stored, read against the faces its
+ * fields wear when nothing has been chosen for them -- which is also the list
+ * of the fields themselves, so a row restyled before it had a field cannot
+ * come back missing one.
+ */
 export function toStyleMap<Role extends string>(
   value: unknown,
-  roles: readonly Role[],
+  defaults: StyleMap<Role>,
 ): StyleMap<Role> {
   const stored = (value ?? {}) as Record<string, unknown>;
   const map = {} as StyleMap<Role>;
 
-  for (const role of roles) map[role] = toStyle(stored[role]);
+  for (const role of rolesOf(defaults))
+    map[role] = toStyle(stored[role], defaults[role]);
 
   return map;
 }
 
+/** The fields a row's faces are kept under, in the order they are named. */
+export const rolesOf = <Role extends string>(defaults: StyleMap<Role>) =>
+  Object.keys(defaults) as Role[];
+
 /** Every field left in the page's own face. */
 export const plainMap = <Role extends string>(roles: readonly Role[]) =>
-  toStyleMap({}, roles);
+  Object.fromEntries(roles.map((role) => [role, PLAIN])) as StyleMap<Role>;
 
 /** A style is worth storing only when it says something. */
 export const isPlain = (style: TextStyle) =>
@@ -108,5 +131,22 @@ export function styleAttrs(style: TextStyle | undefined) {
     "data-font": style.font === "default" ? undefined : style.font,
     "data-bold": style.bold ? "true" : undefined,
     "data-italic": style.italic ? "true" : undefined,
+  };
+}
+
+/**
+ * The same, for a run of text written inside text that already wears a face
+ * of its own -- the year after the name it belongs to. Here "unbold" and
+ * "upright" have to be said out loud, or the line around it would keep saying
+ * otherwise; globals.css answers both. The page's own face still means the
+ * face of the line it sits in, which is the one it inherits.
+ */
+export function innerStyleAttrs(style: TextStyle | undefined) {
+  if (!style) return {};
+
+  return {
+    "data-font": style.font === "default" ? undefined : style.font,
+    "data-bold": style.bold ? "true" : "false",
+    "data-italic": style.italic ? "true" : "false",
   };
 }

@@ -1898,3 +1898,16 @@
 [data-italic="true"] {
   font-style: italic;
 }
+
+/*
+ * Said out loud only by text written inside text that wears a face of its own
+ * -- a year after the name it belongs to -- where being left alone would mean
+ * wearing the name's weight and slant instead of its own.
+ */
+[data-bold="false"] {
+  font-weight: 400;
+}
+
+[data-italic="false"] {
+  font-style: normal;
+}

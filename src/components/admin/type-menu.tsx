@@ -60,6 +60,7 @@ export function TypeMenu({
   name,
   style,
   target,
+  fields,
   label = "Yazı tipi",
 }: {
   /** The field this face belongs to, e.g. "styleTitle". */
@@ -67,8 +68,15 @@ export function TypeMenu({
   style: TextStyle;
   /** The part of the card's preview it dresses, as a selector. */
   target?: string;
+  /**
+   * Everything else it dresses, as a selector read across the whole form.
+   * A face shared by many things -- the home page's slides -- says so here;
+   * left out, it dresses the boxes its own name is written on.
+   */
+  fields?: string;
   label?: string;
 }) {
+  const dressed = fields ?? `[data-dress="${name}"]`;
   return (
     <div className="flex flex-wrap items-end gap-2.5 border-t border-rule pt-3">
       <label className="block w-[min(100%,190px)]">
@@ -79,7 +87,7 @@ export function TypeMenu({
           defaultValue={style.font}
           data-live="font"
           data-live-target={target}
-          data-live-fields={`[data-dress="${name}"]`}
+          data-live-fields={dressed}
         >
           {FONT_GROUPS.map((group) => (
             <optgroup key={group.kind} label={GROUP_LABEL[group.kind]}>
@@ -100,7 +108,7 @@ export function TypeMenu({
           defaultChecked={style.bold}
           data-live="bold"
           data-live-target={target}
-          data-live-fields={`[data-dress="${name}"]`}
+          data-live-fields={dressed}
         />
         <span className="font-semibold">Kalın</span>
       </label>
@@ -112,7 +120,7 @@ export function TypeMenu({
           defaultChecked={style.italic}
           data-live="italic"
           data-live-target={target}
-          data-live-fields={`[data-dress="${name}"]`}
+          data-live-fields={dressed}
         />
         <span className="italic">İtalik</span>
       </label>

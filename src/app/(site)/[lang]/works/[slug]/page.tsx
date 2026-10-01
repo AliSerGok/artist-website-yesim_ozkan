@@ -11,7 +11,7 @@ import {
 import { dict } from "@/lib/dictionary";
 import { isLang } from "@/lib/i18n";
 import { mediaUrl } from "@/lib/media";
-import { styleAttrs } from "@/lib/type-style";
+import { innerStyleAttrs, styleAttrs } from "@/lib/type-style";
 import type { Work } from "@/lib/types";
 
 export async function generateMetadata({
@@ -95,7 +95,13 @@ export default async function WorkPage({
         <div className="max-w-[46ch]">
           <h1 className="page-title" {...styleAttrs(work.styles.title)}>
             {work.title[lang]}
-            <span className="text-mute-2 italic">, {work.year}</span>
+            {/* Inside the name, so its own weight and slant are spelled out. */}
+            <span
+              className="text-mute-2"
+              {...innerStyleAttrs(work.styles.year)}
+            >
+              , {work.year}
+            </span>
           </h1>
           <p
             className="mt-[22px] text-[14.5px] leading-[1.78] text-ink-soft"

@@ -19,8 +19,8 @@ export interface ViewerWork {
   slot: string;
   ratio: number;
   imageKey: string | null;
-  /** The faces chosen for its three written fields. */
-  styles: StyleMap<"title" | "caption" | "note">;
+  /** The faces chosen for its written fields, the year among them. */
+  styles: StyleMap<"title" | "caption" | "note" | "year">;
 }
 
 const ZOOM = 2.2;
@@ -371,6 +371,7 @@ export function Lightbox({
               aside={work.year}
               className="font-serif text-[19px] leading-[1.25]"
               style={work.styles.title}
+              asideStyle={work.styles.year}
             />
             {work.caption && (
               <div

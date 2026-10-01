@@ -1,8 +1,50 @@
 import type { Localized } from "./i18n";
-import type { StyleMap, TextStyle } from "./type-style";
+import { ITALIC, PLAIN, type StyleMap, type TextStyle } from "./type-style";
 
-/** Technique a work or a series is filed under. */
-export const MEDIUMS = ["paintings", "prints", "paper"] as const;
+/**
+ * The written fields of a work and of a series, each with the face it wears
+ * until the panel says otherwise -- the one place either list is kept, read
+ * by the site to dress a row, by the save to know what to store and by the
+ * panel to draw a row nothing has been chosen for yet.
+ *
+ * The year is the one field that starts with something to say: it has been
+ * written slanted since long before it could be chosen, so a work saved then
+ * must not straighten up on its own.
+ */
+export const WORK_STYLES = {
+  title: PLAIN,
+  caption: PLAIN,
+  note: PLAIN,
+  year: ITALIC,
+} satisfies StyleMap<string>;
+
+export const SERIES_STYLES = {
+  title: PLAIN,
+  meta: PLAIN,
+  note: PLAIN,
+  years: ITALIC,
+} satisfies StyleMap<string>;
+
+/**
+ * The technique a work or a series is made in. The name is what the database
+ * holds; what it is called in either language is answered by lib/dictionary.
+ * A name added here has to be added to the CHECK the two tables carry as
+ * well -- see the latest migration that rebuilds them.
+ */
+export const MEDIUMS = [
+  "paintings",
+  "prints",
+  "paper",
+  "collage",
+  "photography",
+  "sculpture",
+  "ceramics",
+  "textile",
+  "installation",
+  "video",
+  "digital",
+  "mixed",
+] as const;
 
 export type Medium = (typeof MEDIUMS)[number];
 
@@ -27,8 +69,8 @@ export interface Work {
   slot: string;
   imageKey: string | null;
   published: boolean;
-  /** The face each of its written fields is set in. */
-  styles: StyleMap<"title" | "caption" | "note">;
+  /** The face each of its written fields is set in, the year among them. */
+  styles: StyleMap<keyof typeof WORK_STYLES>;
 }
 
 export interface Series {
@@ -45,7 +87,7 @@ export interface Series {
   /** Id of the work whose image fronts the series card. */
   coverWorkId: string | null;
   published: boolean;
-  styles: StyleMap<"title" | "meta" | "note">;
+  styles: StyleMap<keyof typeof SERIES_STYLES>;
 }
 
 /** The handful of shows given the full editorial treatment. */
@@ -289,8 +331,6 @@ export interface HomeImageItem {
   caption: Localized;
   /** Where the slide leads; left empty it leads nowhere. */
   href: string;
-  /** The name with its italic tail, and the small line under them. */
-  styles: StyleMap<"title" | "caption">;
 }
 
 /**
@@ -311,4 +351,10 @@ export type HomeItem = HomeWorkItem | HomeImageItem | HomeBlankItem;
  */
 export interface HomeContent {
   items: HomeItem[];
+  /**
+   * One face for every slide, whatever it shows. A work keeps its own face
+   * on its own pages; across the opening screens the names are set alike,
+   * which is what makes a turning slideshow read as one thing.
+   */
+  styles: StyleMap<"title" | "caption">;
 }

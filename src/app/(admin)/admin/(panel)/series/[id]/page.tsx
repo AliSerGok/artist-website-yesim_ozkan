@@ -21,8 +21,8 @@ import { dress, TypeMenu } from "@/components/admin/type-menu";
 import { getAllWorks, getSeriesById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { mediaUrl } from "@/lib/media";
-import { PLAIN, styleAttrs } from "@/lib/type-style";
-import { MEDIUMS } from "@/lib/types";
+import { innerStyleAttrs, styleAttrs } from "@/lib/type-style";
+import { MEDIUMS, SERIES_STYLES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +41,7 @@ export default async function EditSeries({
     ? works.filter((work) => work.seriesId === series.id)
     : [];
   const label = dict("tr").medium;
-  const styles = series?.styles ?? { title: PLAIN, meta: PLAIN, note: PLAIN };
+  const styles = series?.styles ?? SERIES_STYLES;
 
   return (
     <>
@@ -208,67 +208,85 @@ export default async function EditSeries({
               />
             </div>
           </FieldCard>
+
+          <div className="adm-card">
+            <div className="adm-card-head">
+              <span className="label">
+                Yıl aralığı, teknik, kapak işi ve yayın
+              </span>
+            </div>
+
+            <div className="mt-5 grid gap-5 md:grid-cols-4">
+              <label className="block">
+                <span className="adm-label">Yıl aralığı</span>
+                <input
+                  name="years"
+                  className="adm-input"
+                  defaultValue={series?.years ?? ""}
+                  placeholder="2023–2025"
+                  {...dress("styleYears", styles.years)}
+                />
+              </label>
+              <label className="block">
+                <span className="adm-label">Teknik</span>
+                <select
+                  name="medium"
+                  className="adm-select capitalize"
+                  defaultValue={series?.medium ?? "paintings"}
+                >
+                  {MEDIUMS.map((medium) => (
+                    <option key={medium} value={medium} className="capitalize">
+                      {label[medium]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="adm-label">Kapak işi</span>
+                <select
+                  name="coverWorkId"
+                  className="adm-select"
+                  defaultValue={series?.coverWorkId ?? ""}
+                  disabled={members.length === 0}
+                >
+                  <option value="">İlk iş</option>
+                  {members.map((work) => (
+                    <option key={work.id} value={work.id}>
+                      {work.title.tr}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex items-center gap-2.5 self-end pb-2.5">
+                <input
+                  type="checkbox"
+                  name="published"
+                  defaultChecked={series?.published ?? true}
+                  className="h-4 w-4 accent-[#14140f]"
+                />
+                <span className="text-[13px]">Sitede yayında</span>
+              </label>
+            </div>
+
+            {/*
+              The span of years is written after the series name on its card
+              and before the alt satır on its own page, so it is set on its
+              own: slanted or upright, bold or not, in a face of its choosing.
+            */}
+            <div className="mt-5">
+              <TypeMenu
+                name="styleYears"
+                style={styles.years}
+                label="Yıl aralığının yazı tipi"
+              />
+              <p className="adm-note mt-3 max-w-[62ch]">
+                Yıl aralığı, seri kartında adından sonra virgülle, serinin kendi
+                sayfasında ise alt satırın başında yazılır. Buradaki seçim
+                yalnızca yıl aralığını etkiler.
+              </p>
+            </div>
+          </div>
         </LiveEdit>
-
-        <div className="adm-card">
-          <div className="adm-card-head">
-            <span className="label">
-              Yıl aralığı, teknik, kapak işi ve yayın
-            </span>
-          </div>
-
-          <div className="mt-5 grid gap-5 md:grid-cols-4">
-            <label className="block">
-              <span className="adm-label">Yıl aralığı</span>
-              <input
-                name="years"
-                className="adm-input"
-                defaultValue={series?.years ?? ""}
-                placeholder="2023–2025"
-                {...dress("styleMeta", styles.meta)}
-              />
-            </label>
-            <label className="block">
-              <span className="adm-label">Teknik</span>
-              <select
-                name="medium"
-                className="adm-select capitalize"
-                defaultValue={series?.medium ?? "paintings"}
-              >
-                {MEDIUMS.map((medium) => (
-                  <option key={medium} value={medium} className="capitalize">
-                    {label[medium]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="adm-label">Kapak işi</span>
-              <select
-                name="coverWorkId"
-                className="adm-select"
-                defaultValue={series?.coverWorkId ?? ""}
-                disabled={members.length === 0}
-              >
-                <option value="">İlk iş</option>
-                {members.map((work) => (
-                  <option key={work.id} value={work.id}>
-                    {work.title.tr}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex items-center gap-2.5 self-end pb-2.5">
-              <input
-                type="checkbox"
-                name="published"
-                defaultChecked={series?.published ?? true}
-                className="h-4 w-4 accent-[#14140f]"
-              />
-              <span className="text-[13px]">Sitede yayında</span>
-            </label>
-          </div>
-        </div>
 
         <div className="flex items-center gap-3">
           <SaveButton />
@@ -321,7 +339,10 @@ export default async function EditSeries({
                         {...styleAttrs(work.styles.title)}
                       >
                         {work.title.tr}
-                        <span className="text-mute-2 italic">
+                        <span
+                          className="text-mute-2"
+                          {...innerStyleAttrs(work.styles.year)}
+                        >
                           , {work.year}
                         </span>
                         {work.published ? "" : " · taslak"}

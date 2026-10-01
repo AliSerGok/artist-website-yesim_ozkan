@@ -11,8 +11,20 @@ import {
   SEED_SERIES,
   SEED_WORKS,
 } from "./seed";
-import { PLAIN, toStyle, toStyleMap } from "./type-style";
-import { DEFAULT_SIZE, DEFAULT_WIDTH, FLUSH } from "./types";
+import {
+  PLAIN,
+  plainMap,
+  toStyle,
+  toStyleMap,
+  type StyleMap,
+} from "./type-style";
+import {
+  DEFAULT_SIZE,
+  DEFAULT_WIDTH,
+  FLUSH,
+  SERIES_STYLES,
+  WORK_STYLES,
+} from "./types";
 import type {
   AboutBlock,
   AboutContent,
@@ -35,15 +47,19 @@ import type {
   Work,
 } from "./types";
 
-/** The faces stored beside a row, or none when the column has never been set. */
+/**
+ * The faces stored beside a row, read against the face each of its fields
+ * wears when none was ever chosen -- which is what a row written before the
+ * panel knew the field comes back wearing.
+ */
 function rowStyles<Role extends string>(
   value: string | null | undefined,
-  roles: readonly Role[],
+  defaults: StyleMap<Role>,
 ) {
   try {
-    return toStyleMap(value ? JSON.parse(value) : {}, roles);
+    return toStyleMap(value ? JSON.parse(value) : {}, defaults);
   } catch {
-    return toStyleMap({}, roles);
+    return toStyleMap({}, defaults);
   }
 }
 
@@ -151,7 +167,7 @@ function toWork(row: WorkRow): Work {
     slot: row.slot,
     imageKey: row.image_key,
     published: row.published === 1,
-    styles: rowStyles(row.styles, ["title", "caption", "note"] as const),
+    styles: rowStyles(row.styles, WORK_STYLES),
   };
 }
 
@@ -167,7 +183,7 @@ function toSeries(row: SeriesRow): Series {
     note: { tr: row.note_tr, en: row.note_en },
     coverWorkId: row.cover_work_id,
     published: row.published === 1,
-    styles: rowStyles(row.styles, ["title", "meta", "note"] as const),
+    styles: rowStyles(row.styles, SERIES_STYLES),
   };
 }
 
@@ -183,7 +199,10 @@ function toExhibition(row: ExhibitionRow): Exhibition {
     url: row.url,
     imageKey: row.image_key,
     published: row.published === 1,
-    styles: rowStyles(row.styles, ["title", "venue", "kind", "note"] as const),
+    styles: rowStyles(
+      row.styles,
+      plainMap(["title", "venue", "kind", "note"] as const),
+    ),
   };
 }
 
@@ -197,7 +216,7 @@ function toCvEntry(row: CvRow): CvEntry {
     kind: row.kind as CvEntry["kind"],
     url: row.url,
     published: row.published === 1,
-    style: rowStyles(row.styles, ["title"] as const).title,
+    style: rowStyles(row.styles, plainMap(["title"] as const)).title,
   };
 }
 
@@ -207,7 +226,7 @@ function toCvGroup(row: CvGroupRow): CvGroup {
     order: row.sort_order,
     title: { tr: row.title_tr, en: row.title_en },
     published: row.published === 1,
-    style: rowStyles(row.styles, ["title"] as const).title,
+    style: rowStyles(row.styles, plainMap(["title"] as const)).title,
   };
 }
 
@@ -340,7 +359,6 @@ function toHomeItem(item: HomeItem): HomeItem | null {
       aside: item.aside ?? blank(),
       caption: item.caption ?? blank(),
       href: item.href ?? "",
-      styles: toStyleMap(item.styles, ["title", "caption"] as const),
     };
   }
 
@@ -363,7 +381,10 @@ export async function getHome(): Promise<HomeContent> {
    */
   if (kept.length % 2 === 1) kept.push({ type: "blank" });
 
-  return { items: kept };
+  return {
+    items: kept,
+    styles: toStyleMap(home.styles, plainMap(["title", "caption"] as const)),
+  };
 }
 
 /** A slide together with whatever it takes to draw it. */
@@ -770,7 +791,7 @@ export async function getContact(): Promise<ContactContent> {
 
   return {
     ...contact,
-    styles: toStyleMap(contact.styles, ["lead", "note"] as const),
+    styles: toStyleMap(contact.styles, plainMap(["lead", "note"] as const)),
     rows: (Array.isArray(contact.rows) ? contact.rows : []).map((row) => ({
       ...row,
       style: toStyle(row.style),

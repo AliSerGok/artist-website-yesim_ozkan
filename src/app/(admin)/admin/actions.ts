@@ -4,7 +4,13 @@ import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
 import { defaultCvTitle } from "@/lib/dictionary";
-import { FONTS, PLAIN, type Font, type TextStyle } from "@/lib/type-style";
+import {
+  FONTS,
+  PLAIN,
+  rolesOf,
+  type Font,
+  type TextStyle,
+} from "@/lib/type-style";
 import { finish, stay } from "@/lib/flash";
 import type { Localized } from "@/lib/i18n";
 import {
@@ -45,8 +51,10 @@ import {
   MEDIUMS,
   DEFAULT_SIZE,
   DEFAULT_WIDTH,
+  SERIES_STYLES,
   SIZES,
   WIDTHS,
+  WORK_STYLES,
   type AboutBlock,
   type AboutContent,
   type AboutFact,
@@ -108,7 +116,8 @@ const style = (form: FormData, key: string): TextStyle => {
 
 /**
  * The faces of a whole row, as the JSON its styles column holds. Each one is
- * posted under the field it dresses: "title" is read from styleTitle*.
+ * posted under the field it dresses: "title" is read from styleTitle*, a
+ * work's year from styleYear*.
  */
 const styles = (form: FormData, roles: readonly string[]) =>
   JSON.stringify(
@@ -169,7 +178,7 @@ export async function saveWorkAction(form: FormData) {
           : number(form, "height", 4),
         slot: text(form, "slot"),
         published: flag(form, "published"),
-        styles: styles(form, ["title", "caption", "note"]),
+        styles: styles(form, rolesOf(WORK_STYLES)),
       });
 
       await deleteImages(orphaned([previous?.imageKey ?? null], [imageKey]));
@@ -238,7 +247,7 @@ export async function saveSeriesAction(form: FormData) {
         noteEn: text(form, "noteEn"),
         coverWorkId: nullable(form, "coverWorkId"),
         published: flag(form, "published"),
-        styles: styles(form, ["title", "meta", "note"]),
+        styles: styles(form, rolesOf(SERIES_STYLES)),
       });
     },
     id ? `/admin/series/${id}` : "/admin/series/new",
@@ -979,7 +988,6 @@ function emptyHomeItem(type: HomeItemType): HomeItem {
         aside: blank(),
         caption: blank(),
         href: "",
-        styles: { title: PLAIN, caption: PLAIN },
       };
 }
 
@@ -1015,10 +1023,6 @@ function readHomeItems(form: FormData): HomeItem[] {
         aside: localized(form, at("aside")),
         caption: localized(form, at("caption")),
         href: text(form, at("href")),
-        styles: {
-          title: style(form, at("styleTitle")),
-          caption: style(form, at("styleCaption")),
-        },
       });
     }
   }
@@ -1128,7 +1132,14 @@ export async function saveHomeAction(form: FormData) {
 
     applyHomeIntent(intent, items);
 
-    await savePageContent("home", { items } satisfies HomeContent);
+    await savePageContent("home", {
+      items,
+      // One face for every slide, whatever each one shows.
+      styles: {
+        title: style(form, "styleTitle"),
+        caption: style(form, "styleCaption"),
+      },
+    } satisfies HomeContent);
 
     await deleteImages(
       orphaned(homeImages(previous.items), homeImages(items)),

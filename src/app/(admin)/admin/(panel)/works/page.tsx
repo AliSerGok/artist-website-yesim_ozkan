@@ -10,7 +10,7 @@ import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { getAllSeries, getAllWorks } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { mediaUrl } from "@/lib/media";
-import { styleAttrs } from "@/lib/type-style";
+import { innerStyleAttrs, styleAttrs } from "@/lib/type-style";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +61,12 @@ export default async function AdminWorks() {
                   {...styleAttrs(work.styles.title)}
                 >
                   {work.title.tr}
-                  <span className="text-mute-2 italic">, {work.year}</span>
+                  <span
+                    className="text-mute-2"
+                    {...innerStyleAttrs(work.styles.year)}
+                  >
+                    , {work.year}
+                  </span>
                 </Link>
                 <div className="adm-note mt-1 capitalize">
                   {label[work.medium]}

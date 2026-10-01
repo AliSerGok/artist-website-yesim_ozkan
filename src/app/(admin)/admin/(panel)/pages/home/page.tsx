@@ -1,5 +1,6 @@
 import { saveHomeAction } from "@/app/(admin)/admin/actions";
 import { ActionForm } from "@/components/admin/action-form";
+import { FieldCard } from "@/components/admin/field-card";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { ImageField } from "@/components/admin/image-field";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
@@ -10,9 +11,18 @@ import { HomeCaption } from "@/components/home-caption";
 import { getAllWorks, getHome } from "@/lib/content";
 import { mediaUrl } from "@/lib/media";
 import { revision } from "@/lib/revision";
+import type { StyleMap } from "@/lib/type-style";
 import type { HomeItem, Work } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * What the two menus at the head of the page dress: every slide's name and
+ * every slide's small line -- in the pictures of them and in the boxes they
+ * are typed into, across the whole form.
+ */
+const SLIDE_TITLES = '.home-cap-title, [data-dress="styleTitle"]';
+const SLIDE_LINES = '.home-cap-line, [data-dress="styleCaption"]';
 
 const TYPE_LABEL: Record<HomeItem["type"], string> = {
   work: "Site işi",
@@ -67,6 +77,46 @@ export default async function EditHome() {
         <input type="hidden" name="itemCount" value={home.items.length} />
 
         <LiveEdit>
+          <FieldCard
+            label="Slayt yazıları"
+            hint="Bütün slaytların ad ve alt satır yazı tipi — yalnız ana sayfayı etkiler"
+            preview={
+              <div className="adm-slide">
+                <HomeCaption
+                  title="Eser adı"
+                  aside="2026"
+                  caption="Ketende yağlıboya, 120 × 90 cm"
+                  styles={home.styles}
+                  className="adm-slide-cap"
+                  editing
+                />
+              </div>
+            }
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <TypeMenu
+                  name="styleTitle"
+                  style={home.styles.title}
+                  fields={SLIDE_TITLES}
+                  label="Adların yazı tipi"
+                />
+                <TypeMenu
+                  name="styleCaption"
+                  style={home.styles.caption}
+                  fields={SLIDE_LINES}
+                  label="Alt satırların yazı tipi"
+                />
+              </div>
+              <p className="adm-note">
+                Ana sayfadaki bütün slaytlar — hem sitedeki işler hem buraya
+                yüklediğin görseller — adlarını bu yüzle yazar. Bir işin kendi
+                sayfasında seçtiği yazı tipi değişmez; buradaki seçim yalnızca
+                ana sayfadaki görünümü belirler.
+              </p>
+            </div>
+          </FieldCard>
+
           <SortableList
             className="flex flex-col gap-8"
             intent="screens"
@@ -99,6 +149,7 @@ export default async function EditHome() {
                         index={index}
                         total={home.items.length}
                         works={works}
+                        styles={home.styles}
                       />
                     ))}
                   </div>
@@ -138,11 +189,13 @@ function Slide({
   index,
   total,
   works,
+  styles,
 }: {
   item: HomeItem;
   index: number;
   total: number;
   works: Work[];
+  styles: StyleMap<"title" | "caption">;
 }) {
   return (
     // A container, so the fields inside answer to the width of this half
@@ -193,7 +246,7 @@ function Slide({
       ) : item.type === "work" ? (
         <WorkFields item={item} index={index} works={works} />
       ) : (
-        <ImageFields item={item} index={index} />
+        <ImageFields item={item} index={index} styles={styles} />
       )}
     </div>
   );
@@ -313,9 +366,12 @@ function WorkFields({
 function ImageFields({
   item,
   index,
+  styles,
 }: {
   item: Extract<HomeItem, { type: "image" }>;
   index: number;
+  /** The one face every slide on this page is written in. */
+  styles: StyleMap<"title" | "caption">;
 }) {
   const at = (name: string) => `h${index}_${name}`;
   const named = item.title.tr || item.title.en;
@@ -345,7 +401,7 @@ function ImageFields({
           title={item.title.tr}
           aside={item.aside.tr}
           caption={item.caption.tr}
-          styles={item.styles}
+          styles={styles}
           className="adm-slide-cap"
           editing
         />
@@ -400,7 +456,7 @@ function ImageFields({
                 defaultValue={item.title.tr}
                 placeholder="Uzun Sabah"
                 data-live-lang="tr"
-                {...dress(at("styleTitle"), item.styles.title)}
+                {...dress("styleTitle", styles.title)}
               />
             </label>
             <label className="block">
@@ -413,7 +469,7 @@ function ImageFields({
                 data-live="line"
                 data-live-target=".tl-name"
                 data-live-lang="en"
-                {...dress(at("styleTitle"), item.styles.title)}
+                {...dress("styleTitle", styles.title)}
               />
             </label>
 
@@ -429,7 +485,7 @@ function ImageFields({
                 defaultValue={item.aside.tr}
                 placeholder="2026"
                 data-live-lang="tr"
-                {...dress(at("styleTitle"), item.styles.title)}
+                {...dress("styleTitle", styles.title)}
               />
             </label>
             <label className="block">
@@ -444,7 +500,7 @@ function ImageFields({
                 data-live="line"
                 data-live-target=".tl-aside"
                 data-live-lang="en"
-                {...dress(at("styleTitle"), item.styles.title)}
+                {...dress("styleTitle", styles.title)}
               />
             </label>
 
@@ -458,7 +514,7 @@ function ImageFields({
                 defaultValue={item.caption.tr}
                 placeholder="Galeri Nev, İstanbul"
                 data-live-lang="tr"
-                {...dress(at("styleCaption"), item.styles.caption)}
+                {...dress("styleCaption", styles.caption)}
               />
             </label>
             <label className="block">
@@ -471,24 +527,9 @@ function ImageFields({
                 data-live="line"
                 data-live-target=".home-cap-line"
                 data-live-lang="en"
-                {...dress(at("styleCaption"), item.styles.caption)}
+                {...dress("styleCaption", styles.caption)}
               />
             </label>
-          </div>
-
-          <div className="grid gap-5 @lg:grid-cols-2">
-            <TypeMenu
-              name={at("styleTitle")}
-              style={item.styles.title}
-              target=".home-cap-title"
-              label="Başlığın yazı tipi"
-            />
-            <TypeMenu
-              name={at("styleCaption")}
-              style={item.styles.caption}
-              target=".home-cap-line"
-              label="Alt satırın yazı tipi"
-            />
           </div>
 
           <label className="block">
