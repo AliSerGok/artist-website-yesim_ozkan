@@ -33,12 +33,15 @@ export function TypeCard({
   note,
   choices,
   label = "Yazı tipi",
+  extra,
 }: {
   action: (form: FormData) => Promise<Note>;
   /** What the choice reaches, in a line under the menus. */
   note: string;
   choices: TypeChoice[];
   label?: string;
+  /** Another setting the same page keeps, saved by the same button. */
+  extra?: React.ReactNode;
 }) {
   return (
     <ActionForm action={action} className="adm-card mt-8">
@@ -67,6 +70,8 @@ export function TypeCard({
         </div>
 
         <p className="adm-note mt-5 max-w-[64ch]">{note}</p>
+
+        {extra && <div className="mt-5 border-t border-rule pt-4">{extra}</div>}
 
         <div className="mt-4">
           <SaveButton />

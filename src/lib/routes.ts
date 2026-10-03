@@ -13,6 +13,9 @@ export const workHref = (lang: Lang, slug: string) =>
 export const seriesHref = (lang: Lang, slug: string) =>
   `/${lang}/series/${slug}`;
 
+export const exhibitionHref = (lang: Lang, slug: string) =>
+  `/${lang}/exhibitions/${slug}`;
+
 const WORK_PATH = new RegExp(`^/(?:${LANGS.join("|")})/works/([^/]+)$`);
 
 /** The work a path names, or null when it names none. */

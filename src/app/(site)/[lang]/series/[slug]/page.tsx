@@ -65,31 +65,36 @@ export default async function SeriesPage({
           {t.backToWorks}
         </Link>
 
-        <div className="grid items-end gap-[clamp(24px,4vw,64px)] [grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))]">
-          <div>
-            <div className="mb-3 text-[9.5px] tracking-[0.2em] text-mute-3 uppercase">
-              {t.seriesBadge} · {works.length}
-            </div>
-            <h1 className="page-title" {...styleAttrs(series.styles.title)}>
-              {series.title[lang]}
-            </h1>
-            <div
-              className="mt-2.5 text-[12px] tracking-[0.08em] text-mute-2"
-              {...styleAttrs(series.styles.meta)}
-            >
-              <span {...innerStyleAttrs(series.styles.years)}>
-                {series.years}
-              </span>{" "}
-              — {series.meta[lang]}
-            </div>
+        <div>
+          <div className="mb-3 text-[9.5px] tracking-[0.2em] text-mute-3 uppercase">
+            {t.seriesBadge} · {works.length}
           </div>
+          <h1 className="page-title" {...styleAttrs(series.styles.title)}>
+            {series.title[lang]}
+          </h1>
+          <div
+            className="mt-2.5 text-[12px] tracking-[0.08em] text-mute-2"
+            {...styleAttrs(series.styles.meta)}
+          >
+            <span {...innerStyleAttrs(series.styles.years)}>
+              {series.years}
+            </span>{" "}
+            — {series.meta[lang]}
+          </div>
+        </div>
+
+        {/* Under the name rather than beside it: a column shared with the
+            name left the text at less than half the page, and the series
+            text is the one thing on this page that is read rather than
+            looked at. */}
+        {series.note[lang] && (
           <p
-            className="m-0 max-w-[46ch] text-[14.5px] leading-[1.78] text-ink-soft text-pretty"
+            className="mt-[clamp(22px,3vw,38px)] mb-0 max-w-[115ch] text-[14.5px] leading-[1.78] text-ink-soft text-pretty"
             {...styleAttrs(series.styles.note)}
           >
             {series.note[lang]}
           </p>
-        </div>
+        )}
       </div>
 
       <WorkGallery

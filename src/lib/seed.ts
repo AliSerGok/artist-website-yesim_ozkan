@@ -539,6 +539,7 @@ const WORKS_SEED: Omit<Work, "styles">[] = [
 const EXHIBITIONS_SEED: Omit<Exhibition, "styles">[] = [
   {
     id: "e1",
+    slug: "uzun-sabah",
     year: "2026",
     order: 1,
     title: { tr: "Uzun Sabah", en: "The Long Morning" },
@@ -554,6 +555,7 @@ const EXHIBITIONS_SEED: Omit<Exhibition, "styles">[] = [
   },
   {
     id: "e2",
+    slug: "yuzeye-dair",
     year: "2025",
     order: 2,
     title: { tr: "Yüzeye Dair", en: "On Surface" },
@@ -569,6 +571,7 @@ const EXHIBITIONS_SEED: Omit<Exhibition, "styles">[] = [
   },
   {
     id: "e3",
+    slug: "kivrim",
     year: "2024",
     order: 3,
     title: { tr: "Kıvrım", en: "Fold" },
@@ -584,6 +587,7 @@ const EXHIBITIONS_SEED: Omit<Exhibition, "styles">[] = [
   },
   {
     id: "e4",
+    slug: "iki-oda",
     year: "2023",
     order: 4,
     title: { tr: "İki Oda", en: "Two Rooms" },

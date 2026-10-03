@@ -45,6 +45,7 @@ import {
   BLOCK_TYPES,
   CELL_TYPES,
   CV_KINDS,
+  EXHIBITION_LAYOUTS,
   FLUSH,
   HOME_ITEM_TYPES,
   MAX_CELLS,
@@ -64,6 +65,7 @@ import {
   type ContactContent,
   type ContactRow,
   type CvKind,
+  type ExhibitionLayout,
   type HomeContent,
   type HomeItem,
   type HomeItemType,
@@ -976,21 +978,37 @@ export async function saveContactAction(form: FormData) {
  * so the save writes that page row and touches no row of the kind itself.
  * Where each one is kept is lib/page-type.
  */
-function saveTypeAction(key: TypePageKey) {
+function saveTypeAction(
+  key: TypePageKey,
+  /** Anything else that page keeps beside its faces, read from the same form. */
+  extra?: (form: FormData) => Record<string, unknown>,
+) {
   return async (form: FormData): Promise<Note> => {
     await requireAdmin();
 
-    return stay("Yazı tipi kaydedildi.", async () => {
+    return stay("Kaydedildi.", async () => {
       await savePageContent(key, {
         styles: styleMap(form, rolesOf<string>(TYPE_PAGES[key])),
+        ...extra?.(form),
       });
     });
   };
 }
 
+/** Which side of the exhibitions page the pictures sit on. */
+const exhibitionLayout = (form: FormData): ExhibitionLayout => {
+  const value = text(form, "layout");
+  return (EXHIBITION_LAYOUTS as readonly string[]).includes(value)
+    ? (value as ExhibitionLayout)
+    : "alternate";
+};
+
 export const saveWorksTypeAction = saveTypeAction("works");
 export const saveSeriesTypeAction = saveTypeAction("series");
-export const saveExhibitionsTypeAction = saveTypeAction("exhibitions");
+export const saveExhibitionsTypeAction = saveTypeAction(
+  "exhibitions",
+  (form) => ({ layout: exhibitionLayout(form) }),
+);
 export const saveCvTypeAction = saveTypeAction("cv");
 
 /* ----------------------------------------------------------------- home */

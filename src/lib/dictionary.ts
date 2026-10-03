@@ -25,6 +25,9 @@ interface Dictionary {
   menuLabel: string;
   backToWorks: string;
   backToSeries: string;
+  backToExhibitions: string;
+  /** Onto a show's own page, where the whole of its text is read. */
+  exhibitionMore: string;
   /** What a picture with no name of its own calls its own button. */
   enlarge: string;
   /** Viewer. */
@@ -78,6 +81,8 @@ export const DICTIONARY: Record<Lang, Dictionary> = {
     menuLabel: "menü",
     backToWorks: "← tüm işler",
     backToSeries: "← seriye dön",
+    backToExhibitions: "← tüm sergiler",
+    exhibitionMore: "devamını gör →",
     enlarge: "görseli büyüt",
     previous: "önceki",
     next: "sonraki",
@@ -127,6 +132,8 @@ export const DICTIONARY: Record<Lang, Dictionary> = {
     menuLabel: "menu",
     backToWorks: "← all works",
     backToSeries: "← back to series",
+    backToExhibitions: "← all exhibitions",
+    exhibitionMore: "read more →",
     enlarge: "enlarge image",
     previous: "previous",
     next: "next",

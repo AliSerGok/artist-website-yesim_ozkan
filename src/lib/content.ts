@@ -23,6 +23,7 @@ import {
 import {
   CV_STYLES,
   DEFAULT_SIZE,
+  EXHIBITION_LAYOUTS,
   DEFAULT_WIDTH,
   EXHIBITION_STYLES,
   FLUSH,
@@ -39,6 +40,7 @@ import type {
   CvEntry,
   CvGroup,
   Exhibition,
+  ExhibitionLayout,
   HomeContent,
   HomeImageItem,
   HomeItem,
@@ -71,6 +73,19 @@ export const getSeriesStyles = () => pageStyles("series", SERIES_STYLES);
 export const getExhibitionStyles = () =>
   pageStyles("exhibitions", EXHIBITION_STYLES);
 export const getCvStyles = () => pageStyles("cv", CV_STYLES);
+
+/**
+ * Which side of the exhibitions page the pictures sit on, kept in the same
+ * row as the faces that page is written in -- see lib/page-type.
+ */
+export async function getExhibitionLayout(): Promise<ExhibitionLayout> {
+  const page = await getPage<{ layout?: unknown }>("exhibitions", {});
+  return (EXHIBITION_LAYOUTS as readonly string[]).includes(
+    page.layout as string,
+  )
+    ? (page.layout as ExhibitionLayout)
+    : "alternate";
+}
 
 /**
  * Single place the pages read content from. Falls back to the seed data
@@ -116,6 +131,7 @@ interface SeriesRow {
 
 interface ExhibitionRow {
   id: string;
+  slug: string;
   year: string;
   sort_order: number;
   title_tr: string;
@@ -194,6 +210,7 @@ function toExhibition(
 ): Exhibition {
   return {
     id: row.id,
+    slug: row.slug,
     year: row.year,
     order: row.sort_order,
     title: { tr: row.title_tr, en: row.title_en },
@@ -244,7 +261,9 @@ export async function getWorks(): Promise<Work[]> {
 
   const [{ results }, styles] = await Promise.all([
     db
-      .prepare("SELECT * FROM works WHERE published = 1 ORDER BY sort_order ASC")
+      .prepare(
+        "SELECT * FROM works WHERE published = 1 ORDER BY sort_order ASC",
+      )
       .all<WorkRow>(),
     getWorkStyles(),
   ]);
@@ -325,6 +344,28 @@ export async function getExhibitions(): Promise<Exhibition[]> {
   ]);
 
   return results.map((row) => toExhibition(row, styles));
+}
+
+export async function getExhibitionBySlug(
+  slug: string,
+): Promise<Exhibition | null> {
+  const db = await getDb();
+  if (!db) {
+    return (
+      SEED_EXHIBITIONS.find((item) => item.slug === slug && item.published) ??
+      null
+    );
+  }
+
+  const [row, styles] = await Promise.all([
+    db
+      .prepare("SELECT * FROM exhibitions WHERE slug = ? AND published = 1")
+      .bind(slug)
+      .first<ExhibitionRow>(),
+    getExhibitionStyles(),
+  ]);
+
+  return row ? toExhibition(row, styles) : null;
 }
 
 /* ---------------------------------------------------------------- pages */
@@ -771,9 +812,7 @@ export async function getAllCvEntries(): Promise<CvEntry[]> {
   if (!db) return [...SEED_CV];
 
   const [{ results }, styles] = await Promise.all([
-    db
-      .prepare("SELECT * FROM cv_entries ORDER BY sort_order ASC")
-      .all<CvRow>(),
+    db.prepare("SELECT * FROM cv_entries ORDER BY sort_order ASC").all<CvRow>(),
     getCvStyles(),
   ]);
 
@@ -904,7 +943,9 @@ export async function getSeriesById(id: string): Promise<Series | null> {
   return row ? toSeries(row, styles) : null;
 }
 
-export async function getExhibitionById(id: string): Promise<Exhibition | null> {
+export async function getExhibitionById(
+  id: string,
+): Promise<Exhibition | null> {
   const db = await getDb();
   if (!db) return SEED_EXHIBITIONS.find((item) => item.id === id) ?? null;
 

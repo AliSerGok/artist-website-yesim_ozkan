@@ -3,18 +3,13 @@ import { notFound } from "next/navigation";
 
 import { deleteWorkAction, saveWorkAction } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import {
-  FieldCard,
-  FieldPreview,
-  LIVE_TEXT,
-} from "@/components/admin/field-card";
 import { ImageField } from "@/components/admin/image-field";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
 import { dress } from "@/components/admin/type-menu";
 import { getAllSeries, getWorkById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
-import { styleAttrs } from "@/lib/type-style";
+import { innerStyleAttrs, styleAttrs } from "@/lib/type-style";
 import { MEDIUMS, WORK_STYLES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -45,29 +40,67 @@ export default async function EditWork({
       </div>
 
       <p className="adm-note mt-3 max-w-[64ch]">
-        Her kart sitede göründüğü gibi duruyor; yazmak için “Düzenle”ye bas.
-        Aynı anda tek kart açık kalır. Her yazının kendi yazı tipi, kalını ve
-        italiği var — seçtiğin anda kartın üstünde görürsün.
+        Eserin kendi yazıları, görseli ve ayarları. Üstteki kutu eseri sitede
+        göründüğü gibi gösterir; yazdıkça değişir. Yazı tipi burada seçilmez —
+        bütün işler aynı yüzle yazılır, onu{" "}
+        <Link href="/admin/works" className="underline">
+          İşler
+        </Link>{" "}
+        sayfasının başındaki karttan değiştirirsin.
       </p>
 
       <form action={saveWorkAction} className="mt-8 flex flex-col gap-5">
         {work && <input type="hidden" name="id" value={work.id} />}
 
         <LiveEdit>
-          <FieldCard
-            label="Başlık"
-            hint="Türkçesi ve İngilizcesi"
-            open={isNew}
-            preview={
-              <FieldPreview
-                kind="title"
-                value={work?.title.tr ?? ""}
-                style={styles.title}
-                empty="Başlık yazılmadı."
-              />
-            }
-          >
-            <div className="flex flex-col gap-5">
+          <div className="adm-card flex flex-col gap-3.5" data-card>
+            <div className="adm-card-head">
+              <span className="label">Eser yazıları</span>
+              <span className="adm-lang">TR</span>
+            </div>
+
+            {/* The work as the site writes it: name, year, künye, metin. */}
+            <div className="adm-preview" data-preview>
+              <div
+                className="font-serif text-[20px] leading-[1.25]"
+                {...styleAttrs(styles.title)}
+              >
+                <span className="adm-live-title">
+                  {work?.title.tr || (
+                    <span className="text-mute-3">Başlık yazılmadı.</span>
+                  )}
+                </span>
+                {work?.year && (
+                  <span
+                    className="text-mute-2"
+                    {...innerStyleAttrs(styles.year)}
+                  >
+                    , {work.year}
+                  </span>
+                )}
+              </div>
+              <div
+                className="adm-live-caption mt-1.5 text-[13px] leading-[1.6] text-ink-soft"
+                {...styleAttrs(styles.caption)}
+              >
+                {work?.caption.tr ?? ""}
+              </div>
+              <div
+                className="adm-live-note adm-prose mt-3 text-[14px] leading-[1.7] text-ink-soft"
+                {...styleAttrs(styles.note)}
+              >
+                {(work?.note.tr ?? "")
+                  .split(/\n\s*\n/)
+                  .filter((part) => part.trim())
+                  .map((part, index) => (
+                    <p key={index}>{part}</p>
+                  ))}
+              </div>
+            </div>
+
+            {/* Every field at once: a work is three short things to say, and
+                folding each one away behind its own button only hid them. */}
+            <div className="flex flex-col gap-5 border-t border-rule pt-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="block">
                   <span className="adm-label">Başlık (Türkçe)</span>
@@ -77,7 +110,7 @@ export default async function EditWork({
                     defaultValue={work?.title.tr ?? ""}
                     required
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-title"
                     data-live-lang="tr"
                     {...dress("styleTitle", styles.title)}
                   />
@@ -90,27 +123,13 @@ export default async function EditWork({
                     defaultValue={work?.title.en ?? ""}
                     placeholder="Boş bırakılırsa Türkçesi kullanılır"
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-title"
                     data-live-lang="en"
                     {...dress("styleTitle", styles.title)}
                   />
                 </label>
               </div>
-            </div>
-          </FieldCard>
 
-          <FieldCard
-            label="Teknik ve ölçü"
-            hint="Eserin altındaki künye satırı"
-            preview={
-              <FieldPreview
-                value={work?.caption.tr ?? ""}
-                style={styles.caption}
-                empty="Künye yazılmadı."
-              />
-            }
-          >
-            <div className="flex flex-col gap-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="block">
                   <span className="adm-label">Teknik ve ölçü (Türkçe)</span>
@@ -120,7 +139,7 @@ export default async function EditWork({
                     defaultValue={work?.caption.tr ?? ""}
                     placeholder="Ketende yağlıboya, 120 × 90 cm"
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-caption"
                     data-live-lang="tr"
                     {...dress("styleCaption", styles.caption)}
                   />
@@ -133,28 +152,13 @@ export default async function EditWork({
                     defaultValue={work?.caption.en ?? ""}
                     placeholder="Oil on linen, 120 × 90 cm"
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-caption"
                     data-live-lang="en"
                     {...dress("styleCaption", styles.caption)}
                   />
                 </label>
               </div>
-            </div>
-          </FieldCard>
 
-          <FieldCard
-            label="Eser hakkında"
-            hint="Büyütülmüş görünümde çıkan metin"
-            preview={
-              <FieldPreview
-                kind="prose"
-                value={work?.note.tr ?? ""}
-                style={styles.note}
-                empty="Metin yazılmadı."
-              />
-            }
-          >
-            <div className="flex flex-col gap-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="block">
                   <span className="adm-label">Eser hakkında (Türkçe)</span>
@@ -164,7 +168,7 @@ export default async function EditWork({
                     defaultValue={work?.note.tr ?? ""}
                     placeholder="Büyütülmüş görünümde eserin altında çıkan metin."
                     data-live="text"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-note"
                     data-live-lang="tr"
                     {...dress("styleNote", styles.note)}
                   />
@@ -176,14 +180,14 @@ export default async function EditWork({
                     className="adm-textarea"
                     defaultValue={work?.note.en ?? ""}
                     data-live="text"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-note"
                     data-live-lang="en"
                     {...dress("styleNote", styles.note)}
                   />
                 </label>
               </div>
             </div>
-          </FieldCard>
+          </div>
 
           <div className="adm-card">
             <ImageField
@@ -202,13 +206,12 @@ export default async function EditWork({
             />
           </div>
 
-          {/* Not a card to open: four small settings, always in sight. */}
           <div className="adm-card">
             <div className="adm-card-head">
-              <span className="label">Yıl, teknik, seri ve yayın</span>
+              <span className="label">Ayarlar</span>
             </div>
 
-            <div className="mt-5 grid gap-5 md:grid-cols-4">
+            <div className="mt-5 grid gap-5 md:grid-cols-3">
               <label className="block">
                 <span className="adm-label">Yıl</span>
                 <input
@@ -249,14 +252,22 @@ export default async function EditWork({
                   ))}
                 </select>
               </label>
-              <label className="flex items-center gap-2.5 self-end pb-2.5">
+            </div>
+
+            <div className="mt-5 border-t border-rule pt-4">
+              <label className="flex items-start gap-2.5">
                 <input
                   type="checkbox"
                   name="published"
                   defaultChecked={work?.published ?? true}
-                  className="h-4 w-4 accent-[#14140f]"
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#14140f]"
                 />
-                <span className="text-[13px]">Sitede yayında</span>
+                <span className="text-[13px]">
+                  Sitede yayında
+                  <span className="adm-note mt-0.5 block max-w-[62ch]">
+                    Kapalıyken iş taslaktır; sitede görünmez.
+                  </span>
+                </span>
               </label>
             </div>
           </div>

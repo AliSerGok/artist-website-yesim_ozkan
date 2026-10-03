@@ -6,17 +6,13 @@ import {
   saveExhibitionAction,
 } from "@/app/(admin)/admin/actions";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import {
-  FieldCard,
-  FieldPreview,
-  LIVE_TEXT,
-} from "@/components/admin/field-card";
 import { ImageField } from "@/components/admin/image-field";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
 import { dress } from "@/components/admin/type-menu";
 import { getExhibitionById } from "@/lib/content";
-import { PLAIN, styleAttrs } from "@/lib/type-style";
+import { styleAttrs } from "@/lib/type-style";
+import { EXHIBITION_STYLES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -30,12 +26,7 @@ export default async function EditExhibition({
   const exhibition = isNew ? null : await getExhibitionById(id);
   if (!isNew && !exhibition) notFound();
 
-  const styles = exhibition?.styles ?? {
-    title: PLAIN,
-    venue: PLAIN,
-    kind: PLAIN,
-    note: PLAIN,
-  };
+  const styles = exhibition?.styles ?? EXHIBITION_STYLES;
 
   return (
     <>
@@ -48,31 +39,78 @@ export default async function EditExhibition({
         </Link>
       </div>
 
-      <p className="adm-note mt-3 max-w-[60ch]">
+      <p className="adm-note mt-3 max-w-[64ch]">
         Buradaki sergiler, sergiler sayfasında görseli ve metniyle birlikte öne
         çıkar. Sadece listede görünmesini istediğin katılımlar için “Katılımlar”
-        bölümünü kullan. Her kart sitede göründüğü gibi duruyor; yazmak için
-        “Düzenle”ye bas, yazı tipini de aynı kartta seç.
+        bölümünü kullan. Üstteki kutu sergiyi sitede göründüğü gibi gösterir;
+        yazdıkça değişir. Yazı tipi burada seçilmez — bütün sergiler aynı yüzle
+        yazılır, onu{" "}
+        <Link href="/admin/exhibitions" className="underline">
+          Sergiler
+        </Link>{" "}
+        sayfasının başındaki karttan değiştirirsin.
       </p>
 
       <form action={saveExhibitionAction} className="mt-8 flex flex-col gap-5">
         {exhibition && <input type="hidden" name="id" value={exhibition.id} />}
 
         <LiveEdit>
-          <FieldCard
-            label="Sergi adı"
-            hint="Türkçesi ve İngilizcesi"
-            open={isNew}
-            preview={
-              <FieldPreview
-                kind="title"
-                value={exhibition?.title.tr ?? ""}
-                style={styles.title}
-                empty="Sergi adı yazılmadı."
-              />
-            }
-          >
-            <div className="flex flex-col gap-5">
+          <div className="adm-card flex flex-col gap-3.5" data-card>
+            <div className="adm-card-head">
+              <span className="label">Sergi yazıları</span>
+              <span className="adm-lang">TR</span>
+            </div>
+
+            {/* The show as the exhibitions page writes it: year and kind on
+                one line, then the name, the place and the text. */}
+            <div className="adm-preview" data-preview>
+              <div className="mb-2 flex items-baseline gap-[14px]">
+                <span
+                  className="font-mono text-[10px] tracking-[0.16em]"
+                  {...styleAttrs(styles.title)}
+                >
+                  {exhibition?.year || "————"}
+                </span>
+                <span
+                  className="adm-live-kind text-[9.5px] tracking-[0.18em] text-mute-3 uppercase"
+                  {...styleAttrs(styles.kind)}
+                >
+                  {exhibition?.kind.tr ?? ""}
+                </span>
+              </div>
+
+              <div
+                className="adm-live-title font-serif text-[20px] leading-[1.25]"
+                {...styleAttrs(styles.title)}
+              >
+                {exhibition?.title.tr || (
+                  <span className="text-mute-3">Sergi adı yazılmadı.</span>
+                )}
+              </div>
+
+              <div
+                className="adm-live-venue mt-1.5 text-[12.5px] tracking-[0.06em] text-mute-2"
+                {...styleAttrs(styles.venue)}
+              >
+                {exhibition?.venue.tr ?? ""}
+              </div>
+
+              <div
+                className="adm-live-note adm-prose mt-3 text-[14px] leading-[1.7] text-ink-soft"
+                {...styleAttrs(styles.note)}
+              >
+                {(exhibition?.note.tr ?? "")
+                  .split(/\n\s*\n/)
+                  .filter((part) => part.trim())
+                  .map((part, index) => (
+                    <p key={index}>{part}</p>
+                  ))}
+              </div>
+            </div>
+
+            {/* Every field at once: a show is four short things to say, and
+                folding each one away behind its own button only hid them. */}
+            <div className="flex flex-col gap-5 border-t border-rule pt-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="block">
                   <span className="adm-label">Sergi adı (Türkçe)</span>
@@ -82,7 +120,7 @@ export default async function EditExhibition({
                     defaultValue={exhibition?.title.tr ?? ""}
                     required
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-title"
                     data-live-lang="tr"
                     {...dress("styleTitle", styles.title)}
                   />
@@ -93,28 +131,15 @@ export default async function EditExhibition({
                     name="titleEn"
                     className="adm-input"
                     defaultValue={exhibition?.title.en ?? ""}
+                    placeholder="Boş bırakılırsa Türkçesi kullanılır"
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-title"
                     data-live-lang="en"
                     {...dress("styleTitle", styles.title)}
                   />
                 </label>
               </div>
-            </div>
-          </FieldCard>
 
-          <FieldCard
-            label="Mekân"
-            hint="Serginin yeri"
-            preview={
-              <FieldPreview
-                value={exhibition?.venue.tr ?? ""}
-                style={styles.venue}
-                empty="Mekân yazılmadı."
-              />
-            }
-          >
-            <div className="flex flex-col gap-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="block">
                   <span className="adm-label">Mekân (Türkçe)</span>
@@ -124,7 +149,7 @@ export default async function EditExhibition({
                     defaultValue={exhibition?.venue.tr ?? ""}
                     placeholder="Galeri Nev, İstanbul"
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-venue"
                     data-live-lang="tr"
                     {...dress("styleVenue", styles.venue)}
                   />
@@ -137,27 +162,13 @@ export default async function EditExhibition({
                     defaultValue={exhibition?.venue.en ?? ""}
                     placeholder="Galeri Nev, Istanbul"
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-venue"
                     data-live-lang="en"
                     {...dress("styleVenue", styles.venue)}
                   />
                 </label>
               </div>
-            </div>
-          </FieldCard>
 
-          <FieldCard
-            label="Sergi türü"
-            hint="Yılın yanındaki küçük satır"
-            preview={
-              <FieldPreview
-                value={exhibition?.kind.tr ?? ""}
-                style={styles.kind}
-                empty="Tür yazılmadı."
-              />
-            }
-          >
-            <div className="flex flex-col gap-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="block">
                   <span className="adm-label">Sergi türü (Türkçe)</span>
@@ -167,7 +178,7 @@ export default async function EditExhibition({
                     defaultValue={exhibition?.kind.tr ?? ""}
                     placeholder="Kişisel sergi"
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-kind"
                     data-live-lang="tr"
                     {...dress("styleKind", styles.kind)}
                   />
@@ -180,28 +191,13 @@ export default async function EditExhibition({
                     defaultValue={exhibition?.kind.en ?? ""}
                     placeholder="Solo exhibition"
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-kind"
                     data-live-lang="en"
                     {...dress("styleKind", styles.kind)}
                   />
                 </label>
               </div>
-            </div>
-          </FieldCard>
 
-          <FieldCard
-            label="Sergi metni"
-            hint="Sergiler sayfasındaki metin"
-            preview={
-              <FieldPreview
-                kind="prose"
-                value={exhibition?.note.tr ?? ""}
-                style={styles.note}
-                empty="Metin yazılmadı."
-              />
-            }
-          >
-            <div className="flex flex-col gap-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="block">
                   <span className="adm-label">Sergi metni (Türkçe)</span>
@@ -210,7 +206,7 @@ export default async function EditExhibition({
                     className="adm-textarea"
                     defaultValue={exhibition?.note.tr ?? ""}
                     data-live="text"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-note"
                     data-live-lang="tr"
                     {...dress("styleNote", styles.note)}
                   />
@@ -222,22 +218,22 @@ export default async function EditExhibition({
                     className="adm-textarea"
                     defaultValue={exhibition?.note.en ?? ""}
                     data-live="text"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-note"
                     data-live-lang="en"
                     {...dress("styleNote", styles.note)}
                   />
                 </label>
               </div>
             </div>
-          </FieldCard>
+          </div>
         </LiveEdit>
 
         <div className="adm-card">
           <div className="adm-card-head">
-            <span className="label">Yıl, bağlantı ve yayın</span>
+            <span className="label">Ayarlar</span>
           </div>
 
-          <div className="mt-5 grid gap-5 md:grid-cols-[120px_minmax(0,1fr)_auto]">
+          <div className="mt-5 grid gap-5 md:grid-cols-[120px_minmax(0,1fr)]">
             <label className="block">
               <span className="adm-label">Yıl</span>
               <input
@@ -258,14 +254,22 @@ export default async function EditExhibition({
                 placeholder="https://… (boşsa bağlantı görünmez)"
               />
             </label>
-            <label className="flex items-center gap-2.5 self-end pb-2.5">
+          </div>
+
+          <div className="mt-5 border-t border-rule pt-4">
+            <label className="flex items-start gap-2.5">
               <input
                 type="checkbox"
                 name="published"
                 defaultChecked={exhibition?.published ?? true}
-                className="h-4 w-4 accent-[#14140f]"
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[#14140f]"
               />
-              <span className="text-[13px]">Sitede yayında</span>
+              <span className="text-[13px]">
+                Sitede yayında
+                <span className="adm-note mt-0.5 block max-w-[62ch]">
+                  Kapalıyken sergi taslaktır; sitede görünmez.
+                </span>
+              </span>
             </label>
           </div>
         </div>

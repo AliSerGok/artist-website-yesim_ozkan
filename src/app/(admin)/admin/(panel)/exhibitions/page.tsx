@@ -9,8 +9,13 @@ import { ActionForm } from "@/components/admin/action-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { TypeCard } from "@/components/admin/type-card";
-import { getAllExhibitions, getExhibitionStyles } from "@/lib/content";
+import {
+  getAllExhibitions,
+  getExhibitionLayout,
+  getExhibitionStyles,
+} from "@/lib/content";
 import { mediaUrl } from "@/lib/media";
+import type { ExhibitionLayout } from "@/lib/types";
 import { styleAttrs } from "@/lib/type-style";
 
 /* What each menu dresses: its own specimen, and the list below it. */
@@ -18,12 +23,20 @@ const TITLES = '.adm-row-title, [data-dress="styleTitle"]';
 const VENUES = '.adm-row-venue, [data-dress="styleVenue"]';
 const KINDS = '.adm-row-kind, [data-dress="styleKind"]';
 
+/** The three ways the page can lay its pictures out; see lib/types. */
+const LAYOUT_LABEL: [ExhibitionLayout, string][] = [
+  ["alternate", "Bir sola bir sağa"],
+  ["left", "Hepsi solda"],
+  ["right", "Hepsi sağda"],
+];
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminExhibitions() {
-  const [exhibitions, styles] = await Promise.all([
+  const [exhibitions, styles, layout] = await Promise.all([
     getAllExhibitions(),
     getExhibitionStyles(),
+    getExhibitionLayout(),
   ]);
 
   return (
@@ -74,6 +87,22 @@ export default async function AdminExhibitions() {
             sample: "Sergiye adını veren resim duvarı boydan boya alıyor.",
           },
         ]}
+        extra={
+          <label className="block w-[min(100%,260px)]">
+            <span className="adm-label">Görsellerin yerleşimi</span>
+            <select name="layout" className="adm-select" defaultValue={layout}>
+              {LAYOUT_LABEL.map(([value, text]) => (
+                <option key={value} value={value}>
+                  {text}
+                </option>
+              ))}
+            </select>
+            <span className="adm-note mt-2 block max-w-[62ch]">
+              Sergiler sayfasında görsellerin hangi yana yaslanacağı. Dar
+              ekranda görsel her zaman yazının üstünde durur.
+            </span>
+          </label>
+        }
       />
 
       <SortableList

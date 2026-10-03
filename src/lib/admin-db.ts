@@ -20,7 +20,7 @@ function newId(prefix: string) {
 /** Appends a counter until the slug is free within its table. */
 async function uniqueSlug(
   db: D1Database,
-  table: "works" | "series",
+  table: "works" | "series" | "exhibitions",
   base: string,
   ignoreId: string | null,
 ): Promise<string> {
@@ -353,17 +353,25 @@ export interface ExhibitionInput {
 
 export async function saveExhibition(input: ExhibitionInput): Promise<string> {
   const db = await requireDb();
+  // A show has a page of its own, so it is addressed the way a work is.
+  const slug = await uniqueSlug(
+    db,
+    "exhibitions",
+    input.titleTr || input.titleEn,
+    input.id,
+  );
 
   if (input.id) {
     await db
       .prepare(
-        `UPDATE exhibitions SET year = ?, title_tr = ?, title_en = ?, venue_tr = ?,
-           venue_en = ?, kind_tr = ?, kind_en = ?, note_tr = ?, note_en = ?,
-           url = ?, image_key = ?, published = ?,
+        `UPDATE exhibitions SET slug = ?, year = ?, title_tr = ?, title_en = ?,
+           venue_tr = ?, venue_en = ?, kind_tr = ?, kind_en = ?, note_tr = ?,
+           note_en = ?, url = ?, image_key = ?, published = ?,
            updated_at = datetime('now')
          WHERE id = ?`,
       )
       .bind(
+        slug,
         input.year,
         input.titleTr,
         input.titleEn,
@@ -389,13 +397,14 @@ export async function saveExhibition(input: ExhibitionInput): Promise<string> {
 
   await db
     .prepare(
-      `INSERT INTO exhibitions (id, year, sort_order, title_tr, title_en,
+      `INSERT INTO exhibitions (id, slug, year, sort_order, title_tr, title_en,
          venue_tr, venue_en, kind_tr, kind_en, note_tr, note_en, url,
          image_key, published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
+      slug,
       input.year,
       (last?.max ?? 0) + 1,
       input.titleTr,

@@ -31,6 +31,15 @@ export const SERIES_STYLES = {
   years: ITALIC,
 } satisfies StyleMap<string>;
 
+/**
+ * Which side of the exhibitions page the pictures sit on. "alternate" is the
+ * way the page has always been drawn -- one left, the next right, down the
+ * page; the other two put every picture on the same side.
+ */
+export const EXHIBITION_LAYOUTS = ["alternate", "left", "right"] as const;
+
+export type ExhibitionLayout = (typeof EXHIBITION_LAYOUTS)[number];
+
 export const EXHIBITION_STYLES = {
   title: PLAIN,
   venue: PLAIN,
@@ -119,6 +128,7 @@ export interface Series {
 /** The handful of shows given the full editorial treatment. */
 export interface Exhibition {
   id: string;
+  slug: string;
   year: string;
   order: number;
   title: Localized;
