@@ -493,34 +493,48 @@
    * and see the page's own answer, before anything is saved.
    */
 
-  /* A heading or a quote is display type: it spreads by the eye. */
+  /*
+   * The four widths, as each step being about the same amount wider as the
+   * last -- a little under half again. Evenly spaced is what makes the four
+   * names mean something: picking the next one along should move the edge by
+   * as much as the one before it did, wherever the page is read. The column
+   * they are measured against is the one the about page runs in, a shade
+   * over 1100px where there is room for all of it.
+   *
+   * A heading or a quote is display type: it spreads by the eye.
+   */
   .ab-block[data-width="narrow"] {
-    max-width: min(100%, 420px);
+    max-width: min(100%, 430px);
   }
 
   .ab-block[data-width="medium"] {
-    max-width: min(100%, 620px);
+    max-width: min(100%, 590px);
   }
 
   .ab-block[data-width="wide"] {
-    max-width: min(100%, 860px);
+    max-width: min(100%, 820px);
   }
 
   .ab-block[data-width="full"] {
     max-width: 100%;
   }
 
-  /* Prose spreads by the measure it reads at instead. */
+  /*
+   * Prose spreads by the measure it reads at instead, so its four are told
+   * in characters -- but stepped the same way, which the old 42/52/62 were
+   * not: three widths within a hand's breadth of each other and then one
+   * that more than doubled.
+   */
   .ab-text[data-width="narrow"] {
-    max-width: 42ch;
+    max-width: 46ch;
   }
 
   .ab-text[data-width="medium"] {
-    max-width: 52ch;
+    max-width: 64ch;
   }
 
   .ab-text[data-width="wide"] {
-    max-width: 62ch;
+    max-width: 90ch;
   }
 
   .ab-text[data-width="full"] {
