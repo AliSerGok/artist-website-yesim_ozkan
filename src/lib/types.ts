@@ -2,10 +2,16 @@ import type { Localized } from "./i18n";
 import { ITALIC, PLAIN, type StyleMap, type TextStyle } from "./type-style";
 
 /**
- * The written fields of a work and of a series, each with the face it wears
+ * The written fields of each kind of row, with the face that kind wears
  * until the panel says otherwise -- the one place either list is kept, read
  * by the site to dress a row, by the save to know what to store and by the
- * panel to draw a row nothing has been chosen for yet.
+ * panel to draw a page nothing has been chosen for yet.
+ *
+ * One set per kind, not one per row: every work on the site is written the
+ * same way, as are the series, the shows and the lines of the participation
+ * list, the way the home page already writes every slide alike. Where each
+ * set is kept and how the panel changes it is lib/content and lib/page-type.
+ * The about page is the exception -- it keeps a face per block.
  *
  * The year is the one field that starts with something to say: it has been
  * written slanted since long before it could be chosen, so a work saved then
@@ -23,6 +29,19 @@ export const SERIES_STYLES = {
   meta: PLAIN,
   note: PLAIN,
   years: ITALIC,
+} satisfies StyleMap<string>;
+
+export const EXHIBITION_STYLES = {
+  title: PLAIN,
+  venue: PLAIN,
+  kind: PLAIN,
+  note: PLAIN,
+} satisfies StyleMap<string>;
+
+/** The list has two kinds of line: its headings and the entries under them. */
+export const CV_STYLES = {
+  group: PLAIN,
+  entry: PLAIN,
 } satisfies StyleMap<string>;
 
 /**
@@ -102,7 +121,7 @@ export interface Exhibition {
   url: string;
   imageKey: string | null;
   published: boolean;
-  styles: StyleMap<"title" | "venue" | "kind" | "note">;
+  styles: StyleMap<keyof typeof EXHIBITION_STYLES>;
 }
 
 export const CV_KINDS = ["solo", "group"] as const;
@@ -286,7 +305,6 @@ export interface ContactRow {
   label: Localized;
   value: string;
   href: string;
-  style: TextStyle;
 }
 
 /** The contact page lists at most this many ways to reach her. */
@@ -296,7 +314,8 @@ export interface ContactContent {
   lead: Localized;
   note: Localized;
   rows: ContactRow[];
-  styles: StyleMap<"lead" | "note">;
+  /** The lead, the note, and the one face every row of the list is set in. */
+  styles: StyleMap<"lead" | "note" | "row">;
 }
 
 export const HOME_ITEM_TYPES = ["work", "image"] as const;
@@ -349,12 +368,20 @@ export type HomeItem = HomeWorkItem | HomeImageItem | HomeBlankItem;
  * Left empty, the site falls back to the first works on the grid, so the
  * page is never blank before the panel has been used.
  */
+/**
+ * One face for every slide, whatever it shows. A work keeps its own face on
+ * its own pages; across the opening screens the names are set alike, which
+ * is what makes a turning slideshow read as one thing. The date after the
+ * name is its own choice: slanted until the artist says otherwise, the way
+ * every tail was written before any of them could be chosen.
+ */
+export const HOME_STYLES = {
+  title: PLAIN,
+  caption: PLAIN,
+  date: ITALIC,
+} satisfies StyleMap<string>;
+
 export interface HomeContent {
   items: HomeItem[];
-  /**
-   * One face for every slide, whatever it shows. A work keeps its own face
-   * on its own pages; across the opening screens the names are set alike,
-   * which is what makes a turning slideshow read as one thing.
-   */
-  styles: StyleMap<"title" | "caption">;
+  styles: StyleMap<keyof typeof HOME_STYLES>;
 }

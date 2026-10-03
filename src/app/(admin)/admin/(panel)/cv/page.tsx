@@ -5,13 +5,19 @@ import {
   deleteCvRowAction,
   reorderCvAction,
   reorderCvGroupsAction,
+  saveCvTypeAction,
 } from "@/app/(admin)/admin/actions";
 import { ActionForm } from "@/components/admin/action-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
-import { getAllCvEntries, getAllCvGroups } from "@/lib/content";
+import { TypeCard } from "@/components/admin/type-card";
+import { getAllCvEntries, getAllCvGroups, getCvStyles } from "@/lib/content";
 import { styleAttrs } from "@/lib/type-style";
 import type { CvEntry } from "@/lib/types";
+
+/* What each menu dresses: its own specimen, and the list below it. */
+const ENTRIES = '.adm-row-entry, [data-dress="styleEntry"]';
+const GROUPS = '.adm-row-group, [data-dress="styleGroup"]';
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +37,7 @@ function Row({ entry }: { entry: CvEntry }) {
       <DragHandle id={entry.id} />
 
       <div
-        className="font-mono text-[11px] tracking-[0.12em] text-mute-3"
+        className="adm-row-entry font-mono text-[11px] tracking-[0.12em] text-mute-3"
         {...styleAttrs(entry.style)}
       >
         {entry.year}
@@ -40,7 +46,7 @@ function Row({ entry }: { entry: CvEntry }) {
       <div className="min-w-0">
         <Link
           href={`/admin/cv/${entry.id}`}
-          className="text-[14px] hover:text-mute"
+          className="adm-row-entry text-[14px] hover:text-mute"
           {...styleAttrs(entry.style)}
         >
           {entry.title.tr}
@@ -79,9 +85,10 @@ function Lines({ entries }: { entries: CvEntry[] }) {
 }
 
 export default async function AdminCv() {
-  const [groups, entries] = await Promise.all([
+  const [groups, entries, styles] = await Promise.all([
     getAllCvGroups(),
     getAllCvEntries(),
+    getCvStyles(),
   ]);
 
   const byOrder = (a: CvEntry, b: CvEntry) => a.order - b.order;
@@ -113,6 +120,28 @@ export default async function AdminCv() {
         satırlar da kendi başlığı içinde sürüklenir; tutamaç her satırın
         solunda. Boş başlık ve gizlenen başlık sitede görünmez.
       </p>
+
+      <TypeCard
+        action={saveCvTypeAction}
+        label="Bütün listenin yazı tipi"
+        note="Hakkında sayfasındaki tam listenin başlıkları ve satırları bu yüzlerle yazılır. Tek tek seçilmez; buradaki seçim listenin tamamını değiştirir."
+        choices={[
+          {
+            name: "styleGroup",
+            style: styles.group,
+            label: "Başlıkların yazı tipi",
+            sample: "Sergiler",
+            fields: GROUPS,
+          },
+          {
+            name: "styleEntry",
+            style: styles.entry,
+            label: "Satırların yazı tipi",
+            sample: "Uzun Sabah, Galeri Nev",
+            fields: ENTRIES,
+          },
+        ]}
+      />
 
       {unfiled.length > 0 && (
         <section className="mt-9">
@@ -148,7 +177,7 @@ export default async function AdminCv() {
                       label="Başlığı sürükleyerek taşı"
                     />
                     <h2
-                      className="font-serif text-[19px] leading-none"
+                      className="adm-row-group font-serif text-[19px] leading-none"
                       {...styleAttrs(group.style)}
                     >
                       {group.title.tr}

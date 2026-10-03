@@ -23,6 +23,7 @@ export const dynamic = "force-dynamic";
  */
 const SLIDE_TITLES = '.home-cap-title, [data-dress="styleTitle"]';
 const SLIDE_LINES = '.home-cap-line, [data-dress="styleCaption"]';
+const SLIDE_DATES = '.tl-aside, [data-dress="styleDate"]';
 
 const TYPE_LABEL: Record<HomeItem["type"], string> = {
   work: "Site işi",
@@ -102,6 +103,12 @@ export default async function EditHome() {
                   label="Adların yazı tipi"
                 />
                 <TypeMenu
+                  name="styleDate"
+                  style={home.styles.date}
+                  fields={SLIDE_DATES}
+                  label="Adın yanındaki tarih"
+                />
+                <TypeMenu
                   name="styleCaption"
                   style={home.styles.caption}
                   fields={SLIDE_LINES}
@@ -110,7 +117,8 @@ export default async function EditHome() {
               </div>
               <p className="adm-note">
                 Ana sayfadaki bütün slaytlar — hem sitedeki işler hem buraya
-                yüklediğin görseller — adlarını bu yüzle yazar. Bir işin kendi
+                yüklediğin görseller — adlarını bu yüzle yazar. Adın yanındaki
+                tarih kendi kararı: eğik yazılır, istersen düz. Bir işin kendi
                 sayfasında seçtiği yazı tipi değişmez; buradaki seçim yalnızca
                 ana sayfadaki görünümü belirler.
               </p>
@@ -195,7 +203,7 @@ function Slide({
   index: number;
   total: number;
   works: Work[];
-  styles: StyleMap<"title" | "caption">;
+  styles: StyleMap<"title" | "caption" | "date">;
 }) {
   return (
     // A container, so the fields inside answer to the width of this half
@@ -371,7 +379,7 @@ function ImageFields({
   item: Extract<HomeItem, { type: "image" }>;
   index: number;
   /** The one face every slide on this page is written in. */
-  styles: StyleMap<"title" | "caption">;
+  styles: StyleMap<"title" | "caption" | "date">;
 }) {
   const at = (name: string) => `h${index}_${name}`;
   const named = item.title.tr || item.title.en;
@@ -485,7 +493,7 @@ function ImageFields({
                 defaultValue={item.aside.tr}
                 placeholder="2026"
                 data-live-lang="tr"
-                {...dress("styleTitle", styles.title)}
+                {...dress("styleDate", styles.date)}
               />
             </label>
             <label className="block">
@@ -500,7 +508,7 @@ function ImageFields({
                 data-live="line"
                 data-live-target=".tl-aside"
                 data-live-lang="en"
-                {...dress("styleTitle", styles.title)}
+                {...dress("styleDate", styles.date)}
               />
             </label>
 

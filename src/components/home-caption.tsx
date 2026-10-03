@@ -18,7 +18,7 @@ export function HomeCaption({
   title: string;
   aside: string;
   caption: string;
-  styles: StyleMap<"title" | "caption">;
+  styles: StyleMap<"title" | "caption" | "date">;
   className?: string;
   /** In the panel the small line stays put even while it is still empty. */
   editing?: boolean;
@@ -31,6 +31,7 @@ export function HomeCaption({
         className="home-cap-title font-serif text-[clamp(19px,2vw,26px)] leading-[1.2] text-bg"
         asideClassName="opacity-80"
         style={styles.title}
+        asideStyle={styles.date}
         always={editing}
       />
       {(caption || editing) && (

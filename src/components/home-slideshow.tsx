@@ -33,7 +33,7 @@ export type HomeTarget =
 
 export interface HomeSlide {
   /** The faces chosen for the name and for the line under it. */
-  styles: StyleMap<"title" | "caption">;
+  styles: StyleMap<"title" | "caption" | "date">;
   /** Also what the picture is called, even when nothing is written over it. */
   title: string;
   /** Italic tail after the title: the year of a work, or whatever was typed. */

@@ -3,18 +3,28 @@ import Link from "next/link";
 import {
   deleteExhibitionRowAction,
   reorderExhibitionsAction,
+  saveExhibitionsTypeAction,
 } from "@/app/(admin)/admin/actions";
 import { ActionForm } from "@/components/admin/action-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
-import { getAllExhibitions } from "@/lib/content";
+import { TypeCard } from "@/components/admin/type-card";
+import { getAllExhibitions, getExhibitionStyles } from "@/lib/content";
 import { mediaUrl } from "@/lib/media";
 import { styleAttrs } from "@/lib/type-style";
+
+/* What each menu dresses: its own specimen, and the list below it. */
+const TITLES = '.adm-row-title, [data-dress="styleTitle"]';
+const VENUES = '.adm-row-venue, [data-dress="styleVenue"]';
+const KINDS = '.adm-row-kind, [data-dress="styleKind"]';
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminExhibitions() {
-  const exhibitions = await getAllExhibitions();
+  const [exhibitions, styles] = await Promise.all([
+    getAllExhibitions(),
+    getExhibitionStyles(),
+  ]);
 
   return (
     <>
@@ -31,8 +41,43 @@ export default async function AdminExhibitions() {
         listede yer alacak katılımlar “Katılımlar” bölümünde.
       </p>
 
+      <TypeCard
+        action={saveExhibitionsTypeAction}
+        label="Bütün sergilerin yazı tipi"
+        note="Sergiler sayfasındaki her sergi adını, mekânını, türünü ve metnini bu yüzlerle yazar. Tek tek seçilmez; buradaki seçim hepsini birden değiştirir."
+        choices={[
+          {
+            name: "styleTitle",
+            style: styles.title,
+            label: "Adların yazı tipi",
+            sample: "Uzun Sabah",
+            fields: TITLES,
+          },
+          {
+            name: "styleVenue",
+            style: styles.venue,
+            label: "Mekânlar",
+            sample: "Galeri Nev, İstanbul",
+            fields: VENUES,
+          },
+          {
+            name: "styleKind",
+            style: styles.kind,
+            label: "Yılın yanındaki küçük satır",
+            sample: "kişisel",
+            fields: KINDS,
+          },
+          {
+            name: "styleNote",
+            style: styles.note,
+            label: "Sergi metinleri",
+            sample: "Sergiye adını veren resim duvarı boydan boya alıyor.",
+          },
+        ]}
+      />
+
       <SortableList
-        className="mt-8 border-t border-rule"
+        className="mt-6 border-t border-rule"
         action={reorderExhibitionsAction}
         rows={exhibitions.map((exhibition) => ({
           id: exhibition.id,
@@ -54,23 +99,32 @@ export default async function AdminExhibitions() {
               <div className="min-w-0">
                 <Link
                   href={`/admin/exhibitions/${exhibition.id}`}
-                  className="font-serif text-[18px] leading-tight hover:text-mute"
+                  className="adm-row-title font-serif text-[18px] leading-tight hover:text-mute"
                   {...styleAttrs(exhibition.styles.title)}
                 >
                   {exhibition.title.tr}
                 </Link>
                 <div className="adm-note mt-1">
-                  <span {...styleAttrs(exhibition.styles.title)}>
+                  <span
+                    className="adm-row-title"
+                    {...styleAttrs(exhibition.styles.title)}
+                  >
                     {exhibition.year}
                   </span>{" "}
                   ·{" "}
-                  <span {...styleAttrs(exhibition.styles.venue)}>
+                  <span
+                    className="adm-row-venue"
+                    {...styleAttrs(exhibition.styles.venue)}
+                  >
                     {exhibition.venue.tr}
                   </span>
                   {exhibition.kind.tr ? (
                     <>
                       {" · "}
-                      <span {...styleAttrs(exhibition.styles.kind)}>
+                      <span
+                        className="adm-row-kind"
+                        {...styleAttrs(exhibition.styles.kind)}
+                      >
                         {exhibition.kind.tr}
                       </span>
                     </>

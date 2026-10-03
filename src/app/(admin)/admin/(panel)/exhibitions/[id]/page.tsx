@@ -14,7 +14,7 @@ import {
 import { ImageField } from "@/components/admin/image-field";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
-import { dress, TypeMenu } from "@/components/admin/type-menu";
+import { dress } from "@/components/admin/type-menu";
 import { getExhibitionById } from "@/lib/content";
 import { PLAIN, styleAttrs } from "@/lib/type-style";
 
@@ -61,7 +61,7 @@ export default async function EditExhibition({
         <LiveEdit>
           <FieldCard
             label="Sergi adı"
-            hint="Türkçesi, İngilizcesi ve yazı tipi"
+            hint="Türkçesi ve İngilizcesi"
             open={isNew}
             preview={
               <FieldPreview
@@ -100,17 +100,12 @@ export default async function EditExhibition({
                   />
                 </label>
               </div>
-              <TypeMenu
-                name="styleTitle"
-                style={styles.title}
-                target={LIVE_TEXT}
-              />
             </div>
           </FieldCard>
 
           <FieldCard
             label="Mekân"
-            hint="Serginin yeri ve yazı tipi"
+            hint="Serginin yeri"
             preview={
               <FieldPreview
                 value={exhibition?.venue.tr ?? ""}
@@ -148,17 +143,12 @@ export default async function EditExhibition({
                   />
                 </label>
               </div>
-              <TypeMenu
-                name="styleVenue"
-                style={styles.venue}
-                target={LIVE_TEXT}
-              />
             </div>
           </FieldCard>
 
           <FieldCard
             label="Sergi türü"
-            hint="Yılın yanındaki küçük satır ve yazı tipi"
+            hint="Yılın yanındaki küçük satır"
             preview={
               <FieldPreview
                 value={exhibition?.kind.tr ?? ""}
@@ -196,17 +186,12 @@ export default async function EditExhibition({
                   />
                 </label>
               </div>
-              <TypeMenu
-                name="styleKind"
-                style={styles.kind}
-                target={LIVE_TEXT}
-              />
             </div>
           </FieldCard>
 
           <FieldCard
             label="Sergi metni"
-            hint="Sergiler sayfasındaki metin ve yazı tipi"
+            hint="Sergiler sayfasındaki metin"
             preview={
               <FieldPreview
                 kind="prose"
@@ -243,11 +228,6 @@ export default async function EditExhibition({
                   />
                 </label>
               </div>
-              <TypeMenu
-                name="styleNote"
-                style={styles.note}
-                target={LIVE_TEXT}
-              />
             </div>
           </FieldCard>
         </LiveEdit>

@@ -14,6 +14,9 @@ import { styleAttrs } from "@/lib/type-style";
 import { revision } from "@/lib/revision";
 import { MAX_CONTACT_ROWS } from "@/lib/types";
 
+/** Every row's value: in the pictures of them and in the boxes typed into. */
+const ROW_VALUES = '.adm-row-value, [data-dress="styleRow"]';
+
 export const dynamic = "force-dynamic";
 
 export default async function EditContact() {
@@ -134,6 +137,19 @@ export default async function EditContact() {
           <span className="adm-label">Satırlar</span>
 
           <LiveEdit>
+            <div className="adm-card mb-4">
+              <TypeMenu
+                name="styleRow"
+                style={contact.styles.row}
+                fields={ROW_VALUES}
+                label="Bütün satırların yazı tipi"
+              />
+              <p className="adm-note mt-3">
+                Listedeki bütün satırlar görünen değerlerini bu yüzle yazar; tek
+                tek seçilmez.
+              </p>
+            </div>
+
             <div className="flex flex-col gap-4">
               {contact.rows.map((row, index) => {
                 // An empty row is one just added; it goes without being asked.
@@ -169,8 +185,8 @@ export default async function EditContact() {
                         {row.label.tr}
                       </span>
                       <span
-                        className="adm-live-text font-serif text-[19px] leading-[1.2]"
-                        {...styleAttrs(row.style)}
+                        className="adm-row-value font-serif text-[19px] leading-[1.2]"
+                        {...styleAttrs(contact.styles.row)}
                       >
                         {row.value}
                       </span>
@@ -208,8 +224,8 @@ export default async function EditContact() {
                           className="adm-input"
                           defaultValue={row.value}
                           data-live="line"
-                          data-live-target={LIVE_TEXT}
-                          {...dress(`rowStyle${index}`, row.style)}
+                          data-live-target={ROW_VALUES}
+                          {...dress("styleRow", contact.styles.row)}
                         />
                       </label>
                       <label className="block">
@@ -221,15 +237,6 @@ export default async function EditContact() {
                           placeholder="mailto:… / https://…"
                         />
                       </label>
-                    </div>
-
-                    <div className="mt-4">
-                      <TypeMenu
-                        name={`rowStyle${index}`}
-                        style={row.style}
-                        target={LIVE_TEXT}
-                        label="Görünen değerin yazı tipi"
-                      />
                     </div>
                   </div>
                 );

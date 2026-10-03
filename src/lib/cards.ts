@@ -59,7 +59,7 @@ export function toGallerySeries(
 function toHomeImage(
   item: HomeImageItem,
   lang: Lang,
-  styles: StyleMap<"title" | "caption">,
+  styles: StyleMap<"title" | "caption" | "date">,
 ): GalleryWork {
   return {
     id: item.imageKey ?? "",
@@ -93,7 +93,7 @@ export function toHomeSlide(
    * face chosen for it wherever else it is written; across the opening
    * screens the names are set alike.
    */
-  styles: StyleMap<"title" | "caption">,
+  styles: StyleMap<"title" | "caption" | "date">,
 ): HomeSlide {
   if (entry.type === "work") {
     const { work, seriesSlug, bare } = entry;

@@ -13,7 +13,7 @@ import {
 } from "@/components/admin/field-card";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
-import { dress, TypeMenu } from "@/components/admin/type-menu";
+import { dress } from "@/components/admin/type-menu";
 import { getAllCvEntries, getCvGroupById } from "@/lib/content";
 import { PLAIN, styleAttrs } from "@/lib/type-style";
 
@@ -106,11 +106,6 @@ export default async function EditCvGroup({
                   <span className="text-[13px]">Yayında</span>
                 </label>
               </div>
-              <TypeMenu
-                name="styleTitle"
-                style={group?.style ?? PLAIN}
-                target={LIVE_TEXT}
-              />
             </div>
           </FieldCard>
         </LiveEdit>

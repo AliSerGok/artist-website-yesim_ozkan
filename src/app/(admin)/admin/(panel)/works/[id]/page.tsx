@@ -11,7 +11,7 @@ import {
 import { ImageField } from "@/components/admin/image-field";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
-import { dress, TypeMenu } from "@/components/admin/type-menu";
+import { dress } from "@/components/admin/type-menu";
 import { getAllSeries, getWorkById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { styleAttrs } from "@/lib/type-style";
@@ -56,7 +56,7 @@ export default async function EditWork({
         <LiveEdit>
           <FieldCard
             label="Başlık"
-            hint="Türkçesi, İngilizcesi ve yazı tipi"
+            hint="Türkçesi ve İngilizcesi"
             open={isNew}
             preview={
               <FieldPreview
@@ -96,17 +96,12 @@ export default async function EditWork({
                   />
                 </label>
               </div>
-              <TypeMenu
-                name="styleTitle"
-                style={styles.title}
-                target={LIVE_TEXT}
-              />
             </div>
           </FieldCard>
 
           <FieldCard
             label="Teknik ve ölçü"
-            hint="Eserin altındaki künye satırı ve yazı tipi"
+            hint="Eserin altındaki künye satırı"
             preview={
               <FieldPreview
                 value={work?.caption.tr ?? ""}
@@ -144,17 +139,12 @@ export default async function EditWork({
                   />
                 </label>
               </div>
-              <TypeMenu
-                name="styleCaption"
-                style={styles.caption}
-                target={LIVE_TEXT}
-              />
             </div>
           </FieldCard>
 
           <FieldCard
             label="Eser hakkında"
-            hint="Büyütülmüş görünümde çıkan metin ve yazı tipi"
+            hint="Büyütülmüş görünümde çıkan metin"
             preview={
               <FieldPreview
                 kind="prose"
@@ -192,11 +182,6 @@ export default async function EditWork({
                   />
                 </label>
               </div>
-              <TypeMenu
-                name="styleNote"
-                style={styles.note}
-                target={LIVE_TEXT}
-              />
             </div>
           </FieldCard>
 
@@ -273,24 +258,6 @@ export default async function EditWork({
                 />
                 <span className="text-[13px]">Sitede yayında</span>
               </label>
-            </div>
-
-            {/*
-              The year is written after the name wherever the work is shown, so
-              it is set on its own: the name may be in one face and the year in
-              another, slanted or upright, bold or not.
-            */}
-            <div className="mt-5">
-              <TypeMenu
-                name="styleYear"
-                style={styles.year}
-                label="Yılın yazı tipi"
-              />
-              <p className="adm-note mt-3 max-w-[62ch]">
-                Yıl, eserin adından sonra virgülle yazılır — kartta, büyütülmüş
-                görünümde ve eserin kendi sayfasında. Buradaki seçim yalnızca
-                yılı etkiler; adın yüzü kendi kartında seçilir.
-              </p>
             </div>
           </div>
 

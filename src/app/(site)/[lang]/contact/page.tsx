@@ -62,7 +62,7 @@ export default async function ContactPage({
               <a
                 href={row.href}
                 className="font-serif text-[19px] leading-[1.2] text-right transition-colors duration-200 hover:text-mute"
-                {...styleAttrs(row.style)}
+                {...styleAttrs(contact.styles.row)}
               >
                 {row.value}
               </a>

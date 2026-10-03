@@ -11,17 +11,22 @@ import {
   SEED_SERIES,
   SEED_WORKS,
 } from "./seed";
+import type { TypePageKey } from "./page-type";
 import {
   PLAIN,
   plainMap,
   toStyle,
   toStyleMap,
   type StyleMap,
+  type TextStyle,
 } from "./type-style";
 import {
+  CV_STYLES,
   DEFAULT_SIZE,
   DEFAULT_WIDTH,
+  EXHIBITION_STYLES,
   FLUSH,
+  HOME_STYLES,
   SERIES_STYLES,
   WORK_STYLES,
 } from "./types";
@@ -48,20 +53,24 @@ import type {
 } from "./types";
 
 /**
- * The faces stored beside a row, read against the face each of its fields
- * wears when none was ever chosen -- which is what a row written before the
- * panel knew the field comes back wearing.
+ * The one set of faces a kind of row is written in, read against what that
+ * kind wears when nothing has been chosen yet. Kept in the pages table, so
+ * it is fetched once per request and handed to every row it dresses rather
+ * than stored beside each of them -- see lib/page-type.
  */
-function rowStyles<Role extends string>(
-  value: string | null | undefined,
+async function pageStyles<Role extends string>(
+  key: TypePageKey,
   defaults: StyleMap<Role>,
-) {
-  try {
-    return toStyleMap(value ? JSON.parse(value) : {}, defaults);
-  } catch {
-    return toStyleMap({}, defaults);
-  }
+): Promise<StyleMap<Role>> {
+  const page = await getPage<{ styles?: unknown }>(key, {});
+  return toStyleMap(page.styles, defaults);
 }
+
+export const getWorkStyles = () => pageStyles("works", WORK_STYLES);
+export const getSeriesStyles = () => pageStyles("series", SERIES_STYLES);
+export const getExhibitionStyles = () =>
+  pageStyles("exhibitions", EXHIBITION_STYLES);
+export const getCvStyles = () => pageStyles("cv", CV_STYLES);
 
 /**
  * Single place the pages read content from. Falls back to the seed data
@@ -69,8 +78,6 @@ function rowStyles<Role extends string>(
  */
 
 interface WorkRow {
-  /** A JSON object of faces, keyed by field; see lib/type-style.ts. */
-  styles: string;
   id: string;
   slug: string;
   medium: string;
@@ -91,8 +98,6 @@ interface WorkRow {
 }
 
 interface SeriesRow {
-  /** A JSON object of faces, keyed by field; see lib/type-style.ts. */
-  styles: string;
   id: string;
   slug: string;
   medium: string;
@@ -109,8 +114,6 @@ interface SeriesRow {
 }
 
 interface ExhibitionRow {
-  /** A JSON object of faces, keyed by field; see lib/type-style.ts. */
-  styles: string;
   id: string;
   year: string;
   sort_order: number;
@@ -128,8 +131,6 @@ interface ExhibitionRow {
 }
 
 interface CvRow {
-  /** A JSON object of faces, keyed by field; see lib/type-style.ts. */
-  styles: string;
   id: string;
   group_id: string | null;
   year: string;
@@ -142,8 +143,6 @@ interface CvRow {
 }
 
 interface CvGroupRow {
-  /** A JSON object of faces, keyed by field; see lib/type-style.ts. */
-  styles: string;
   id: string;
   sort_order: number;
   title_tr: string;
@@ -151,7 +150,7 @@ interface CvGroupRow {
   published: number;
 }
 
-function toWork(row: WorkRow): Work {
+function toWork(row: WorkRow, styles: Work["styles"]): Work {
   return {
     id: row.id,
     slug: row.slug,
@@ -167,11 +166,11 @@ function toWork(row: WorkRow): Work {
     slot: row.slot,
     imageKey: row.image_key,
     published: row.published === 1,
-    styles: rowStyles(row.styles, WORK_STYLES),
+    styles,
   };
 }
 
-function toSeries(row: SeriesRow): Series {
+function toSeries(row: SeriesRow, styles: Series["styles"]): Series {
   return {
     id: row.id,
     slug: row.slug,
@@ -183,11 +182,14 @@ function toSeries(row: SeriesRow): Series {
     note: { tr: row.note_tr, en: row.note_en },
     coverWorkId: row.cover_work_id,
     published: row.published === 1,
-    styles: rowStyles(row.styles, SERIES_STYLES),
+    styles,
   };
 }
 
-function toExhibition(row: ExhibitionRow): Exhibition {
+function toExhibition(
+  row: ExhibitionRow,
+  styles: Exhibition["styles"],
+): Exhibition {
   return {
     id: row.id,
     year: row.year,
@@ -199,14 +201,11 @@ function toExhibition(row: ExhibitionRow): Exhibition {
     url: row.url,
     imageKey: row.image_key,
     published: row.published === 1,
-    styles: rowStyles(
-      row.styles,
-      plainMap(["title", "venue", "kind", "note"] as const),
-    ),
+    styles,
   };
 }
 
-function toCvEntry(row: CvRow): CvEntry {
+function toCvEntry(row: CvRow, style: TextStyle): CvEntry {
   return {
     id: row.id,
     groupId: row.group_id,
@@ -216,17 +215,17 @@ function toCvEntry(row: CvRow): CvEntry {
     kind: row.kind as CvEntry["kind"],
     url: row.url,
     published: row.published === 1,
-    style: rowStyles(row.styles, plainMap(["title"] as const)).title,
+    style,
   };
 }
 
-function toCvGroup(row: CvGroupRow): CvGroup {
+function toCvGroup(row: CvGroupRow, style: TextStyle): CvGroup {
   return {
     id: row.id,
     order: row.sort_order,
     title: { tr: row.title_tr, en: row.title_en },
     published: row.published === 1,
-    style: rowStyles(row.styles, plainMap(["title"] as const)).title,
+    style,
   };
 }
 
@@ -241,11 +240,14 @@ export async function getWorks(): Promise<Work[]> {
   const db = await getDb();
   if (!db) return seedWorks();
 
-  const { results } = await db
-    .prepare("SELECT * FROM works WHERE published = 1 ORDER BY sort_order ASC")
-    .all<WorkRow>();
+  const [{ results }, styles] = await Promise.all([
+    db
+      .prepare("SELECT * FROM works WHERE published = 1 ORDER BY sort_order ASC")
+      .all<WorkRow>(),
+    getWorkStyles(),
+  ]);
 
-  return results.map(toWork);
+  return results.map((row) => toWork(row, styles));
 }
 
 /** Works that stand on their own — series members live on the series page. */
@@ -261,12 +263,15 @@ export async function getWork(slug: string): Promise<Work | null> {
   const db = await getDb();
   if (!db) return seedWorks().find((work) => work.slug === slug) ?? null;
 
-  const row = await db
-    .prepare("SELECT * FROM works WHERE slug = ? AND published = 1")
-    .bind(slug)
-    .first<WorkRow>();
+  const [row, styles] = await Promise.all([
+    db
+      .prepare("SELECT * FROM works WHERE slug = ? AND published = 1")
+      .bind(slug)
+      .first<WorkRow>(),
+    getWorkStyles(),
+  ]);
 
-  return row ? toWork(row) : null;
+  return row ? toWork(row, styles) : null;
 }
 
 /* --------------------------------------------------------------- series */
@@ -275,23 +280,31 @@ export async function getSeriesList(): Promise<Series[]> {
   const db = await getDb();
   if (!db) return seedSeries();
 
-  const { results } = await db
-    .prepare("SELECT * FROM series WHERE published = 1 ORDER BY sort_order ASC")
-    .all<SeriesRow>();
+  const [{ results }, styles] = await Promise.all([
+    db
+      .prepare(
+        "SELECT * FROM series WHERE published = 1 ORDER BY sort_order ASC",
+      )
+      .all<SeriesRow>(),
+    getSeriesStyles(),
+  ]);
 
-  return results.map(toSeries);
+  return results.map((row) => toSeries(row, styles));
 }
 
 export async function getSeriesBySlug(slug: string): Promise<Series | null> {
   const db = await getDb();
   if (!db) return seedSeries().find((series) => series.slug === slug) ?? null;
 
-  const row = await db
-    .prepare("SELECT * FROM series WHERE slug = ? AND published = 1")
-    .bind(slug)
-    .first<SeriesRow>();
+  const [row, styles] = await Promise.all([
+    db
+      .prepare("SELECT * FROM series WHERE slug = ? AND published = 1")
+      .bind(slug)
+      .first<SeriesRow>(),
+    getSeriesStyles(),
+  ]);
 
-  return row ? toSeries(row) : null;
+  return row ? toSeries(row, styles) : null;
 }
 
 /* ---------------------------------------------------------- exhibitions */
@@ -300,19 +313,22 @@ export async function getExhibitions(): Promise<Exhibition[]> {
   const db = await getDb();
   if (!db) return [...SEED_EXHIBITIONS].sort(byOrder);
 
-  const { results } = await db
-    .prepare(
-      "SELECT * FROM exhibitions WHERE published = 1 ORDER BY sort_order ASC",
-    )
-    .all<ExhibitionRow>();
+  const [{ results }, styles] = await Promise.all([
+    db
+      .prepare(
+        "SELECT * FROM exhibitions WHERE published = 1 ORDER BY sort_order ASC",
+      )
+      .all<ExhibitionRow>(),
+    getExhibitionStyles(),
+  ]);
 
-  return results.map(toExhibition);
+  return results.map((row) => toExhibition(row, styles));
 }
 
 /* ---------------------------------------------------------------- pages */
 
 async function getPage<T>(
-  key: "home" | "about" | "contact",
+  key: "home" | "about" | "contact" | TypePageKey,
   fallback: T,
 ): Promise<T> {
   const db = await getDb();
@@ -383,7 +399,7 @@ export async function getHome(): Promise<HomeContent> {
 
   return {
     items: kept,
-    styles: toStyleMap(home.styles, plainMap(["title", "caption"] as const)),
+    styles: toStyleMap(home.styles, HOME_STYLES),
   };
 }
 
@@ -688,24 +704,32 @@ export async function getCvEntries(): Promise<CvEntry[]> {
   const db = await getDb();
   if (!db) return SEED_CV.filter((entry) => entry.published);
 
-  const { results } = await db
-    .prepare(
-      "SELECT * FROM cv_entries WHERE published = 1 ORDER BY sort_order ASC",
-    )
-    .all<CvRow>();
+  const [{ results }, styles] = await Promise.all([
+    db
+      .prepare(
+        "SELECT * FROM cv_entries WHERE published = 1 ORDER BY sort_order ASC",
+      )
+      .all<CvRow>(),
+    getCvStyles(),
+  ]);
 
-  return results.map(toCvEntry);
+  return results.map((row) => toCvEntry(row, styles.entry));
 }
 
 export async function getCvGroups(): Promise<CvGroup[]> {
   const db = await getDb();
   if (!db) return SEED_CV_GROUPS.filter((group) => group.published);
 
-  const { results } = await db
-    .prepare("SELECT * FROM cv_groups WHERE published = 1 ORDER BY sort_order ASC")
-    .all<CvGroupRow>();
+  const [{ results }, styles] = await Promise.all([
+    db
+      .prepare(
+        "SELECT * FROM cv_groups WHERE published = 1 ORDER BY sort_order ASC",
+      )
+      .all<CvGroupRow>(),
+    getCvStyles(),
+  ]);
 
-  return results.map(toCvGroup);
+  return results.map((row) => toCvGroup(row, styles.group));
 }
 
 /** One heading of the participation list together with the lines under it. */
@@ -744,46 +768,55 @@ export async function getAllCvEntries(): Promise<CvEntry[]> {
   const db = await getDb();
   if (!db) return [...SEED_CV];
 
-  const { results } = await db
-    .prepare("SELECT * FROM cv_entries ORDER BY sort_order ASC")
-    .all<CvRow>();
+  const [{ results }, styles] = await Promise.all([
+    db
+      .prepare("SELECT * FROM cv_entries ORDER BY sort_order ASC")
+      .all<CvRow>(),
+    getCvStyles(),
+  ]);
 
-  return results.map(toCvEntry);
+  return results.map((row) => toCvEntry(row, styles.entry));
 }
 
 export async function getAllCvGroups(): Promise<CvGroup[]> {
   const db = await getDb();
   if (!db) return [...SEED_CV_GROUPS].sort(byOrder);
 
-  const { results } = await db
-    .prepare("SELECT * FROM cv_groups ORDER BY sort_order ASC")
-    .all<CvGroupRow>();
+  const [{ results }, styles] = await Promise.all([
+    db
+      .prepare("SELECT * FROM cv_groups ORDER BY sort_order ASC")
+      .all<CvGroupRow>(),
+    getCvStyles(),
+  ]);
 
-  return results.map(toCvGroup);
+  return results.map((row) => toCvGroup(row, styles.group));
 }
 
 export async function getCvEntryById(id: string): Promise<CvEntry | null> {
   const db = await getDb();
   if (!db) return SEED_CV.find((entry) => entry.id === id) ?? null;
 
-  const row = await db
-    .prepare("SELECT * FROM cv_entries WHERE id = ?")
-    .bind(id)
-    .first<CvRow>();
+  const [row, styles] = await Promise.all([
+    db.prepare("SELECT * FROM cv_entries WHERE id = ?").bind(id).first<CvRow>(),
+    getCvStyles(),
+  ]);
 
-  return row ? toCvEntry(row) : null;
+  return row ? toCvEntry(row, styles.entry) : null;
 }
 
 export async function getCvGroupById(id: string): Promise<CvGroup | null> {
   const db = await getDb();
   if (!db) return SEED_CV_GROUPS.find((group) => group.id === id) ?? null;
 
-  const row = await db
-    .prepare("SELECT * FROM cv_groups WHERE id = ?")
-    .bind(id)
-    .first<CvGroupRow>();
+  const [row, styles] = await Promise.all([
+    db
+      .prepare("SELECT * FROM cv_groups WHERE id = ?")
+      .bind(id)
+      .first<CvGroupRow>(),
+    getCvStyles(),
+  ]);
 
-  return row ? toCvGroup(row) : null;
+  return row ? toCvGroup(row, styles.group) : null;
 }
 
 export async function getContact(): Promise<ContactContent> {
@@ -791,11 +824,16 @@ export async function getContact(): Promise<ContactContent> {
 
   return {
     ...contact,
-    styles: toStyleMap(contact.styles, plainMap(["lead", "note"] as const)),
-    rows: (Array.isArray(contact.rows) ? contact.rows : []).map((row) => ({
-      ...row,
-      style: toStyle(row.style),
-    })),
+    // The rows of the list are written alike, so the face is the page's.
+    styles: toStyleMap(
+      contact.styles,
+      plainMap(["lead", "note", "row"] as const),
+    ),
+    // Rebuilt rather than passed through, so a face left over from when each
+    // row chose its own does not ride along in the shape.
+    rows: (Array.isArray(contact.rows) ? contact.rows : []).map(
+      ({ label, value, href }) => ({ label, value, href }),
+    ),
   };
 }
 
@@ -806,67 +844,75 @@ export async function getAllWorks(): Promise<Work[]> {
   const db = await getDb();
   if (!db) return [...SEED_WORKS].sort(byOrder);
 
-  const { results } = await db
-    .prepare("SELECT * FROM works ORDER BY sort_order ASC")
-    .all<WorkRow>();
+  const [{ results }, styles] = await Promise.all([
+    db.prepare("SELECT * FROM works ORDER BY sort_order ASC").all<WorkRow>(),
+    getWorkStyles(),
+  ]);
 
-  return results.map(toWork);
+  return results.map((row) => toWork(row, styles));
 }
 
 export async function getAllExhibitions(): Promise<Exhibition[]> {
   const db = await getDb();
   if (!db) return [...SEED_EXHIBITIONS].sort(byOrder);
 
-  const { results } = await db
-    .prepare("SELECT * FROM exhibitions ORDER BY sort_order ASC")
-    .all<ExhibitionRow>();
+  const [{ results }, styles] = await Promise.all([
+    db
+      .prepare("SELECT * FROM exhibitions ORDER BY sort_order ASC")
+      .all<ExhibitionRow>(),
+    getExhibitionStyles(),
+  ]);
 
-  return results.map(toExhibition);
+  return results.map((row) => toExhibition(row, styles));
 }
 
 export async function getAllSeries(): Promise<Series[]> {
   const db = await getDb();
   if (!db) return [...SEED_SERIES].sort(byOrder);
 
-  const { results } = await db
-    .prepare("SELECT * FROM series ORDER BY sort_order ASC")
-    .all<SeriesRow>();
+  const [{ results }, styles] = await Promise.all([
+    db.prepare("SELECT * FROM series ORDER BY sort_order ASC").all<SeriesRow>(),
+    getSeriesStyles(),
+  ]);
 
-  return results.map(toSeries);
+  return results.map((row) => toSeries(row, styles));
 }
 
 export async function getWorkById(id: string): Promise<Work | null> {
   const db = await getDb();
   if (!db) return SEED_WORKS.find((work) => work.id === id) ?? null;
 
-  const row = await db
-    .prepare("SELECT * FROM works WHERE id = ?")
-    .bind(id)
-    .first<WorkRow>();
+  const [row, styles] = await Promise.all([
+    db.prepare("SELECT * FROM works WHERE id = ?").bind(id).first<WorkRow>(),
+    getWorkStyles(),
+  ]);
 
-  return row ? toWork(row) : null;
+  return row ? toWork(row, styles) : null;
 }
 
 export async function getSeriesById(id: string): Promise<Series | null> {
   const db = await getDb();
   if (!db) return SEED_SERIES.find((series) => series.id === id) ?? null;
 
-  const row = await db
-    .prepare("SELECT * FROM series WHERE id = ?")
-    .bind(id)
-    .first<SeriesRow>();
+  const [row, styles] = await Promise.all([
+    db.prepare("SELECT * FROM series WHERE id = ?").bind(id).first<SeriesRow>(),
+    getSeriesStyles(),
+  ]);
 
-  return row ? toSeries(row) : null;
+  return row ? toSeries(row, styles) : null;
 }
 
 export async function getExhibitionById(id: string): Promise<Exhibition | null> {
   const db = await getDb();
   if (!db) return SEED_EXHIBITIONS.find((item) => item.id === id) ?? null;
 
-  const row = await db
-    .prepare("SELECT * FROM exhibitions WHERE id = ?")
-    .bind(id)
-    .first<ExhibitionRow>();
+  const [row, styles] = await Promise.all([
+    db
+      .prepare("SELECT * FROM exhibitions WHERE id = ?")
+      .bind(id)
+      .first<ExhibitionRow>(),
+    getExhibitionStyles(),
+  ]);
 
-  return row ? toExhibition(row) : null;
+  return row ? toExhibition(row, styles) : null;
 }

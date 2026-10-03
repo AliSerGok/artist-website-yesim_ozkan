@@ -1,5 +1,6 @@
 import { PLAIN, plainMap } from "./type-style";
 import {
+  HOME_STYLES,
   DEFAULT_SIZE,
   DEFAULT_WIDTH,
   FLUSH,
@@ -843,7 +844,7 @@ export const SEED_ABOUT: AboutContent = {
 };
 
 export const SEED_CONTACT: ContactContent = {
-  styles: plainMap(["lead", "note"] as const),
+  styles: plainMap(["lead", "note", "row"] as const),
   lead: {
     tr: "Sergi, temsil ve atölye ziyaretleri için.",
     en: "For exhibitions, representation and studio visits.",
@@ -854,25 +855,21 @@ export const SEED_CONTACT: ContactContent = {
   },
   rows: [
     {
-      style: PLAIN,
       label: { tr: "E-posta", en: "Email" },
       value: "studio@yesimozkan.com",
       href: "mailto:studio@yesimozkan.com",
     },
     {
-      style: PLAIN,
       label: { tr: "Instagram", en: "Instagram" },
       value: "@yesimozkan",
       href: "https://instagram.com/yesimozkan",
     },
     {
-      style: PLAIN,
       label: { tr: "Temsil", en: "Representation" },
       value: "Galeri Nev, İstanbul",
       href: "#",
     },
     {
-      style: PLAIN,
       label: { tr: "Atölye", en: "Studio" },
       value: "Kadıköy, İstanbul",
       href: "#",
@@ -882,7 +879,7 @@ export const SEED_CONTACT: ContactContent = {
 
 /** The slides the home page opens with until the panel says otherwise. */
 export const SEED_HOME: HomeContent = {
-  styles: plainMap(["title", "caption"] as const),
+  styles: HOME_STYLES,
   items: ["w14", "w11", "w1", "w6", "w13", "w12"].map((workId) => ({
     type: "work",
     workId,

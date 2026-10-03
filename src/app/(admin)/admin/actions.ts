@@ -11,8 +11,9 @@ import {
   type Font,
   type TextStyle,
 } from "@/lib/type-style";
-import { finish, stay } from "@/lib/flash";
+import { finish, stay, type Note } from "@/lib/flash";
 import type { Localized } from "@/lib/i18n";
+import { TYPE_PAGES, type TypePageKey } from "@/lib/page-type";
 import {
   deleteCvEntry,
   deleteCvGroup,
@@ -51,10 +52,8 @@ import {
   MEDIUMS,
   DEFAULT_SIZE,
   DEFAULT_WIDTH,
-  SERIES_STYLES,
   SIZES,
   WIDTHS,
-  WORK_STYLES,
   type AboutBlock,
   type AboutContent,
   type AboutFact,
@@ -115,18 +114,15 @@ const style = (form: FormData, key: string): TextStyle => {
 };
 
 /**
- * The faces of a whole row, as the JSON its styles column holds. Each one is
- * posted under the field it dresses: "title" is read from styleTitle*, a
- * work's year from styleYear*.
+ * The faces of a whole kind of row. Each one is posted under the field it
+ * dresses: "title" is read from styleTitle*, a work's year from styleYear*.
  */
-const styles = (form: FormData, roles: readonly string[]) =>
-  JSON.stringify(
-    Object.fromEntries(
-      roles.map((role) => [
-        role,
-        style(form, `style${role[0].toUpperCase()}${role.slice(1)}`),
-      ]),
-    ),
+const styleMap = (form: FormData, roles: readonly string[]) =>
+  Object.fromEntries(
+    roles.map((role) => [
+      role,
+      style(form, `style${role[0].toUpperCase()}${role.slice(1)}`),
+    ]),
   );
 
 const localized = (form: FormData, key: string) => ({
@@ -178,7 +174,6 @@ export async function saveWorkAction(form: FormData) {
           : number(form, "height", 4),
         slot: text(form, "slot"),
         published: flag(form, "published"),
-        styles: styles(form, rolesOf(WORK_STYLES)),
       });
 
       await deleteImages(orphaned([previous?.imageKey ?? null], [imageKey]));
@@ -247,7 +242,6 @@ export async function saveSeriesAction(form: FormData) {
         noteEn: text(form, "noteEn"),
         coverWorkId: nullable(form, "coverWorkId"),
         published: flag(form, "published"),
-        styles: styles(form, rolesOf(SERIES_STYLES)),
       });
     },
     id ? `/admin/series/${id}` : "/admin/series/new",
@@ -336,7 +330,6 @@ export async function addSeriesWorksAction(form: FormData) {
           height: measured ? Math.round(height) : 4,
           slot: "",
           published: true,
-          styles: "{}",
         });
       }
 
@@ -382,7 +375,6 @@ export async function saveExhibitionAction(form: FormData) {
         url: text(form, "url"),
         imageKey,
         published: flag(form, "published"),
-        styles: styles(form, ["title", "venue", "kind", "note"]),
       });
 
       await deleteImages(orphaned([previous?.imageKey ?? null], [imageKey]));
@@ -454,7 +446,6 @@ export async function saveCvAction(form: FormData) {
           : "",
         url: text(form, "url"),
         published: flag(form, "published"),
-        styles: styles(form, ["title"]),
       });
     },
     id ? `/admin/cv/${id}` : "/admin/cv/new",
@@ -506,7 +497,6 @@ export async function saveCvGroupAction(form: FormData) {
         titleTr: text(form, "titleTr"),
         titleEn: text(form, "titleEn") || text(form, "titleTr"),
         published: flag(form, "published"),
-        styles: styles(form, ["title"]),
       });
     },
     id ? `/admin/cv/groups/${id}` : "/admin/cv/groups/new",
@@ -920,7 +910,6 @@ function readContactRows(form: FormData): ContactRow[] {
       value: text(form, `rowValue${index}`),
       // "#" is the panel's way of saying a row points nowhere yet.
       href: text(form, `rowHref${index}`) || "#",
-      style: style(form, `rowStyle${index}`),
     });
   }
 
@@ -935,7 +924,7 @@ function applyContactIntent(intent: string, rows: ContactRow[]): void {
   const [command, ...rest] = intent.split(":");
 
   if (command === "add" && rows.length < MAX_CONTACT_ROWS) {
-    rows.push({ label: blank(), value: "", href: "", style: PLAIN });
+    rows.push({ label: blank(), value: "", href: "" });
     return;
   }
 
@@ -968,12 +957,40 @@ export async function saveContactAction(form: FormData) {
       styles: {
         lead: style(form, "styleLead"),
         note: style(form, "styleNote"),
+        // Every row of the list is written alike.
+        row: style(form, "styleRow"),
       },
     };
 
     await savePageContent("contact", contact);
   });
 }
+
+/* ------------------------------------------------- the faces of a kind */
+
+/**
+ * The one set of faces a whole kind of row is written in -- every work, every
+ * series, every show, every line of the participation list -- saved from the
+ * list page that shows them. It is the only thing that page's form carries,
+ * so the save writes that page row and touches no row of the kind itself.
+ * Where each one is kept is lib/page-type.
+ */
+function saveTypeAction(key: TypePageKey) {
+  return async (form: FormData): Promise<Note> => {
+    await requireAdmin();
+
+    return stay("Yazı tipi kaydedildi.", async () => {
+      await savePageContent(key, {
+        styles: styleMap(form, rolesOf<string>(TYPE_PAGES[key])),
+      });
+    });
+  };
+}
+
+export const saveWorksTypeAction = saveTypeAction("works");
+export const saveSeriesTypeAction = saveTypeAction("series");
+export const saveExhibitionsTypeAction = saveTypeAction("exhibitions");
+export const saveCvTypeAction = saveTypeAction("cv");
 
 /* ----------------------------------------------------------------- home */
 
@@ -1138,6 +1155,7 @@ export async function saveHomeAction(form: FormData) {
       styles: {
         title: style(form, "styleTitle"),
         caption: style(form, "styleCaption"),
+        date: style(form, "styleDate"),
       },
     } satisfies HomeContent);
 

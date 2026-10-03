@@ -10,7 +10,7 @@ import {
 } from "@/components/admin/field-card";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
-import { dress, TypeMenu } from "@/components/admin/type-menu";
+import { dress } from "@/components/admin/type-menu";
 import { getAllCvGroups, getCvEntryById } from "@/lib/content";
 import { PLAIN, styleAttrs } from "@/lib/type-style";
 
@@ -92,8 +92,6 @@ export default async function EditCv({
                   />
                 </label>
               </div>
-              <TypeMenu name="styleTitle" style={style} target={LIVE_TEXT} />
-
               <div className="grid gap-5 border-t border-rule pt-4 md:grid-cols-[minmax(0,1fr)_110px_150px_auto]">
                 <label className="block">
                   <span className="adm-label">Başlık</span>

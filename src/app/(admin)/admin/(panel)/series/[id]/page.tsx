@@ -17,7 +17,7 @@ import {
 import { LiveEdit } from "@/components/admin/live-edit";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { SaveButton } from "@/components/admin/save-button";
-import { dress, TypeMenu } from "@/components/admin/type-menu";
+import { dress } from "@/components/admin/type-menu";
 import { getAllWorks, getSeriesById } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { mediaUrl } from "@/lib/media";
@@ -66,7 +66,7 @@ export default async function EditSeries({
         <LiveEdit>
           <FieldCard
             label="Seri adı"
-            hint="Türkçesi, İngilizcesi ve yazı tipi"
+            hint="Türkçesi ve İngilizcesi"
             open={isNew}
             preview={
               <FieldPreview
@@ -106,17 +106,12 @@ export default async function EditSeries({
                   />
                 </label>
               </div>
-              <TypeMenu
-                name="styleTitle"
-                style={styles.title}
-                target={LIVE_TEXT}
-              />
             </div>
           </FieldCard>
 
           <FieldCard
             label="Alt satır"
-            hint="Seri adının altındaki kısa satır ve yazı tipi"
+            hint="Seri adının altındaki kısa satır"
             preview={
               <FieldPreview
                 value={series?.meta.tr ?? ""}
@@ -154,17 +149,12 @@ export default async function EditSeries({
                   />
                 </label>
               </div>
-              <TypeMenu
-                name="styleMeta"
-                style={styles.meta}
-                target={LIVE_TEXT}
-              />
             </div>
           </FieldCard>
 
           <FieldCard
             label="Seri metni"
-            hint="Serinin sayfasındaki metin ve yazı tipi"
+            hint="Serinin sayfasındaki metin"
             preview={
               <FieldPreview
                 kind="prose"
@@ -201,11 +191,6 @@ export default async function EditSeries({
                   />
                 </label>
               </div>
-              <TypeMenu
-                name="styleNote"
-                style={styles.note}
-                target={LIVE_TEXT}
-              />
             </div>
           </FieldCard>
 
@@ -266,24 +251,6 @@ export default async function EditSeries({
                 />
                 <span className="text-[13px]">Sitede yayında</span>
               </label>
-            </div>
-
-            {/*
-              The span of years is written after the series name on its card
-              and before the alt satır on its own page, so it is set on its
-              own: slanted or upright, bold or not, in a face of its choosing.
-            */}
-            <div className="mt-5">
-              <TypeMenu
-                name="styleYears"
-                style={styles.years}
-                label="Yıl aralığının yazı tipi"
-              />
-              <p className="adm-note mt-3 max-w-[62ch]">
-                Yıl aralığı, seri kartında adından sonra virgülle, serinin kendi
-                sayfasında ise alt satırın başında yazılır. Buradaki seçim
-                yalnızca yıl aralığını etkiler.
-              </p>
             </div>
           </div>
         </LiveEdit>

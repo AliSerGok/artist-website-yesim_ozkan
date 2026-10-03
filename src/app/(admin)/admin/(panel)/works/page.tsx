@@ -3,19 +3,30 @@ import Link from "next/link";
 import {
   deleteWorkRowAction,
   reorderWorksAction,
+  saveWorksTypeAction,
 } from "@/app/(admin)/admin/actions";
 import { ActionForm } from "@/components/admin/action-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
-import { getAllSeries, getAllWorks } from "@/lib/content";
+import { TypeCard } from "@/components/admin/type-card";
+import { getAllSeries, getAllWorks, getWorkStyles } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { mediaUrl } from "@/lib/media";
 import { innerStyleAttrs, styleAttrs } from "@/lib/type-style";
 
+/* What each menu dresses: its own specimen, and the list below where that
+   list already shows the thing being dressed. */
+const TITLES = '.adm-row-title, [data-dress="styleTitle"]';
+const YEARS = '.adm-row-year, [data-dress="styleYear"]';
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminWorks() {
-  const [works, series] = await Promise.all([getAllWorks(), getAllSeries()]);
+  const [works, series, styles] = await Promise.all([
+    getAllWorks(),
+    getAllSeries(),
+    getWorkStyles(),
+  ]);
   const seriesTitle = new Map(series.map((item) => [item.id, item.title.tr]));
   const label = dict("tr").medium;
 
@@ -34,8 +45,42 @@ export default async function AdminWorks() {
         sayfada tek tek görünmez, serinin sayfasında listelenir.
       </p>
 
+      <TypeCard
+        action={saveWorksTypeAction}
+        label="Bütün işlerin yazı tipi"
+        note="Sitedeki her iş adını, künyesini ve metnini bu yüzlerle yazar — kartlarda, büyütülmüş görünümde ve işin kendi sayfasında. Tek tek seçilmez; buradaki seçim hepsini birden değiştirir."
+        choices={[
+          {
+            name: "styleTitle",
+            style: styles.title,
+            label: "Adların yazı tipi",
+            sample: "Uzun Sabah",
+            fields: TITLES,
+          },
+          {
+            name: "styleYear",
+            style: styles.year,
+            label: "Adın yanındaki yıl",
+            sample: "2026",
+            fields: YEARS,
+          },
+          {
+            name: "styleCaption",
+            style: styles.caption,
+            label: "Künye satırları",
+            sample: "Ketende yağlıboya, 120 × 90 cm",
+          },
+          {
+            name: "styleNote",
+            style: styles.note,
+            label: "Eser metinleri",
+            sample: "Kadıköy'deki atölyenin kuzey duvarı.",
+          },
+        ]}
+      />
+
       <SortableList
-        className="mt-8 border-t border-rule"
+        className="mt-6 border-t border-rule"
         action={reorderWorksAction}
         rows={works.map((work) => ({
           id: work.id,
@@ -57,12 +102,12 @@ export default async function AdminWorks() {
               <div className="min-w-0">
                 <Link
                   href={`/admin/works/${work.id}`}
-                  className="font-serif text-[18px] leading-tight hover:text-mute"
+                  className="adm-row-title font-serif text-[18px] leading-tight hover:text-mute"
                   {...styleAttrs(work.styles.title)}
                 >
                   {work.title.tr}
                   <span
-                    className="text-mute-2"
+                    className="adm-row-year text-mute-2"
                     {...innerStyleAttrs(work.styles.year)}
                   >
                     , {work.year}

@@ -3,19 +3,29 @@ import Link from "next/link";
 import {
   deleteSeriesRowAction,
   reorderSeriesAction,
+  saveSeriesTypeAction,
 } from "@/app/(admin)/admin/actions";
 import { ActionForm } from "@/components/admin/action-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
-import { getAllSeries, getAllWorks } from "@/lib/content";
+import { TypeCard } from "@/components/admin/type-card";
+import { getAllSeries, getAllWorks, getSeriesStyles } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { mediaUrl } from "@/lib/media";
 import { innerStyleAttrs, styleAttrs } from "@/lib/type-style";
 
+/* What each menu dresses: its own specimen, and the list below it. */
+const TITLES = '.adm-row-title, [data-dress="styleTitle"]';
+const YEARS = '.adm-row-year, [data-dress="styleYears"]';
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminSeries() {
-  const [series, works] = await Promise.all([getAllSeries(), getAllWorks()]);
+  const [series, works, styles] = await Promise.all([
+    getAllSeries(),
+    getAllWorks(),
+    getSeriesStyles(),
+  ]);
   const label = dict("tr").medium;
 
   return (
@@ -34,8 +44,42 @@ export default async function AdminSeries() {
         sayfasındaki “Seri” alanını kullan.
       </p>
 
+      <TypeCard
+        action={saveSeriesTypeAction}
+        label="Bütün serilerin yazı tipi"
+        note="Sitedeki her seri adını, alt satırını ve metnini bu yüzlerle yazar — kartlarda ve serinin kendi sayfasında. Tek tek seçilmez; buradaki seçim hepsini birden değiştirir."
+        choices={[
+          {
+            name: "styleTitle",
+            style: styles.title,
+            label: "Adların yazı tipi",
+            sample: "Kıvrım",
+            fields: TITLES,
+          },
+          {
+            name: "styleYears",
+            style: styles.years,
+            label: "Adın yanındaki yıl aralığı",
+            sample: "2023–2025",
+            fields: YEARS,
+          },
+          {
+            name: "styleMeta",
+            style: styles.meta,
+            label: "Alt satırlar",
+            sample: "4 iş, serigrafi",
+          },
+          {
+            name: "styleNote",
+            style: styles.note,
+            label: "Seri metinleri",
+            sample: "Aynı perdenin dört kez baskıya alınmış hali.",
+          },
+        ]}
+      />
+
       <SortableList
-        className="mt-8 border-t border-rule"
+        className="mt-6 border-t border-rule"
         action={reorderSeriesAction}
         rows={series.map((item) => {
           const members = works.filter((work) => work.seriesId === item.id);
@@ -62,12 +106,12 @@ export default async function AdminSeries() {
                 <div className="min-w-0">
                   <Link
                     href={`/admin/series/${item.id}`}
-                    className="font-serif text-[18px] leading-tight hover:text-mute"
+                    className="adm-row-title font-serif text-[18px] leading-tight hover:text-mute"
                     {...styleAttrs(item.styles.title)}
                   >
                     {item.title.tr}
                     <span
-                      className="text-mute-2"
+                      className="adm-row-year text-mute-2"
                       {...innerStyleAttrs(item.styles.years)}
                     >
                       , {item.years}
