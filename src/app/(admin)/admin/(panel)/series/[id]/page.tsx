@@ -9,11 +9,6 @@ import {
 } from "@/app/(admin)/admin/actions";
 import { BulkUpload } from "@/components/admin/bulk-upload";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import {
-  FieldCard,
-  FieldPreview,
-  LIVE_TEXT,
-} from "@/components/admin/field-card";
 import { LiveEdit } from "@/components/admin/live-edit";
 import { DragHandle, SortableList } from "@/components/admin/sortable-list";
 import { SaveButton } from "@/components/admin/save-button";
@@ -55,29 +50,65 @@ export default async function EditSeries({
       </div>
 
       <p className="adm-note mt-3 max-w-[64ch]">
-        Her kart sitede göründüğü gibi duruyor; yazmak için “Düzenle”ye bas.
-        Aynı anda tek kart açık kalır. Her yazının kendi yazı tipi, kalını ve
-        italiği var — seçtiğin anda kartın üstünde görürsün.
+        Serinin kendi yazıları ve ayarları. Üstteki kutu serinin sayfasının
+        başını sitede göründüğü gibi gösterir; yazdıkça değişir. Yazı tipi
+        burada seçilmez — bütün seriler aynı yüzle yazılır, onu{" "}
+        <Link href="/admin/series" className="underline">
+          Seriler
+        </Link>{" "}
+        sayfasının başındaki karttan değiştirirsin.
       </p>
 
       <form action={saveSeriesAction} className="mt-8 flex flex-col gap-5">
         {series && <input type="hidden" name="id" value={series.id} />}
 
         <LiveEdit>
-          <FieldCard
-            label="Seri adı"
-            hint="Türkçesi ve İngilizcesi"
-            open={isNew}
-            preview={
-              <FieldPreview
-                kind="title"
-                value={series?.title.tr ?? ""}
-                style={styles.title}
-                empty="Seri adı yazılmadı."
-              />
-            }
-          >
-            <div className="flex flex-col gap-5">
+          <div className="adm-card flex flex-col gap-3.5" data-card>
+            <div className="adm-card-head">
+              <span className="label">Seri yazıları</span>
+              <span className="adm-lang">TR</span>
+            </div>
+
+            {/* The head of the series' page, as the site sets it. */}
+            <div className="adm-preview" data-preview>
+              <div
+                className="adm-live-title font-serif text-[20px] leading-[1.25]"
+                {...styleAttrs(styles.title)}
+              >
+                {series?.title.tr || (
+                  <span className="text-mute-3">Seri adı yazılmadı.</span>
+                )}
+              </div>
+              <div
+                className="mt-1.5 text-[13px] leading-[1.6] text-mute-2"
+                {...styleAttrs(styles.meta)}
+              >
+                {series?.years && (
+                  <>
+                    <span {...innerStyleAttrs(styles.years)}>
+                      {series.years}
+                    </span>
+                    {series.meta.tr ? " — " : ""}
+                  </>
+                )}
+                <span className="adm-live-meta">{series?.meta.tr ?? ""}</span>
+              </div>
+              <div
+                className="adm-live-note adm-prose mt-3 text-[14px] leading-[1.7] text-ink-soft"
+                {...styleAttrs(styles.note)}
+              >
+                {(series?.note.tr ?? "")
+                  .split(/\n\s*\n/)
+                  .filter((part) => part.trim())
+                  .map((part, index) => (
+                    <p key={index}>{part}</p>
+                  ))}
+              </div>
+            </div>
+
+            {/* Every field at once: a series is three short things to say, and
+                folding each one away behind its own button only hid them. */}
+            <div className="flex flex-col gap-5 border-t border-rule pt-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="block">
                   <span className="adm-label">Seri adı (Türkçe)</span>
@@ -87,7 +118,7 @@ export default async function EditSeries({
                     defaultValue={series?.title.tr ?? ""}
                     required
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-title"
                     data-live-lang="tr"
                     {...dress("styleTitle", styles.title)}
                   />
@@ -100,27 +131,13 @@ export default async function EditSeries({
                     defaultValue={series?.title.en ?? ""}
                     placeholder="Boş bırakılırsa Türkçesi kullanılır"
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-title"
                     data-live-lang="en"
                     {...dress("styleTitle", styles.title)}
                   />
                 </label>
               </div>
-            </div>
-          </FieldCard>
 
-          <FieldCard
-            label="Alt satır"
-            hint="Seri adının altındaki kısa satır"
-            preview={
-              <FieldPreview
-                value={series?.meta.tr ?? ""}
-                style={styles.meta}
-                empty="Alt satır yazılmadı."
-              />
-            }
-          >
-            <div className="flex flex-col gap-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="block">
                   <span className="adm-label">Alt satır (Türkçe)</span>
@@ -130,7 +147,7 @@ export default async function EditSeries({
                     defaultValue={series?.meta.tr ?? ""}
                     placeholder="4 iş, serigrafi"
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-meta"
                     data-live-lang="tr"
                     {...dress("styleMeta", styles.meta)}
                   />
@@ -143,28 +160,13 @@ export default async function EditSeries({
                     defaultValue={series?.meta.en ?? ""}
                     placeholder="4 works, screenprint"
                     data-live="line"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-meta"
                     data-live-lang="en"
                     {...dress("styleMeta", styles.meta)}
                   />
                 </label>
               </div>
-            </div>
-          </FieldCard>
 
-          <FieldCard
-            label="Seri metni"
-            hint="Serinin sayfasındaki metin"
-            preview={
-              <FieldPreview
-                kind="prose"
-                value={series?.note.tr ?? ""}
-                style={styles.note}
-                empty="Metin yazılmadı."
-              />
-            }
-          >
-            <div className="flex flex-col gap-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="block">
                   <span className="adm-label">Seri metni (Türkçe)</span>
@@ -173,7 +175,7 @@ export default async function EditSeries({
                     className="adm-textarea"
                     defaultValue={series?.note.tr ?? ""}
                     data-live="text"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-note"
                     data-live-lang="tr"
                     {...dress("styleNote", styles.note)}
                   />
@@ -185,23 +187,21 @@ export default async function EditSeries({
                     className="adm-textarea"
                     defaultValue={series?.note.en ?? ""}
                     data-live="text"
-                    data-live-target={LIVE_TEXT}
+                    data-live-target=".adm-live-note"
                     data-live-lang="en"
                     {...dress("styleNote", styles.note)}
                   />
                 </label>
               </div>
             </div>
-          </FieldCard>
+          </div>
 
           <div className="adm-card">
             <div className="adm-card-head">
-              <span className="label">
-                Yıl aralığı, teknik, kapak işi ve yayın
-              </span>
+              <span className="label">Ayarlar</span>
             </div>
 
-            <div className="mt-5 grid gap-5 md:grid-cols-4">
+            <div className="mt-5 grid gap-5 md:grid-cols-3">
               <label className="block">
                 <span className="adm-label">Yıl aralığı</span>
                 <input
@@ -242,14 +242,39 @@ export default async function EditSeries({
                   ))}
                 </select>
               </label>
-              <label className="flex items-center gap-2.5 self-end pb-2.5">
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3 border-t border-rule pt-4">
+              <label className="flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  name="showTitles"
+                  defaultChecked={series?.showTitles ?? true}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#14140f]"
+                />
+                <span className="text-[13px]">
+                  Eser adlarını göster
+                  <span className="adm-note mt-0.5 block max-w-[62ch]">
+                    Kapalıyken serinin sayfası yalnızca görsellerden oluşur.
+                    Bilgi kaybolmaz — bir esere tıklayınca adı, yılı ve metni
+                    yine görünür.
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2.5">
                 <input
                   type="checkbox"
                   name="published"
                   defaultChecked={series?.published ?? true}
-                  className="h-4 w-4 accent-[#14140f]"
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#14140f]"
                 />
-                <span className="text-[13px]">Sitede yayında</span>
+                <span className="text-[13px]">
+                  Sitede yayında
+                  <span className="adm-note mt-0.5 block max-w-[62ch]">
+                    Kapalıyken seri taslaktır; sitede görünmez.
+                  </span>
+                </span>
               </label>
             </div>
           </div>

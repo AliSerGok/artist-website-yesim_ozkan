@@ -60,8 +60,9 @@ function weightOf(
   entry: GridEntry,
   columnWidth: number,
   maxTileHeight: number,
+  named: boolean,
 ): number {
-  const captionRows = entry.kind === "series" ? 0.36 : 0.28;
+  const captionRows = entry.kind === "series" ? 0.36 : named ? 0.28 : 0;
   const natural = 1 / Math.max(entry.item.ratio, 0.1);
   const capped =
     columnWidth > 0 && maxTileHeight > 0
@@ -83,6 +84,7 @@ function toColumns(
   count: number,
   columnWidth: number,
   maxTileHeight: number,
+  named: boolean,
 ): GridEntry[][] {
   const columns: GridEntry[][] = Array.from({ length: count }, () => []);
   const heights = new Array<number>(count).fill(0);
@@ -93,7 +95,7 @@ function toColumns(
       if (heights[index] < heights[target] - 0.001) target = index;
     }
     columns[target].push(entry);
-    heights[target] += weightOf(entry, columnWidth, maxTileHeight);
+    heights[target] += weightOf(entry, columnWidth, maxTileHeight, named);
   }
 
   return columns;
@@ -155,6 +157,7 @@ export function WorkGallery({
   series = [],
   counterTotal,
   openWork = null,
+  showTitles = true,
 }: {
   lang: Lang;
   works: GalleryWork[];
@@ -166,6 +169,12 @@ export function WorkGallery({
    * home page sends a series member here with.
    */
   openWork?: string | null;
+  /**
+   * Whether the works are named under their pictures. Off -- a series read as
+   * one piece -- the grid is pictures alone; the viewer a picture opens into
+   * still carries the name, the year and everything written about the work.
+   */
+  showTitles?: boolean;
 }) {
   const t = dict(lang);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -248,7 +257,13 @@ export function WorkGallery({
     [series, works],
   );
 
-  const columns = toColumns(items, columnCount, columnWidth, maxTileHeight);
+  const columns = toColumns(
+    items,
+    columnCount,
+    columnWidth,
+    maxTileHeight,
+    showTitles,
+  );
 
   return (
     <>
@@ -271,6 +286,7 @@ export function WorkGallery({
                   key={entry.item.id}
                   lang={lang}
                   work={entry.item}
+                  named={showTitles}
                   onOpen={() => open(entry.index)}
                 />
               ),
@@ -309,10 +325,13 @@ export function WorkGallery({
 function WorkTile({
   lang,
   work,
+  named,
   onOpen,
 }: {
   lang: Lang;
   work: GalleryWork;
+  /** Whether the work is named under its picture; see WorkGallery. */
+  named: boolean;
   onOpen: () => void;
 }) {
   return (
@@ -335,23 +354,25 @@ function WorkTile({
           alt={work.title}
           zoom
         />
-        <figcaption className="mt-[14px]">
-          <TitleLine
-            title={work.title}
-            aside={work.year}
-            className="font-serif text-[17px] leading-[1.3]"
-            style={work.styles.title}
-            asideStyle={work.styles.year}
-          />
-          {work.caption && (
-            <div
-              className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2"
-              {...styleAttrs(work.styles.caption)}
-            >
-              {work.caption}
-            </div>
-          )}
-        </figcaption>
+        {named && (
+          <figcaption className="mt-[14px]">
+            <TitleLine
+              title={work.title}
+              aside={work.year}
+              className="font-serif text-[17px] leading-[1.3]"
+              style={work.styles.title}
+              asideStyle={work.styles.year}
+            />
+            {work.caption && (
+              <div
+                className="mt-[5px] text-[11px] tracking-[0.05em] text-mute-2"
+                {...styleAttrs(work.styles.caption)}
+              >
+                {work.caption}
+              </div>
+            )}
+          </figcaption>
+        )}
       </a>
     </figure>
   );

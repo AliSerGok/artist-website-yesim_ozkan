@@ -110,6 +110,7 @@ interface SeriesRow {
   note_tr: string;
   note_en: string;
   cover_work_id: string | null;
+  show_titles: number;
   published: number;
 }
 
@@ -181,6 +182,7 @@ function toSeries(row: SeriesRow, styles: Series["styles"]): Series {
     meta: { tr: row.meta_tr, en: row.meta_en },
     note: { tr: row.note_tr, en: row.note_en },
     coverWorkId: row.cover_work_id,
+    showTitles: row.show_titles === 1,
     published: row.published === 1,
     styles,
   };

@@ -183,6 +183,7 @@ export interface SeriesInput {
   noteTr: string;
   noteEn: string;
   coverWorkId: string | null;
+  showTitles: boolean;
   published: boolean;
 }
 
@@ -200,7 +201,7 @@ export async function saveSeries(input: SeriesInput): Promise<string> {
       .prepare(
         `UPDATE series SET slug = ?, medium = ?, years = ?, title_tr = ?,
            title_en = ?, meta_tr = ?, meta_en = ?, note_tr = ?, note_en = ?,
-           cover_work_id = ?, published = ?,
+           cover_work_id = ?, show_titles = ?, published = ?,
            updated_at = datetime('now')
          WHERE id = ?`,
       )
@@ -215,6 +216,7 @@ export async function saveSeries(input: SeriesInput): Promise<string> {
         input.noteTr,
         input.noteEn,
         input.coverWorkId,
+        input.showTitles ? 1 : 0,
         input.published ? 1 : 0,
         input.id,
       )
@@ -231,8 +233,8 @@ export async function saveSeries(input: SeriesInput): Promise<string> {
     .prepare(
       `INSERT INTO series (id, slug, medium, years, sort_order, title_tr,
          title_en, meta_tr, meta_en, note_tr, note_en, cover_work_id,
-         published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         show_titles, published)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
@@ -247,6 +249,7 @@ export async function saveSeries(input: SeriesInput): Promise<string> {
       input.noteTr,
       input.noteEn,
       input.coverWorkId,
+      input.showTitles ? 1 : 0,
       input.published ? 1 : 0,
     )
     .run();

@@ -96,6 +96,7 @@ export default async function SeriesPage({
         lang={lang}
         works={works.map((work) => toGalleryWork(work, lang))}
         openWork={openWork}
+        showTitles={series.showTitles}
       />
     </main>
   );

@@ -48,6 +48,7 @@ const SERIES_SEED: Omit<Series, "styles">[] = [
       en: "The same curtain printed four times under changing light. Each print carries fewer layers than the last, until only the trace of the fold remains.",
     },
     coverWorkId: "w2",
+    showTitles: true,
     published: true,
   },
   {
@@ -63,6 +64,7 @@ const SERIES_SEED: Omit<Series, "styles">[] = [
       en: "Works on paper holding the moment of passing from one room to the next. Ink and pigment bring the two different lights on either side of the threshold onto one surface.",
     },
     coverWorkId: "w7",
+    showTitles: true,
     published: true,
   },
   {
@@ -81,6 +83,7 @@ const SERIES_SEED: Omit<Series, "styles">[] = [
       en: "The same room painted three times at three different sizes. The widest takes in the whole wall, the narrowest only the gap between window and door; as the measure changes, so does what the room looks like.",
     },
     coverWorkId: "w16",
+    showTitles: true,
     published: true,
   },
 ];

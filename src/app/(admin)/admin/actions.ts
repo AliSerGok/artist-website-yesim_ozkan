@@ -241,6 +241,7 @@ export async function saveSeriesAction(form: FormData) {
         noteTr: text(form, "noteTr"),
         noteEn: text(form, "noteEn"),
         coverWorkId: nullable(form, "coverWorkId"),
+        showTitles: flag(form, "showTitles"),
         published: flag(form, "published"),
       });
     },

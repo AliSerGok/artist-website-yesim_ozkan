@@ -105,6 +105,13 @@ export interface Series {
   note: Localized;
   /** Id of the work whose image fronts the series card. */
   coverWorkId: string | null;
+  /**
+   * Whether the works on the series' own page are named under their pictures.
+   * Off, the page is pictures alone -- what a series read as one piece asks
+   * for. Nothing is hidden by it: a work opened from there still arrives with
+   * its name, its year and everything written about it.
+   */
+  showTitles: boolean;
   published: boolean;
   styles: StyleMap<keyof typeof SERIES_STYLES>;
 }
