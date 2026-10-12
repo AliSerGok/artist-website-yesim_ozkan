@@ -100,7 +100,7 @@ export function SiteHeader({ lang }: { lang: Lang }) {
       <header className="hdr sticky top-0 z-40 border-b border-rule bg-[rgba(253,253,252,0.93)] backdrop-blur-[8px]">
         <Link
           href={`/${lang}`}
-          className="hdr-name font-serif text-[24px] leading-none tracking-[0.005em]"
+          className="hdr-name font-avenir text-[24px] leading-none tracking-[0.005em]"
         >
           {t.siteName}
         </Link>
