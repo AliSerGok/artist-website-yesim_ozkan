@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import {
   deleteExhibitionAction,
@@ -11,6 +11,7 @@ import { LiveEdit } from "@/components/admin/live-edit";
 import { SaveButton } from "@/components/admin/save-button";
 import { dress } from "@/components/admin/type-menu";
 import { getExhibitionById } from "@/lib/content";
+import { EXHIBITIONS_ENABLED } from "@/lib/site";
 import { styleAttrs } from "@/lib/type-style";
 import { EXHIBITION_STYLES } from "@/lib/types";
 
@@ -21,6 +22,7 @@ export default async function EditExhibition({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  if (!EXHIBITIONS_ENABLED) redirect("/admin");
   const { id } = await params;
   const isNew = id === "new";
   const exhibition = isNew ? null : await getExhibitionById(id);

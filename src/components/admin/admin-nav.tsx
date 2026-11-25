@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { signOutAction } from "@/app/(admin)/admin/auth-actions";
+import { EXHIBITIONS_ENABLED } from "@/lib/site";
 
 const TABS = [
   { href: "/admin/pages/home", label: "Ana sayfa" },
@@ -16,7 +17,7 @@ const TABS = [
   { href: "/admin/pages/about", label: "Hakkında" },
   { href: "/admin/pages/contact", label: "İletişim" },
   { href: "/admin/account", label: "Hesap" },
-];
+].filter((tab) => EXHIBITIONS_ENABLED || tab.href !== "/admin/exhibitions");
 
 /**
  * A dot that lights up between the click and the new page. Admin pages are

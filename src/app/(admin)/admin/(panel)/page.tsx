@@ -7,6 +7,7 @@ import {
   getAllWorks,
   getHome,
 } from "@/lib/content";
+import { EXHIBITIONS_ENABLED } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -33,11 +34,15 @@ export default async function AdminHome() {
       title: "Seriler",
       detail: `${series.length} seri · ${inSeries} iş bir seride`,
     },
-    {
-      href: "/admin/exhibitions",
-      title: "Sergiler",
-      detail: `${exhibitions.length} öne çıkan sergi`,
-    },
+    ...(EXHIBITIONS_ENABLED
+      ? [
+          {
+            href: "/admin/exhibitions",
+            title: "Sergiler",
+            detail: `${exhibitions.length} öne çıkan sergi`,
+          },
+        ]
+      : []),
     {
       href: "/admin/cv",
       title: "Katılımlar",

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import {
   deleteExhibitionRowAction,
@@ -15,6 +16,7 @@ import {
   getExhibitionStyles,
 } from "@/lib/content";
 import { mediaUrl } from "@/lib/media";
+import { EXHIBITIONS_ENABLED } from "@/lib/site";
 import type { ExhibitionLayout } from "@/lib/types";
 import { styleAttrs } from "@/lib/type-style";
 
@@ -33,6 +35,7 @@ const LAYOUT_LABEL: [ExhibitionLayout, string][] = [
 export const dynamic = "force-dynamic";
 
 export default async function AdminExhibitions() {
+  if (!EXHIBITIONS_ENABLED) redirect("/admin");
   const [exhibitions, styles, layout] = await Promise.all([
     getAllExhibitions(),
     getExhibitionStyles(),

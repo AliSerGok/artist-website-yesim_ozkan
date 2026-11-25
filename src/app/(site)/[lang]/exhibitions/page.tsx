@@ -8,6 +8,7 @@ import { dict } from "@/lib/dictionary";
 import { exhibitionHref } from "@/lib/routes";
 import { styleAttrs } from "@/lib/type-style";
 import { isLang } from "@/lib/i18n";
+import { EXHIBITIONS_ENABLED } from "@/lib/site";
 
 /**
  * How much of a show's text this page carries. Past it the note is cut at a
@@ -53,7 +54,7 @@ export default async function ExhibitionsPage({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  if (!isLang(lang)) notFound();
+  if (!isLang(lang) || !EXHIBITIONS_ENABLED) notFound();
 
   const t = dict(lang);
   const [exhibitions, layout] = await Promise.all([

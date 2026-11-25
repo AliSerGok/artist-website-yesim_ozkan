@@ -6,6 +6,7 @@ import { ImageFrame } from "@/components/image-frame";
 import { getExhibitionBySlug } from "@/lib/content";
 import { dict } from "@/lib/dictionary";
 import { isLang } from "@/lib/i18n";
+import { EXHIBITIONS_ENABLED } from "@/lib/site";
 import { styleAttrs } from "@/lib/type-style";
 
 export async function generateMetadata({
@@ -42,7 +43,7 @@ export default async function ExhibitionPage({
   params: Promise<{ lang: string; slug: string }>;
 }) {
   const { lang, slug } = await params;
-  if (!isLang(lang)) notFound();
+  if (!isLang(lang) || !EXHIBITIONS_ENABLED) notFound();
 
   const exhibition = await getExhibitionBySlug(slug);
   if (!exhibition) notFound();

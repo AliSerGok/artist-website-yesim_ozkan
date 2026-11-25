@@ -2,13 +2,19 @@ import type { MetadataRoute } from "next";
 
 import { getSeriesList, getWorks } from "@/lib/content";
 import { LANGS } from "@/lib/i18n";
-import { SITE_URL } from "@/lib/site";
+import { EXHIBITIONS_ENABLED, SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [works, series] = await Promise.all([getWorks(), getSeriesList()]);
-  const sections = ["", "/works", "/exhibitions", "/about", "/contact"];
+  const sections = [
+    "",
+    "/works",
+    ...(EXHIBITIONS_ENABLED ? ["/exhibitions"] : []),
+    "/about",
+    "/contact",
+  ];
 
   const pages = LANGS.flatMap((lang) => [
     ...sections.map((section) => `/${lang}${section}`),

@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 
 import { dict } from "@/lib/dictionary";
 import type { Lang } from "@/lib/i18n";
+import { EXHIBITIONS_ENABLED } from "@/lib/site";
 
 type Section = "home" | "works" | "exhibitions" | "about" | "contact";
 
@@ -16,7 +17,10 @@ const SECTIONS: { key: Section; path: string }[] = [
   { key: "exhibitions", path: "/exhibitions" },
   { key: "about", path: "/about" },
   { key: "contact", path: "/contact" },
-];
+].filter(({ key }) => EXHIBITIONS_ENABLED || key !== "exhibitions") as {
+  key: Section;
+  path: string;
+}[];
 
 export function SiteHeader({ lang }: { lang: Lang }) {
   const t = dict(lang);
